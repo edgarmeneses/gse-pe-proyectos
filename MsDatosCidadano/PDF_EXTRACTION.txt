@@ -1,0 +1,1887 @@
+
+--- Página 1 ---
+  
+ 
+Microservicio MsDatosCiudadano  
+Documento Versión: 1. 2 
+Gestión de Seguridad Electrónica  
+  Fecha generación:  01/12/2025 
+    
+ 
+  
+
+--- Página 2 ---
+ 
+ 
+Microservicio MsDatosCiudadano  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 03/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+1.1 29/11/2025  Control de Arquitectura  Corrección del documento 
+basado en observaciones  
+1.2 30/11/2025  Control de Arquitectura  Revisión estructura de 
+objetos JSON  
+    
+    
+--- Página 3 ---
+ 
+ 
+Microservicio MsDatosCiudadano  3 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ................................ ................................ ..... 4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ................................ ..........................  4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ ................................ ..........  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................................ ..........................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ ................................ ...............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ................................ ...............  5 
+3.1 Microservicio MsDatosCiudadano  ................................ ................................ ................................ ................................ ...........  5 
+3.1.1 Endpoint: Crear Ciudadano  ................................ ................................ ................................ ................................ ..............  5 
+3.1.2 Endpoint: ActualizarCiudadano  ................................ ................................ ................................ ................................ ....10 
+3.1.3 Endpoint: ObtenerCiudadano  ................................ ................................ ................................ ................................ ........15 
+3.1.4 Endpoint: ListarCiudadanos  ................................ ................................ ................................ ................................ ........... 16 
+3.1.5 Endpoint: ConsultarInformePericial ................................ ................................ ................................ ............................ 18 
+3.1.6 Endpoint: CrearAlerta  ................................ ................................ ................................ ................................ ......................... 20 
+3.1.7 Endpoint: ListarAlerta  ................................ ................................ ................................ ................................ ......................... 22 
+3.1.8 Endpoint: ConsultarCambiosDomicilio  ................................ ................................ ................................ ..................... 24 
+3.1.9 Endpoint: ConsultaMasiva  ................................ ................................ ................................ ................................ ............... 27 
+3.1.10  Endpoint: ConsultarAlerta  ................................ ................................ ................................ ................................ ................ 31 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- Página 4 ---
+ 
+ 
+Microservicio MsDatosCiudadano  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+--- Página 5 ---
+ 
+ 
+Microservicio MsDatosCiudadano  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio  MsDatos Ciudadano  
+El Microservicio de Ciudadano es un componente esencial de la plataforma, encargado de la gestión 
+centralizada de la información de identificación (DNI) de los ciudadanos. Su propósito principal es 
+actuar como la única fuente de verdad para los datos de lo s ciudadanos, garantizando la consistencia 
+y la integridad en toda la plataforma.  
+3.1.1  Endpoint : Crear  Ciudadano  
+Este Endpoint  permite crear un nuevo usuario en el sistema  
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Entrada  { 
+  "tipoDocumento": "string",  
+  "numeroDocumento": "string",  
+  "primerNombre": "string",  
+  "segundoNombre": "string",  
+  "primerApellido": "string",  
+  "segundoApellido": "string",  
+  "fechaNacimiento": {  
+    "string": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+  }, 
+  "sexo": "string",  
+  "estadoCivil": "string",  
+  "nacionalidad": "string",  
+  "paisNacimiento": "string",  
+  "departamentoNacimiento": "string",  
+  "provinciaNacimiento": "string",  
+  "distritoNacimiento": "string",  
+  "grupoSanguineo": "string",  
+--- Página 6 ---
+ 
+ 
+Microservicio MsDatosCiudadano  6 
+  "estatura": "string",  
+  "informacionParental": {  
+    "primerNombrePaterno": "string",  
+    "segundoNombrePaterno": "string",  
+    "primerApellidoPaterno": "string",  
+    "segundoApellidoPaterno": "string",  
+    "primerNombreMaterno": "string",  
+    "segundoNombreMaterno": "string",  
+    "primerApellidoMaterno": "string",  
+    "segundoApellidoMaterno": "string",  
+    "tipoDocumentoPaterno": "string",  
+    "numeroDocumentoPaterno": "string",  
+    "tipoDocumentoMaterno": "string",  
+    "numeroDocumentoMaterno": "string"  
+  }, 
+  "direccionResidencia": {  
+    "pais": "string",  
+    "departamento": "string",  
+    "provincia": "string",  
+    "distrito": "string",  
+    "centroPoblado": "string",  
+    "barrio": "string",  
+    "direccion": "string",  
+    "codigoPostal": "string"  
+  }, 
+  "contacto": {  
+    "telefonoFijo": "string",  
+    "telefonoMovil": "string",  
+    "correoElectronico": "string",  
+    "correoAlternativo": "string"  
+  }, 
+  "informacionElectoral": {  
+    "inscritoVotacion": "boolean",  
+    "departamentoVotacion": "string",  
+    "provinciaVotacion": "string",  
+    "distritoVotacion": "string",  
+    "lugarVotacion": "string"  
+  }, 
+  "datosBiometricos": {  
+    "huellasDactilares": [  
+      { 
+        "nombreDedo": "string",  
+        "formato": "string",  
+        "valorBase64": "string"  
+      } 
+    ], 
+    "fotografia": [  
+      { 
+        "formato": "string",  
+        "valorBase64": "string",  
+        "resolucion": "string",  
+        "modoCaptura": "string"  
+      } 
+    ], 
+    "firmaDigital": [  
+      { 
+        "formato": "string",  
+        "valorBase64": "string",  
+        "dispositivoCaptura": "string"  
+      } 
+    ], 
+    "fechaRegistro": {  
+      "string": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+    } 
+--- Página 7 ---
+ 
+ 
+Microservicio MsDatosCiudadano  7 
+  } 
+} 
+Respuesta  { 
+  "id": "string",  
+  "fechaCreacion": {  
+    "string": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.1.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+tipoDocumento  Ciudadano.tipoDocumento  String  Sí 1 50 
+numeroDocumento  Ciudadano.numeroDocumento  String  Sí 1 50 
+primerNombre  Ciudadano. primerNombre  String  Sí 1 100 
+segundoNombre  Ciudadano. segundoNombre  String  No 1 100 
+primerApellido  Ciudadano. primerApellido  String  Sí 1 100 
+segundoApellido  Ciudadano. segundoApellido  String  No 1 100 
+fechaNacimiento  Ciudadano. fechaNacimiento  String  Sí 1 20 
+sexo  Ciudadano. sexo  String  Sí 1 15 
+estadoCivil  Ciudadano. estadoCivil  String  No 1 20 
+nacionalidad  Ciudadano. nacionalidad  String  Sí 1 50 
+paisNacimiento  Ciudadano. paisNacimiento  String  Sí 1 50 
+departamentoNacimi
+ento  Ciuddadano.departamentoNac
+imiento  String  Sí 1 50 
+provinciaNacimiento  Ciudadano. 
+provinciaNacimiento  String  Sí 1 50 
+distritoNacimiento  Ciudadano. distritoNacimiento  String  Sí 1 50 
+grupoSanguineo  Ciudadano. grupoSanguineo  String  No 1 20 
+estatura  Ciudadano. estatura  String  No 1 20 
+informacionParental  Ciudadano.informacionParent
+al Object  No NA NA 
+InformacionParental. 
+primerNombrePatern
+o Ciudadano.informacionParent
+al. primerNombrePaterno  String  No 1 100 
+InformacionParental.
+segundoNombrePate
+rno 
+ Ciudadano.informacionParent
+al. segundoNombrePaterno  String  No 1 100 
+--- Página 8 ---
+ 
+ 
+Microservicio MsDatosCiudadano  8 
+InformacionParental. 
+primerApellido Patern
+o Ciudadano.informacionParent
+al. segundoNombrePaterno  String  No 1 100 
+InformacionParental. 
+segundoApellido  Ciudadano.informacionParent
+al. segundoApellido  String  No 1 100 
+InformacionParental. 
+tipoDocumento Pater
+no Ciudadano.informacionParent
+al. tipoDocumentoPaterno  String  No 1 50 
+InformacionParental. 
+numeroDocumento P
+aterno  Ciudadano.informacionParent
+al. numeroDocumento Paterno  String  No 1 50 
+InformacionParental. 
+tipoDocumentoMater
+no Ciudadano.informacionParent
+al. tipoDocumentoMaterno  String  No 1 50 
+InformacionParental. 
+numeroDocumentoM
+aterno  Ciudadano.informacionParent
+al. numeroDocumentoMaterno  String  Sí 1 50 
+InformacionParental. 
+primerNombre Matern
+o Ciudadano.informacionParent
+al. primerNombre Materno  String  No 1 100 
+InformacionParental.
+segundoNombre  
+Materno  
+ Ciudadano.informacionParent
+al. segundoNombre  Materno  String  No 1 100 
+InformacionParental. 
+primerApellido  
+Materno  Ciudadano.informacionParent
+al. primerApellido Materno  String  No 1 100 
+InformacionParental. 
+segundoApellido  
+Materno  Ciudadano.informacionParent
+al. segundoApellido  Materno  String  No 1 100 
+datosBiometricos  Ciudadano. datosBiometricos  Object  Sí Na Na 
+DatosBiometricos. 
+huellasDactilares  Ciuadadano.datosBiometricos. 
+huellasDactilares  Arrayo
+bject  Sí NA NA 
+DatosBiometricos. 
+huellasDactilares  
+. nombreDedo  Ciuadadano.datosBiometricos. 
+HuellasDactilares.  
+nombreDedo  String  Sí 1 30 
+DatosBiometricos. 
+huellasDactilares  
+.formato  Ciuadadano.datosBiometricos. 
+HuellasDactilares.formato  String  Sí 1 30 
+DatosBiometricos. 
+huellasDactilares  
+.valor  Ciuadadano.datosBiometricos. 
+HuellasDactilares.valor  String  Sí 1 NA 
+DatosBiometricos. 
+fotografia  Ciudadano.datosBiometricos. 
+fotografia  Arrayo
+bject  Sí NA NA 
+DatosBiometricos. 
+Fotografia.formato  Ciudadano.datosBiometricos. 
+Fotografia.formato  String  Sí 3 10 
+DatosBiometrico. 
+Fotografia.valorBase
+64 
+ Ciudadano.datosBiometricos. 
+Fotografia.valorBase64  String  Sí 1 Na 
+--- Página 9 ---
+ 
+ 
+Microservicio MsDatosCiudadano  9 
+DatosBiometrico. 
+Fotografia.resolucion  
+ Ciudadano.datosBiometricos. 
+Fotografia.resolucion  String  Sí 1 NA 
+DatosBiometrico. 
+Fotografia.modoCapt
+ura Ciudadano.datosBiometricos. 
+Fotografia.modoCaptura  String  Sí 1 30 
+direccionResidencia  
+ Ciudadano.direccionResidenci
+a Object  Sí NA NA 
+DireccionResidencia .
+pais Ciudadano.direccionResidenci
+a.pais  String  Sí 1 50 
+DireccionResidencia .
+departamento  Ciudadano.direccionResidenci
+a.departamento  String  Sí 1 50 
+direccionResidencia .
+provincia  Ciudadano.direccionResidenci
+a.provincia  String  Sí 1 50 
+DireccionResidenci a.
+distrito  Ciudadano.direccionResidenci
+a.distrito  String  Sí 1 50 
+DireccionResidencia .
+centroPoblado  Ciudadano.direccionResidenci
+a.centroPoblado  String  No 1 100 
+DireccionResidencia .
+barrio  Ciudadano.direccionResidenci
+a.barrio  String  No 1 100 
+DireccionResidencia .
+direccion  Ciudadano.direccionResidenci
+a.direccion  String  Sí 1 100 
+DireccionResidencia .
+codigoPostal  Ciudadano.direccionResidenci
+a.codigoPostal  String  No 4 10 
+ 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+id String  Sí Identificador  del ciudadano creado en el 
+sistema  
+fechaCreacion  String  Sí Fecha de creación del registro en el sistema  
+error  Object  No Objeto qué especifica algún error existente en 
+la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Array Object  No Listado de errores  
+ 
+3.1.1.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Ciudadano creado  exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para crear el ciudadano  
+408 Request Timeout  Tiempo de espera agotado  
+413 Payload Too Large  Tamaño del lote excede el límite  
+--- Página 10 ---
+ 
+ 
+Microservicio MsDatosCiudadano  10 
+422 Unprocessable Entity  Datos válidos  pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+ 
+3.1.2  Endpoint : ActualizarCiudadano  
+Este Endpoint  permite gestionar la actualización de un ciudadano  
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano /{id} 
+API Gateway  Interno  
+Método HTTP  PUT 
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -CENTRO)  
+Entrada    "body": {  
+    "estado": "string",  
+    "tipoDocumento": "string",  
+    "numeroDocumento": "string",  
+    "primerNombre": "string",  
+    "segundoNombre": "string",  
+    "primerApellido": "string",  
+    "segundoApellido": "string",  
+    "fechaNacimiento": {  
+      "string": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+    }, 
+    "sexo": "string",  
+    "estadoCivil": "string",  
+    "nacionalidad": "string",  
+    "paisNacimiento": "string",  
+    "departamentoNacimiento": "string",  
+    "provinciaNacimiento": "string",  
+    "distritoNacimiento": "string",  
+    "grupoSanguineo": "string",  
+    "estatura": "string",  
+    "informacionParental": {  
+      "primerNombrePaterno": "string",  
+      "segundoNombrePaterno": "string",  
+      "primerApellidoPaterno": "string",  
+      "segundoApellidoPaterno": "string",  
+      "primerNombreMaterno": "string",  
+      "segundoNombreMaterno": "string",  
+      "primerApellidoMaterno": "string",  
+      "segundoApellidoMaterno": "string",  
+      "tipoDocumentoPaterno": "string",  
+      "numeroDocumentoPaterno": "string",  
+      "tipoDocumentoMaterno": "string",  
+      "numeroDocumentoMaterno": "string"  
+    }, 
+    "direccionResidencia": {  
+      "pais": "string",  
+      "departamento": "string",  
+      "provincia": "string",  
+      "distrito": "string",  
+      "centroPoblado": "string",  
+--- Página 11 ---
+ 
+ 
+Microservicio MsDatosCiudadano  11 
+      "barrio": "string",  
+      "direccion": "string",  
+      "codigoPostal": "string"  
+    }, 
+    "contacto": {  
+      "telefonoFijo": "string",  
+      "telefonoMovil": "string",  
+      "correoElectronico": "string",  
+      "correoAlternativo": "string"  
+    }, 
+    "informacionElectoral": {  
+      "inscritoVotacion": "boolean",  
+      "departamentoVotacion": "string",  
+      "provinciaVotacion": "string",  
+      "distritoVotacion": "string",  
+      "lugarVotacion": "string"  
+    }, 
+    "datosBiometricos": {  
+      "huellasDactilares": [  
+        { 
+          "nombreDedo": "string",  
+          "formato": "string",  
+          "valorBase64": "string"  
+        } 
+      ], 
+      "fotografia": [  
+        { 
+          "formato": "string",  
+          "valorBase64": "string",  
+          "resolucion": "string",  
+          "modoCaptura": "string"  
+        } 
+      ], 
+      "firmaDigital": [  
+        { 
+          "formato": "string",  
+          "valorBase64": "string",  
+          "dispositivoCaptura": "string"  
+        } 
+      ], 
+      "fechaRegistro": {  
+        "string": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+      } 
+    } 
+  } 
+} 
+Respuesta  { 
+  "id": "string",  
+  "fechaCreacion": {  
+    "type": "string",  
+    "formato": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+  }, 
+  "fechaActualizacion": {  
+    "type": "string",  
+    "formato": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+  }, 
+  "DatosActualizados": "ArrayObject"  
+ } 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+--- Página 12 ---
+ 
+ 
+Microservicio MsDatosCiudadano  12 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.2.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+estado  Ciudadano.estado  String  No 1 20 
+tipoDocumento  Ciudadano.tipoDocumento  String  No 1 50 
+numeroDocumento  Ciudadano.numeroDocumento  String  No 1 50 
+primerNombre  Ciudadano. primerNombre  String  No 1 100 
+segundoNombre  Ciudadano. segundoNombre  String  No 1 100 
+primerApellido  Ciudadano. primerApellido  String  No 1 100 
+segundoApellido  Ciudadano. segundoApellido  String  No 1 100 
+fechaNacimiento  Ciudadano. fechaNacimiento  String  No 1 20 
+sexo  Ciudadano. sexo  String  No 1 15 
+estadoCivil  Ciudadano. estadoCivil  String  No 1 20 
+nacionalidad  Ciudadano. nacionalidad  String  No 1 50 
+paisNacimiento  Ciudadano. paisNacimiento  String  No 1 50 
+departamentoNaci
+miento  Ciuddadano.departamentoNaci
+miento  String  No 1 50 
+provinciaNacimient
+o Ciudadano. 
+provinciaNacimiento  String  No 1 50 
+distritoNacimiento  Ciudadano. distritoNacimiento  String  No 1 50 
+grupoSanguineo  Ciudadano. grupoSanguineo  String  No 1 20 
+estatura  Ciudadano. estatura  String  No 1 20 
+informacionParenta
+l Ciudadano.informacionParental  Object  No NA NA 
+InformacionParenta
+l. 
+primerNombrePater
+no Ciudadano.informacionParental
+. primerNombrePaterno  String  No 1 100 
+InformacionParenta
+l.segundoNombreP
+aterno  Ciudadano.informacionParental
+. segundoNombrePaterno  String  No 1 100 
+InformacionParenta
+l. 
+primerApellidoPate
+rno Ciudadano.informacionParental
+. segundoNombrePaterno  String  No 1 100 
+InformacionParenta
+l. segundoApellido  Ciudadano.informacionParental
+. segundoApellido  String  No 1 100 
+InformacionParenta
+l. 
+tipoDocumentoPate
+rno Ciudadano.informacionParental
+. tipoDocumentoPaterno  String  No 1 50 
+InformacionParenta
+l. Ciudadano.informacionParental
+. numeroDocumentoPaterno  String  No 1 50 
+--- Página 13 ---
+ 
+ 
+Microservicio MsDatosCiudadano  13 
+numeroDocumento
+Paterno  
+InformacionParenta
+l. 
+tipoDocumentoMat
+erno  Ciudadano.informacionParental
+. tipoDocumentoMaterno  String  No 1 50 
+InformacionParenta
+l. 
+numeroDocumento
+Materno  Ciudadano.informacionParental
+. numeroDocumentoMaterno  String  Sí 1 50 
+InformacionParenta
+l. 
+primerNombreMate
+rno Ciudadano.informacionParental
+. primerNombreMaterno  String  No 1 100 
+InformacionParenta
+l.segundoNombre 
+Materno  Ciudadano.informacionParental
+. segundoNombre Materno  String  No 1 100 
+InformacionParenta
+l. primerApellido 
+Materno  Ciudadano.informacionParental
+. primerApellidoMaterno  String  No 1 100 
+InformacionParenta
+l. segundoApellido 
+Materno  Ciudadano.informacionParental
+. segundoApellido Materno  String  No 1 100 
+datosBiometricos  Ciudadano. datosBiometricos  Object  No NA NA 
+DatosBiometricos. 
+huellasDactilares  Ciuadadano.datosBiometricos. 
+huellasDactilares  Arrayo
+bject  No NA NA 
+DatosBiometricos. 
+huellasDactilares  
+. nombreDedo  Ciuadadano.datosBiometricos. 
+HuellasDactilares. 
+nombreDedo  String  No 1 30 
+DatosBiometricos. 
+huellasDactilares  
+.formato  Ciuadadano.datosBiometricos. 
+HuellasDactilares.formato  String  No 1 30 
+DatosBiometricos. 
+huellasDactilares  
+.valor  Ciuadadano.datosBiometricos. 
+HuellasDactilares.valor  String  No 1 NA 
+DatosBiometricos. 
+fotografia  Ciudadano.datosBiometricos. 
+fotografia  Arrayo
+bject  No NA NA 
+DatosBiometricos. 
+Fotografia.formato  Ciudadano.datosBiometricos. 
+Fotografia.formato  String  No 3 10 
+DatosBiometrico. 
+Fotografia.valorBas
+e64 Ciudadano.datosBiometricos. 
+Fotografia.valorBase64  String  No 1 Na 
+DatosBiometrico. 
+Fotografia.resoluci
+on 
+ Ciudadano.datosBiometricos. 
+Fotografia.resolucion  String  No 1 NA 
+DatosBiometrico. 
+Fotografia.modoCa
+ptura  Ciudadano.datosBiometricos. 
+Fotografia.modoCaptura  String  No 1 30 
+--- Página 14 ---
+ 
+ 
+Microservicio MsDatosCiudadano  14 
+direccionResidenci
+a Ciudadano.direccionResidenci
+a Object  No NA NA 
+DireccionResidenci
+a.pais  Ciudadano.direccionResidenci
+a.pais  String  No 1 50 
+DireccionResidenci
+a.departamento  Ciudadano.direccionResidenci
+a.departamento  String  No 1 50 
+direccionResidenci
+a.provincia  Ciudadano.direccionResidenci
+a.provincia  String  No 1 50 
+DireccionResidenci
+a.distrito  Ciudadano.direccionResidenci
+a.distrito  String  No 1 50 
+DireccionResidenci
+a.centroPoblado  Ciudadano.direccionResidenci
+a.centroPoblado  String  No 1 100 
+DireccionResidenci
+a.barrio  Ciudadano.direccionResidenci
+a.barrio  String  No 1 100 
+DireccionResidenci
+a.direccion  Ciudadano.direccionResidenci
+a.direccion  String  No 1 100 
+DireccionResidenci
+a.codigoPostal  Ciudadano.direccionResidenci
+a.codigoPostal  String  No 4 10 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+id String  Sí Identificiador del ciudadano creado en el 
+sistema  
+fechaCreacion  String  Sí Fecha de creación del registro en el sistema  
+fechaActualizacion  String  Sí Fecha de la última  actualización del registro 
+en el sistema  
+datosActualizados  Arrayobject  Sí Devuelve los elementos actualizados en el 
+registro de usuario  
+error  Object  No Objeto qué especifica algún error existente 
+en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+3.1.2.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Ciudadano actualizado  exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para actualizar el ciudadano  
+408 Request Timeout  Tiempo de espera agotado  
+413 Payload Too Large  Tamaño del lote excede el límite (50MB)*  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)*  
+ 
+--- Página 15 ---
+ 
+ 
+Microservicio MsDatosCiudadano  15 
+3.1.3  Endpoint : Obtener Ciudadano  
+ 
+Este Endpoint  permite obtener la información de ciudadano basado en su tipo de documento . 
+ 
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/documento  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization: String(Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID ID de correlación para trazabilidad distribuida end -to-
+end 
+X-Request -Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService)  
+Content -Type: String (application/json 7)  
+X-Retry -Attempt: Integer (Número de intento de retry 0 para primera llamada, 
+máx 3)  
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -
+CENTRO, obligatorio para operaciones presenciales)  
+Parámetros  • tipoDocumento (string):  Tipo de documento utilizado como filtro.  
+• numeroDocumento (string):  Número de documento utilizado como 
+filtro.  
+Respuesta  { 
+  "tipoDocumento": "string",  
+  "numeroDocumento": "string",  
+  "fechaCreacion": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+  "fechaActualizacion": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+  "ciudadano": "Object",  
+  "estado": "string",  
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.3.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+tipoDocumento  ciudadano.tipoDocumento  String  Sí - - 
+numeroDocumento  Ciudadano.numeroDocumento  String  Sí - - 
+ 
+3.1.3.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+tipoDocumento  String  Sí Tipo de documento asociado al registro.  
+numeroDocumento  String  Sí Número de documento del ciudadano.  
+--- Página 16 ---
+ 
+ 
+Microservicio MsDatosCiudadano  16 
+fechaCreacion  String (ISO 8601 
+UTC)  Sí Fecha de creación del registro en 
+formato UTC (YYYY -MM-
+DDThh:mm:ss±hh:mm).  
+fechaActualizacion  String (ISO 8601 
+UTC)  Sí Fecha de la última actualización del 
+registro en formato UTC (YYYY -MM-
+DDThh:mm:ss±hh:mm).  
+ciudadano  Object 
+(ciudadanoobject ) Sí Objeto que contiene los datos del 
+ciudadano asociado.  
+estado  String  Sí Estado actual del registro o transacción.  
+error  Object  No Objeto que especifica el detalle del error 
+si ocurrió durante la operación.  
+error.tipo  String  No Tipo o categoría del error.  
+error.titulo  String  No Título o descripción corta del error.  
+error.status  Integer  No Código de estado HTTP o interno 
+asociado al error.  
+error.errores  Arrayobject (String)  No Lista de mensajes o detalles específicos 
+de los errores detectados.  
+ 
+3.1.3.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 OK Ciudadano encontrado  exitosamente  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para obtener el ciudadano  
+404 Not Found  No se encontró el ciudadano solicitado  
+408 Request Timeout  Tiempo de espera agotado  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+ 
+3.1.4  Endpoint : Listar Ciudadanos  
+Este Endpoint  permite obtener el listado de ciudadanos registrados. La consulta puede ejecutarse de 
+forma general o mediante filtros específicos. se pueden limitar los atributos retornados lo que permite 
+obtener únicamente los campos requeridos para cada operación.  
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/ciudadano  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization: String(Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID ID de correlación para trazabilidad distribuida end -to-end 
+X-Request -Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService)  
+Content -Type: String (application/json 7)  
+X-Retry -Attempt: Integer (Número de intento de retry 0 para primera llamada, máx 
+3) 
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -CENTRO, 
+obligatorio para operaciones presenciales)  
+Parámetros  • queryParam1 (string):  Parámetro de filtrado general.  
+--- Página 17 ---
+ 
+ 
+Microservicio MsDatosCiudadano  17 
+• queryParam2 (string):  Parámetro adicional para filtrado específico.  
+• queryParam3 (string):  Parámetro complementario para criterios de 
+búsqueda.  
+• fields (Array string):  Lista de atributos que pueden ser utilizados para 
+definir campos específicos en la consulta.  
+• page (integer):  Número de página para la paginación del resultado.  
+• size (integer): Cantidad de elementos por página en la paginación.  
+Respuesta  { 
+  "page": {  
+    "number": "Integer",  
+    "size": "Integer",  
+    "totalElements": "Integer",  
+    "totalPages": "Integer",  
+    "hasNext": "Boolean"  
+  }, 
+  "contenido": "ArrayObject"  
+ } 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.4.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+page  page  Integer  Sí 1 - 
+size size Integer  Sí 1  
+queryParam1  filterParam  String  No 1 20 
+queryParam2  filterParam2  String  No 1 20 
+queryParam3  filterParam3  String  No 1 20 
+fields  fields  Arraystring  No NA NA 
+ 
+3.1.4.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+numeroDocumento  String  No Número del identificador con el qué 
+consultó en el sistema  
+tipoDocumento  String  No Tipo de documento con el qué se consultó 
+en el sistema  
+--- Página 18 ---
+ 
+ 
+Microservicio MsDatosCiudadano  18 
+fechaCreacion  String  No Fecha en qué se creó el registro en el 
+sistema  
+fechaActualización  String  No Ultima fecha de actualización en el 
+sistema  
+ciudadano  Ciudadanoobject  No Toda la información encontrada en el 
+sistema con respecto al ciudadano 
+identificado  
+estado  String  No Estado del registro del ciudadano en el 
+sistema  
+ 
+3.1.4.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Ciudadano s encontrado s exitosamente  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para obtener el ciudadano  
+404 Not Found  No se encontró el ciudadano solicitado  
+408 Request Timeout  Tiempo de espera agotado  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+ 
+3.1.5  Endpoint : ConsultarInformePericial  
+Este Endpoint  permite obtener todos los informes periciales registrados para un ciudadano.  
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/informes -periciales  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization: String(Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID ID de correlación para trazabilidad distribuida end -to-end 
+X-Request -Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService)  
+Content -Type: String (application/json 7)  
+X-Retry -Attempt: Integer (Número de intento de retry 0 para primera llamada, 
+máx 3)  
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -CENTRO, 
+obligatorio para operaciones presenciales)  
+Parámetros  • tipoDocumento (string):  Tipo de documento utilizado como filtro.  
+• numeroDocumento (string) : Número de documento utilizado como 
+filtro.  
+Respuesta  { 
+  "informes": {  
+    "Type": "ArrayObject",  
+    "estructura": [  
+      { 
+        "informeId": "string",  
+        "ciudadanoId": "string",  
+        "solicitudId": "string",  
+        "fechaGeneracion": {  
+          "format": "date -time",  
+          "description": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+--- Página 19 ---
+ 
+ 
+Microservicio MsDatosCiudadano  19 
+          "type": "string"  
+        }, 
+        "resultado": {  
+          "huellaCoincide": "boolean",  
+          "rostroCoincide": "boolean"  
+        }, 
+        "urlPdf": "string"  
+      } 
+    ] 
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.5.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+tipoDocumento  Ciudadano .tipoDocumento  String  Sí - - 
+numeroDocumento  Ciudadano.numeroDocumento  String  Sí - - 
+ 
+3.1.5.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+error  Object  No Objeto qué especifica algún 
+error existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  no Título del error  
+error.status  integer  no Número del estado de error  
+error.errores  ArrayObject  no Listado de errores  
+informes  ArrayObject  no En caso de existir informe  
+asociados a ese documento se  
+presentará este objeto  
+Informes.  
+informeId  String  no Identificador del perito 
+encontrado  
+Informes. ciudadanoId  String  no Tipo de documento con el qué 
+se consultó en el sistema  
+Informes.solicitudId  String  no Solicitud asociada a este perito  
+informes . fecha Generacion  String  no Fecha en qué se creó el registro 
+en el sistema  
+Informes. Resultado  Object  no resultado del informe  
+Informes.resultado.huellaCoincide  Boolean  no Resultado de la evaluación  de 
+huellas  
+--- Página 20 ---
+ 
+ 
+Microservicio MsDatosCiudadano  20 
+Informes.resultado.rostroCoincide  String  no Resultado de la evaluación del 
+rostro  
+Informes.urlPdf  String  no Url para acceder al informe 
+pericial  
+ 
+3.1.5.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Informe pericial encontrado  exitosamente  
+204 No Content  No se encontró información pericial asociada al ciudadano 
+solicitado  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para obtener la información del ciudadano  
+404 Not Found  No se encontró el ciudadano solicitado  
+ 
+3.1.6  Endpoint : CrearAlerta  
+Registra una alerta de domicilio asociada a un ciudadano . 
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/alerta  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization: String(Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID ID de correlación para trazabilidad distribuida end -to-end 
+X-Request -Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService)  
+Content -Type: String (application/json 7)  
+X-Retry -Attempt: Integer (Número de intento de retry 0 para primera llamada, 
+máx 3)  
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -CENTRO, 
+obligatorio para operaciones presenciales)  
+Entrada  { 
+  "situacion": {  
+    "EnumString": ["A", "B", "C"]  
+  }, 
+  "ciudadanoId": "String",  
+  "motivo": "String",  
+  "fechaDeteccion": {  
+    "String": true,  
+    "description": "(YYYY -MM-DDThh )" 
+  }, 
+  "circunscripcionId": "String",  
+  "medioVerificacion": {  
+    "EnumString": ["fisico", "virtual"]  
+  }, 
+  "documentoSoporteId": "String",  
+  "equipoTrabajoId": "String"  
+} 
+Respuesta     { 
+  "id": "String",  
+  "fechaCreacion": {  
+    "description": "(YYYY -MM-DDThh)"  
+--- Página 21 ---
+ 
+ 
+Microservicio MsDatosCiudadano  21 
+  }, 
+  "estado": "String"  
+} 
+ 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+ 
+3.1.6.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+ciudadanoId  Alerta.c iudadano. id String  Sí 1 50 
+situacion  Alerta.situacion  String  Sí 1 3 
+motivo  Alerta.motivo  String  Sí 1 1000  
+fechaDeteccion  Alerta.fechaDeteccion  String  Sí 1 - 
+circunscripcionId  Alerta.circunscripcionId  String  Sí 1 100 
+medioverificacion  Alerta.medioverificacion  String  Sí 1 20 
+documentoSoporteId  Alerta.documentosoporteId  String  No 1 100 
+equipoTrabajoId  Alerta.equipoTrabajoId  String  No 1 100 
+ 
+3.1.6.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+error  Object  No Objeto qué especifica algún error existente en la 
+operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+id String  Sí Identificador de la alerta creada  
+fechaCreacion  String  Sí Fecha de creación de la alerta  
+estado  String  Sí Estado creado de la alerta  
+ 
+3.1.6.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Alerta creada exitosamente  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para crear la alerta  
+--- Página 22 ---
+ 
+ 
+Microservicio MsDatosCiudadano  22 
+404 Not Found  El ciudadano no existe  
+409 Conflict  Alerta duplicada  
+ 
+3.1.7  Endpoint : ListarAlerta  
+Este Endpoint  permite obtener el listado de alertas registradas. La consulta puede ejecutarse de 
+forma general o mediante filtros específicos.  
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/alerta  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization: String(Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID ID de correlación para trazabilidad distribuida end -to-end 
+X-Request -Source: String (origen de la solicitud ejm: CoreService, IdentityValidation, 
+SolicitudesService)  
+Content -Type: String (application/json 7)  
+X-Retry -Attempt: Integer (Número de intento de retry 0 para primera llamada, máx 3)  
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -CENTRO, 
+obligatorio para operaciones presenciales)  
+Parámetros  • queryParam1 (string):  Parámetro de filtrado general.  
+• queryParam2 (string):  Parámetro adicional para filtrado específico.  
+• queryParam3 (string) : Parámetro complementario para criterios de 
+búsqueda.  
+• page (integer): Número de página para la paginación del resultado.  
+• size (integer): Cantidad de elementos por página en la paginación.  
+Respuesta  { 
+  "page": {  
+    "number": "integer",  
+    "size": "integer",  
+    "totalElements": "integer",  
+    "totalPages": "integer",  
+    "hasNext": "boolean"  
+  }, 
+  "contenido": "ArrayObject"  
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+ 
+3.1.7.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+page  page  Integer  Sí 1 - 
+--- Página 23 ---
+ 
+ 
+Microservicio MsDatosCiudadano  23 
+size size Integer  Sí 1  
+queryParam1  filterParam  String  No 1 20 
+queryParam2  filterParam2  String  No 1 20 
+queryParam3  filterParam3  String  No 1 20 
+fields  fields  Arraystring  No NA NA 
+ 
+3.1.7.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+error  Object  No Objeto qué especifica algún error existente 
+en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+number  Integer  Si Número de la Página actual  
+size Integer  Sí Tamaño de página actual  
+totalElements  Long  Sí Cantidad de elementos encontrados  
+totalPages  Integer  Sí Número total de páginas disponibles  
+hasNext  Boolean  Sí Indica si existen más paginas disponibles 
+despues de la actual  
+content  Arrayobject  Sí Lista de alerta obetnida según el filtro  
+ 
+3.1.7.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Alertas encontradas  exitosamente  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para obtener las alertas  
+404 Not Found  No se encontró la alerta solicitada  
+408 Request Timeout  Tiempo de espera agotado  
+429 Too Many Requests  Límite de rate limit excedido  
+ 
+ 
+3.1.8  Endpoint : ConsultarCambiosDomicilio  
+Este Endpoint  permite obtener el listado de cambio  de domicilios en una  o todas las circunsciones 
+dado unas fechas . 
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/cambio -domicilio  
+--- Página 24 ---
+ 
+ 
+Microservicio MsDatosCiudadano  24 
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization: String(Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID ID de correlación para trazabilidad distribuida end -to-
+end 
+X-Request -Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService)  
+Content -Type: String (application/json 7)  
+X-Retry -Attempt: Integer (Número de intento de retry 0 para primera llamada, 
+máx 3)  
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -
+CENTRO, obligatorio para operaciones presenciales)  
+Parámetros  • queryParam1 (string):  Parámetro utilizado para realizar filtrado o 
+búsqueda según la lógica del servicio.  
+• queryParam2 (string):  Parámetro utilizado para aplicar un segundo 
+criterio de filtrado.  
+• queryParam3 (string):  Parámetro adicional para complementar las 
+condiciones de búsqueda.  
+• fechaDesde (string):  Fecha inicial para el rango permitido por el 
+servicio, en el formato definido por la especificación.  
+• fechaHasta (string): Fecha final para el rango permitido por el servicio, 
+en el formato definido por la especificación.  
+• circunscripcionId (string):  Identificador correspondiente a la 
+circunscripción aplicable dentro del proceso de consulta.  
+Respuesta  { 
+  "fechaDesde": {  
+    "String": "",  
+    "descripcion": "(YYYY -MM-DD)"  
+  }, 
+  "fechaHasta": {  
+    "String": "",  
+    "descripcion": "(YYYY -MM-DD)"  
+  }, 
+  "totalCircunscripciones": "integer",  
+  "totalCambiosDetectados": "integer",  
+  "circunscripciones": [  
+    { 
+      "circunscripcionId": "String",  
+      "totalCambios": "integer",  
+      "promedioCambios": "float",  
+      "migraciones": [  
+        { 
+          "tipoDocumento": "String",  
+          "numeroDocumento": "String",  
+          "nombreCompleto": "String",  
+          "domicilio": {  
+            "departamento": "String",  
+            "provincia": "String",  
+            "distrito": "String"  
+          }, 
+          "fechaCambio": {  
+            "String": "",  
+            "descripcion": "(YYYY -MM-DD)"  
+          } 
+        } 
+      ] 
+    } 
+  ] 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+--- Página 25 ---
+ 
+ 
+Microservicio MsDatosCiudadano  25 
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.8.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+fechaDesde  fechaDesde  String  Sí - - 
+fechaHasta  fechaHasta  String  Sí - - 
+queryParam1  filterParam  String  No 1 20 
+queryParam2  filterParam2  String  No 1 20 
+queryParam3  filterParam3  String  No 1 20 
+circunscripcionId  Circunscripcion.circunscripcionId  String  No NA NA 
+ 
+3.1.8.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+error  Object  No Objeto qué especifica 
+algún error existente en 
+la operación.  
+error.tipo  String  No Path de la ruta con 
+error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de 
+error  
+error.errores  Arrayobject  No Listado de errores  
+fechaDesde  String  Si Fecha inicial con la que 
+se filtró  
+fechaHasta  String  Sí Fecha hasta la que se 
+filtró 
+totalCircunscripciones  Integer  No Total de 
+circunscripciones 
+encotrada, aparece en 
+caso de qué no se 
+indique circunscripcion  
+totalCambiosDetectados  Integer  Sí Total de cambios de 
+domicilios encontrados  
+circunscripciones  Arrayobject  Sí Objeto a detalle con la 
+información de los 
+nuevos cambios de 
+--- Página 26 ---
+ 
+ 
+Microservicio MsDatosCiudadano  26 
+domicilio en las 
+circunscripciones  
+Circunscripciones.circunscripcionId  String  Sí Identificador de la 
+circunscipcion  
+Circunscripciones.totalCambios  Integer  Sí Número de nuevos 
+integrantes en la 
+circunscripción en las 
+fechas filtradas  
+Circunscripciones.promedio  Integer  Sí Promedio de cambio de 
+domicilio dentro del 
+periodo establecido  
+Circunscripciones. migraciones  Arrayobject  Sí Información de los 
+nuevos ciudadanos en 
+esta circunscripción  
+Circunscripciones.migraciones. 
+tipoDocumento  String  Sí Tipo de documento del 
+ciudadano  
+Circunscripciones.migraciones. 
+tipoDocumento  String  Sí Número de documento 
+del ciudadano  
+Circunscripciones.migraciones.domicilio  Object  Sí Información del 
+domicilio  
+Circunscripciones.migraciones. 
+Domicilio.departamento  String  Sí Departamento del 
+domicilio  
+Circunscripciones.migraciones. 
+Domicilio.provincia  String  Sí Provincia del domicilio  
+Circunscripciones.migraciones. 
+Domicilio.distrito  String  Sí Distrito del domicilio  
+ 
+3.1.8.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada exitosa mente  
+204 No Content  No se encontró resultado para los filtros indicados  
+400 Bad Request  La información proporcionada en los filtros es incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para consultar cambios de residencia  
+404 Not Found  No se encontró la circunscripción indicada  
+408 Request Timeout  El tiempo de espera de la solicitud se agotó  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Service Unavailable  El sistema no responde  
+ 
+3.1.9  Endpoint: ConsultaMasiva  
+Este Endpoint permite realizar la verificación y validación masiva de datos personales de ciudadanos 
+comparándolos automáticamente con la base oficial del APD (Archivo Persona Digital). Está orientado 
+a entidades legalmente constituidas que necesitan valid ar grandes volúmenes de información personal.  
+--- Página 27 ---
+ 
+ 
+Microservicio MsDatosCiudadano  27 
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/consulta -masiva  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Content -Type: application/json  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -CENTRO)  
+X-Request -Source: String (origen de la solicitud: CotejoMasivo, EntidadExterna)  
+X-Retry -Attempt: Integer (Número de intento de retry, 0 para primera llamada, máx 
+3) 
+Entrada  { 
+  "solicitudId": "string",  
+  "entidadSolicitante": {  
+    "ruc": "string",  
+    "razonSocial": "string",  
+    "tipoEntidad": "string"  
+  }, 
+  "configuracionCotejo" : { 
+    "camposACotejar": ["DNI", "NOMBRES", "APELLIDOS", 
+"FECHA_NACIMIENTO", "SEXO", "ESTADO_CIVIL", "DOMICILIO", 
+"CONDICION_VIDA"],  
+    "toleranciaCoincidencia": "number",  
+    "generarReporteDetallado": "boolean"  
+  }, 
+  "registros": [  
+    { 
+      "numeroSecuencia": "string",  
+      "tipoDocumento": "string",  
+      "numeroDocumento": "string",  
+      "primerApellido": "string",  
+      "segundoApellido": "string",  
+      "prenombres": "string",  
+      "fechaNacimiento": "(YYYY -MM-DD)",  
+      "sexo": "string",  
+      "estadoCivil": "string",  
+      "ubigeo": "string",  
+      "direccion": "string"  
+    } 
+  ] 
+} 
+Respuesta  { 
+  "solicitudId": "string",  
+  "codigoCotejo": "string",  
+  "fechaProcesamiento": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+  "estadoProceso": "string",  
+  "resumen": {  
+    "totalRegistros": "integer",  
+    "registrosCoincidentes": "integer",  
+    "registrosNoCoincidentes": "integer",  
+    "registrosConErrores": "integer",  
+    "porcentajeCoincidencia": "number"  
+  }, 
+  "resultados": [  
+    { 
+      "numeroSecuencia": "string",  
+      "numeroDocumento": "string",  
+      "estadoValidacion": "string",  
+      "detalleValidacion": {  
+        "dniCoincide": "boolean",  
+--- Página 28 ---
+ 
+ 
+Microservicio MsDatosCiudadano  28 
+        "nombresCoincide": "boolean",  
+        "apellidosCoincide": "boolean",  
+        "fechaNacimientoCoincide": "boolean",  
+        "sexoCoincide": "boolean",  
+        "estadoCivilCoincide": "boolean",  
+        "domicilioCoincide": "boolean",  
+        "condicionVidaCoincide": "boolean"  
+      }, 
+      "observaciones": "string",  
+      "datosAPD": {  
+        "primerApellido": "string",  
+        "segundoApellido": "string",  
+        "prenombres": "string",  
+        "fechaNacimiento": "(YYYY -MM-DD)",  
+        "condicionVida": "string"  
+      } 
+    } 
+  ], 
+  "urlReportePDF": "string"  
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.9.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+solicitudId  CotejoMasivo.solicitudId  String  Sí 1 50 
+entidadSolicitante  CotejoMasivo.entidadSolicit
+ante Object  Sí NA NA 
+entidadSolicitante.ru
+c CotejoMasivo.entidadSolicit
+ante.ruc  String  Sí 11 11 
+entidadSolicitante.ra
+zonSocial  CotejoMasivo.entidadSolicit
+ante.razonSocial  String  Sí 1 200 
+entidadSolicitante.tip
+oEntidad  CotejoMasivo.entidadSolicit
+ante.tipoEntidad  String  Sí 1 50 
+configuracionCotejo  CotejoMasivo.configuracion
+Cotejo  Object  No NA NA 
+configuracionCotejo.
+camposACotejar  CotejoMasivo.configuracion
+Cotejo.camposACotejar  ArrayS
+tring No NA NA 
+configuracionCotejo.
+toleranciaCoincidenc
+ia CotejoMasivo.configuracion
+Cotejo.toleranciaCoincidenc
+ia Numb
+er No 0 100 
+configuracionCotejo.
+generarReporteDetal
+lado CotejoMasivo.configuracion
+Cotejo.generarReporteDeta
+llado  Boolea
+n No NA NA 
+--- Página 29 ---
+ 
+ 
+Microservicio MsDatosCiudadano  29 
+registros  CotejoMasivo.registros  Array
+Object  Sí 1 500 
+registros.numeroSec
+uencia  CotejoMasivo.registros.num
+eroSecuencia  String  Sí 1 60 
+registros.tipoDocum
+ento  CotejoMasivo.registros.tipo
+Documento  String  Sí 1 3 
+registros.numeroDoc
+umento  CotejoMasivo.registros.num
+eroDocumento  String  Sí 8 12 
+registros.primerApell
+ido CotejoMasivo.registros.prim
+erApellido  String  Sí 1 128 
+registros.segundoAp
+ellido  CotejoMasivo.registros.seg
+undoApellido  String  No 1 128 
+registros.prenombre
+s CotejoMasivo.registros.pren
+ombres  String  Sí 1 160 
+registros.fechaNaci
+miento  CotejoMasivo.registros.fech
+aNacimiento  String  No 10 10 
+registros.sexo  CotejoMasivo.registros.sex
+o String  No 1 20 
+registros.estadoCivil  CotejoMasivo.registros.esta
+doCivil  String  No 1 20 
+registros.ubigeo  CotejoMasivo.registros.ubig
+eo String  No 6 10 
+registros.direccion  CotejoMasivo.registros.dire
+ccion  String  No 1 200 
+ 
+3.1.9.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+solicitudId  String  Sí Identificador de la solicitud 
+procesada  
+codigoCotejo  String  Sí Código único del proceso de 
+cotejo masivo  
+fechaProcesamiento  String  Sí Fecha y hora del procesamiento 
+en formato ISO 8601  
+estadoProceso  String  Sí Estado del proceso: 
+COMPLETADO, PARCIAL, 
+ERROR  
+resumen  Object  Sí Objeto con el resumen 
+estadístico del cotejo  
+resumen.totalRegistros  Integer  Sí Total de registros procesados  
+resumen.registrosCoincidentes  Integer  Sí Cantidad de registros que 
+coinciden con el APD  
+resumen.registrosNoCoincidentes  Integer  Sí Cantidad de registros que no 
+coinciden  
+resumen.registrosConErrores  Integer  Sí Cantidad de registros con 
+errores de procesamiento  
+resumen.porcentajeCoincidencia  Number  Sí Porcentaje de coincidencia total  
+--- Página 30 ---
+ 
+ 
+Microservicio MsDatosCiudadano  30 
+resultados  ArrayObject  Sí Lista detallada de resultados por 
+registro  
+resultados.numeroSecuencia  String  Sí Número de secuencia del 
+registro procesado  
+resultados.numeroDocumento  String  Sí Número de documento 
+consultado  
+resultados.estadoValidacion  String  Sí COINCIDE, NO_COINCIDE, 
+ERROR, NO_ENCONTRADO  
+resultados.detalleValidacion  Object  No Detalle campo por campo de la 
+validación  
+resultados.observaciones  String  No Observaciones sobre 
+discrepancias encontradas  
+resultados.datosAPD  Object  No Datos del ciudadano en el APD 
+(si existe)  
+urlReportePDF  String  No URL del reporte PDF generado 
+en el Gestor Documental  
+error  Object  No Objeto que especifica errores en 
+la operación  
+error.tipo  String  No Tipo o categoría del error  
+error.titulo  String  No Título o descripción corta del 
+error  
+error.status  Integer  No Código de estado HTTP 
+asociado al error  
+error.errores  ArrayString  No Lista de mensajes de error 
+específicos  
+ 
+3.1.9.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada  exitosamente  
+202 Accepted  Cotejo masivo aceptado, procesamiento en curso  
+400 Bad Request  Parámetros inválidos o estructura incorrecta del archivo  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para realizar cotejo masivo o entidad no autorizada  
+408 Request 
+Timeout  Tiempo de espera agotado durante el procesamiento  
+413 Payload Too 
+Large  Cantidad de registros excede el límite máximo (500)  
+422 Unprocessable 
+Entity  Datos válidos pero no procesables (formato de campos incorrecto)  
+429 Too Many 
+Requests  Límite de rate limit excedido (10 req/hora por entidad)  
+500 Internal Server 
+Error  Error interno del servicio  
+502 Bad Gateway  Servicio APD no disponible  
+503 Service 
+Unavailable  Servicio temporalmente no disponible  
+ 
+--- Página 31 ---
+ 
+ 
+Microservicio MsDatosCiudadano  31 
+3.1.10  Endpoint: ConsultarAlerta  
+Este Endpoint permite obtener el detalle completo de una alerta de domicilio específica registrada en 
+el sistema. Las alertas se generan durante el proceso de verificación de domicilio cuando se detectan 
+situaciones B (titular no reside en la dirección ver ificada) o C (la dirección verificada no existe).  
+Atributo  Valor  
+Path  /api/v1/ciudadano/MsDatosCiudadano/alerta  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad distribuida end -to-end) 
+X-Request -Source: String (origen de la solicitud: VerificacionDomicilio, 
+GestionConsistencia)  
+Content -Type: application/json  
+X-Retry -Attempt: Integer (Número de intento de retry, 0 para primera llamada, máx 
+3) 
+X-Office -Code: String (Código de oficina RENIEC formato: ORG -LIMA -CENTRO)  
+Parámetros   • alertaId  (string ): Id del registro a consult ar 
+Respuesta  { 
+  "alerta": {  
+    "id": "string",  
+    "estado": "string",  
+    "fechaCreacion": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "fechaActualizacion": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "situacion": "string",  
+    "motivo": "string",  
+    "fechaDeteccion": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "fechaMaximaDescargo": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "medioVerificacion": "string",  
+    "nivelAlerta": "string"  
+  }, 
+  "ciudadano": {  
+    "id": "string",  
+    "tipoDocumento": "string",  
+    "numeroDocumento": "string",  
+    "nombreCompleto": "string",  
+    "primerApellido": "string",  
+    "segundoApellido": "string",  
+    "prenombres": "string",  
+    "fechaNacimiento": "(YYYY -MM-DD)",  
+    "numeroInscripcion": "string"  
+  }, 
+  "domicilioVerificado": {  
+    "direccionDeclarada": "string",  
+    "ubigeo": "string",  
+    "departamento": "string",  
+    "provincia": "string",  
+    "distrito": "string",  
+    "centroPoblado": "string",  
+    "direccionCompleta": "string"  
+  }, 
+  "circunscripcion": {  
+    "id": "string",  
+    "nombre": "string",  
+    "tipo": "string"  
+  }, 
+  "verificacion": {  
+    "cronogramaId": "string",  
+    "tipoVerificacion": "string",  
+    "equipoTrabajoId": "string",  
+    "supervisorId": "string",  
+--- Página 32 ---
+ 
+ 
+Microservicio MsDatosCiudadano  32 
+    "verificadorId": "string",  
+    "fechaVisita": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "actaVerificacionId": "string",  
+    "urlActaDigital": "string"  
+  }, 
+  "documentoSoporte": {  
+    "id": "string",  
+    "tipo": "string",  
+    "urlDocumento": "string",  
+    "fechaGeneracion": "(YYYY -MM-DDThh:mm:ss±hh:mm)"  
+  }, 
+  "notificacion": {  
+    "fechaEnvio": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "canalNotificacion": "string",  
+    "estadoNotificacion": "string",  
+    "casillaElectronica": "string"  
+  }, 
+  "historialEstados": [  
+    { 
+      "estado": "string",  
+      "fechaCambio": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+      "usuarioResponsable": "string",  
+      "observacion": "string"  
+    } 
+  ], 
+  "resolucion": {  
+    "tieneResolucion": "boolean",  
+    "numeroResolucion": "string",  
+    "fechaResolucion": "(YYYY -MM-DD)",  
+    "tipoResolucion": "string",  
+    "urlResolucion": "string",  
+    "domicilioRestituido": {  
+      "direccion": "string",  
+      "ubigeo": "string"  
+    } 
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.10.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+alertaId  Alerta.id  String  Sí 1 50 
+ 
+3.1.10.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+alerta  Object  Sí Objeto principal con los datos 
+de la alerta  
+alerta.id  String  Sí Identificador único de la alerta  
+--- Página 33 ---
+ 
+ 
+Microservicio MsDatosCiudadano  33 
+alerta.estado  String  Sí Estado actual: ACTIVA, 
+EN_INVESTIGACION, 
+NOTIFICADA, RESUELTA, 
+ARCHIVADA  
+alerta.fechaCreacion  String  Sí Fecha de creación del registro 
+de alerta  
+alerta.fechaActualizacion  String  Sí Fecha de última actualización  
+alerta.situacion  String  Sí Código de situación: A 
+(reside), B (no reside), C 
+(dirección no existe)  
+alerta.motivo  String  Sí Descripción del motivo de la 
+alerta  
+alerta.fechaDeteccion  String  Sí Fecha en que se detectó la 
+inconsistencia  
+alerta.fechaMaximaDescargo  String  No Fecha límite para presentar 
+descargos (15 días según 
+normativa)  
+alerta.medioVerificacion  String  Sí Medio de verificación: FISICO, 
+VIRTUAL  
+alerta.nivelAlerta  String  Sí Nivel de severidad: BAJO, 
+MEDIO, ALTO, CRITICO  
+ciudadano  Object  Sí Datos del titular de la 
+inscripción  
+ciudadano.id  String  Sí Identificador del ciudadano en 
+el sistema  
+ciudadano.tipoDocumento  String  Sí Tipo de documento del 
+ciudadano  
+ciudadano.numeroDocumento  String  Sí Número de documento del 
+ciudadano  
+ciudadano.nombreCompleto  String  Sí Nombre completo 
+concatenado  
+ciudadano.primerApellido  String  Sí Primer apellido del ciudadano  
+ciudadano.segundoApellido  String  No Segundo apellido del 
+ciudadano  
+ciudadano.prenombres  String  Sí Prenombres del ciudadano  
+ciudadano.fechaNacimiento  String  No Fecha de nacimiento  
+ciudadano.numeroInscripcion  String  No Número de inscripción registral  
+domicilioVerificado  Object  Sí Información del domicilio 
+verificado  
+domicilioVerificado.direccionDeclarada  String  Sí Dirección declarada por el 
+ciudadano  
+domicilioVerificado.ubigeo  String  Sí Código de ubigeo del domicilio  
+domicilioVerificado.departamento  String  Sí Departamento del domicilio  
+domicilioVerificado.provincia  String  Sí Provincia del domicilio  
+domicilioVerificado.distrito  String  Sí Distrito del domicilio  
+domicilioVerificado.centroPoblado  String  No Centro poblado del domicilio  
+domicilioVerificado.direccionCompleta  String  Sí Dirección completa formateada  
+circunscripcion  Object  Sí Datos de la circunscripción 
+electoral  
+--- Página 34 ---
+ 
+ 
+Microservicio MsDatosCiudadano  34 
+circunscripcion.id  String  Sí Identificador de la 
+circunscripción  
+circunscripcion.nombre  String  Sí Nombre de la circunscripción  
+circunscripcion.tipo  String  Sí Tipo de circunscripción  
+verificacion  Object  No Datos del proceso de 
+verificación  
+verificacion.cronogramaId  String  No ID del cronograma de 
+verificación  
+verificacion.tipoVerificacion  String  Sí Tipo: PERMANENTE, 
+CRONOGRAMA_ELECTORAL  
+verificacion.equipoTrabajoId  String  No ID del equipo de trabajo 
+asignado  
+verificacion.supervisorId  String  No ID del supervisor responsable  
+verificacion.verificadorId  String  No ID del verificador que realizó la 
+visita  
+verificacion.fechaVisita  String  No Fecha de la visita de 
+verificación  
+verificacion.actaVerificacionId  String  No ID del acta de verificación  
+verificacion.urlActaDigital  String  No URL del acta en formato digital  
+documentoSoporte  Object  No Documento de soporte 
+asociado  
+documentoSoporte.id  String  No ID del documento en el Gestor 
+Documental  
+documentoSoporte.tipo  String  No Tipo de documento  
+documentoSoporte.urlDocumento  String  No URL del documento  
+documentoSoporte.fechaGeneracion  String  No Fecha de generación del 
+documento  
+notificacion  Object  No Datos de la notificación al 
+ciudadano  
+notificacion.fechaEnvio  String  No Fecha de envío de la 
+notificación  
+notificacion.canalNotificacion  String  No Canal: 
+CASILLA_ELECTRONICA, 
+CORREO, PRESENCIAL  
+notificacion.estadoNotificacion  String  No Estado: PENDIENTE, 
+ENVIADA, ENTREGADA, 
+FALLIDA  
+notificacion.casillaElectronica  String  No Dirección de casilla electrónica 
+del ciudadano  
+historialEstados  ArrayObject  No Historial de cambios de estado 
+de la alerta  
+historialEstados.estado  String  No Estado en ese momento  
+historialEstados.fechaCambio  String  No Fecha del cambio de estado  
+historialEstados.usuarioResponsable  String  No Usuario que realizó el cambio  
+historialEstados.observacion  String  No Observación del cambio  
+resolucion  Object  No Datos de resolución (si aplica)  
+resolucion.tieneResolucion  Boolean  No Indica si la alerta tiene 
+resolución asociada  
+--- Página 35 ---
+ 
+ 
+Microservicio MsDatosCiudadano  35 
+resolucion.numeroResolucion  String  No Número de la Resolución 
+Directoral  
+resolucion.fechaResolucion  String  No Fecha de emisión de la 
+resolución  
+resolucion.tipoResolucion  String  No Tipo: 
+RESTITUCION_DOMICILIO, 
+ARCHIVAMIENTO  
+resolucion.urlResolucion  String  No URL de la resolución en el 
+Gestor Documental  
+resolucion.domicilioRestituido  Object  No Domicilio al cual se restituyó 
+(si aplica)  
+error  Object  No Objeto que especifica errores 
+en la operación  
+error.tipo  String  No Tipo o categoría del error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Código de estado del error  
+error.errores  ArrayString  No Lista de errores específicos  
+ 
+3.1.10.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Alerta encontrada exitosamente  
+400 Bad Request  Formato de alertaId inválido  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para consultar alertas de domicilio  
+404 Not Found  No se encontró la alerta con el ID especificado  
+408 Request Timeout  Tiempo de espera agotado  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio externo no disponible (Gestor Documental, APD)  
+503 Service Unavailable  Servicio temporalmente no disponible  
+ 
+ 

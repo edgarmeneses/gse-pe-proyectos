@@ -1,0 +1,1618 @@
+
+
+=== PÁGINA 1 ===
+
+   
+ 
+  
+ 
+Microservicio 
+MsDatos Agendamiento  
+Documento Versión: 1.0  
+Gestión de Seguridad Electrónica  
+  Fecha generación:  01/12/2025 
+    
+ 
+  
+
+
+=== PÁGINA 2 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 24/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+    
+    
+    
+    
+
+=== PÁGINA 3 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ................................ ................................ ..... 4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ................................ ..........................  4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ ................................ ..........  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................................ ..........................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ ................................ ...............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ................................ ...............  5 
+3.1 Microservicio MsDatosAgendamiento  ................................ ................................ ................................ ................................ ... 5 
+3.1.1 Endpoint: Crear Agenda  ................................ ................................ ................................ ................................ .....................  5 
+3.1.2 Endpoint: Actualizar Cita  ................................ ................................ ................................ ................................ ....................  9 
+3.1.3 Endpoint: Consultar Cita ................................ ................................ ................................ ................................ ................... 12 
+3.1.4 Endpoint: Listar Citas  ................................ ................................ ................................ ................................ ......................... 15 
+3.1.5 Endpoint: Cancelar Cita  ................................ ................................ ................................ ................................ .................... 19 
+3.1.6 Endpoint: Consultar Disponibilidad  ................................ ................................ ................................ ............................ 21 
+3.1.7 Endpoint: Configurar Disponibilidad  ................................ ................................ ................................ .......................... 24 
+3.1.8 Endpoint: Actualizar Disponibilidad  ................................ ................................ ................................ ............................ 27 
+3.1.9 Endpoint: Registrar Excepción Horaria  ................................ ................................ ................................ .................... 30 
+ 
+ 
+ 
+ 
+  
+
+=== PÁGINA 4 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+
+=== PÁGINA 5 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio MsDatosAgendamiento  
+El Microservicio Datos Agendamiento es un componente de persistencia y acceso a datos dedicado. 
+Su propósito principal es interactuar de manera exclusiva con la Base de Datos de Agendamiento, 
+actuando como el único intermediario para su administración. Se encarga de almacenar, recuperar y 
+gestionar de forma segura toda la información de las agendas, la disponibilidad horaria y los datos de 
+las citas programadas para las visitas de lectura de documentos archivados.  
+3.1.1  Endpoint: Crear Agenda  
+Endpoint que permite la creación de una nueva cita para visita de lectura de documento archivado en 
+el sistema SIIRC.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/citas  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación para trazabilidad end -to-
+end) 
+X-Office -Code String (Código de oficina o sede desde donde se realiza la 
+operación)  
+X-User -Role String (Rol del usuario que realiza la operación)  
+X-Idempotency -Key UUID (Clave para evitar creaciones duplicadas)  
+Entrada  { 
+  "sedeServicio": {  
+    "codigoSede": "string",  
+    "nombreSede": "string"  
+  }, 
+  "solicitud": {  
+    "idSolicitud": "string",  
+    "numeroTramite": "string"  
+  }, 
+  "solicitante": {  
+    "dni": "string",  
+
+=== PÁGINA 6 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  6 
+    "nombres": "string",  
+    "apellidoPaterno": "string",  
+    "apellidoMaterno": "string",  
+    "email": "string",  
+    "telefono": "string"  
+  }, 
+  "programacion": {  
+    "fechaCita": "YYYY -MM-DD",  
+    "horaCita": "HH:mm",  
+    "idDisponibilidad": "string"  
+  }, 
+  "tecnicoAsignado": {  
+    "idTecnico": "string",  
+    "nombreCompleto": "string"  
+  }, 
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "citaId": "string",  
+    "codigoCita ": "string",  
+    "estado": "string",  
+    "sedeServicio": {  
+      "codigoSede": "string",  
+      "nombreSede": "string",  
+      "direccion": "string"  
+    }, 
+    "solicitante": {  
+      "dni": "string",  
+      "nombreCompleto": "string"  
+    }, 
+    "programacion": {  
+      "fechaCita": "YYYY -MM-DD",  
+      "horaCita": "HH:mm",  
+      "fechaHoraCompleta": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "tecnicoAsignado": {  
+      "idTecnico": "string",  
+      "nombreCompleto": "string"  
+    }, 
+    "tokenReagendamiento": "string",  
+    "fechaLimiteReagendamiento": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "fechaRegistro": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioRegistro": "string",  
+    "_links": {  
+      "self": "string",  
+      "actualizar": "string",  
+      "cancelar": "string",  
+      "historial": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+
+=== PÁGINA 7 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  7 
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.1.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Sede Servicio  sedeServicio  Object  Sí NA NA 
+Código Sede  sedeServicio.codigoSede  String  Sí 3 10 
+Nombre Sede  sedeServicio.nombreSede  String  No 3 100 
+Solicitud  solicitud  Object  Sí NA NA 
+ID Solicitud  solicitud.idSolicitud  String  Sí 36 36 
+Número 
+Trámite  solicitud.numeroTramite  String  Sí 8 20 
+Solicitante  solicitante  Object  Sí NA NA 
+DNI solicitante.dni  String  Sí 8 8 
+Nombres  solicitante.nombres  String  Sí 1 100 
+Apellido 
+Paterno  solicitante.apellidoPaterno  String  Sí 1 60 
+Apellido 
+Materno  solicitante.apellidoMaterno  String  Sí 1 60 
+Email  solicitante.email  String  No 5 254 
+Teléfono  solicitante.telefono  String  No 7 15 
+Programación  programacion  Object  Sí NA NA 
+Fecha Cita  programacion.fechaCita  String 
+(Date)  Sí 10 10 
+Hora Cita  programacion.horaCita  String 
+(Time)  Sí 5 5 
+ID 
+Disponibilidad  programacion.idDisponibilidad  String  Sí 36 36 
+Técnico 
+Asignado  tecnicoAsignado  Object  No NA NA 
+ID Técnico  tecnicoAsignado.idTecnico  String  No 8 20 
+Nombre 
+Técnico  tecnicoAsignado.nombreCompleto  String  No 3 200 
+Observaciones  observaciones  String  No 0 500 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Cuerpo principal de la respuesta  
+
+=== PÁGINA 8 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  8 
+data.citaId  String  Sí UUID de la cita creada  
+data.codigoCita  String  Sí Código legible de la cita  
+data.estado  String  Sí Estado actual de la cita  
+data.sedeServicio  Object  Sí Información de la sede  
+data.sedeServicio.codigoSede  String  Sí Código de la sede  
+data.sedeServicio.nombreSede  String  Sí Nombre de la sede  
+data.sedeServicio.direccion  String  Sí Dirección de la sede  
+data.solicitante  Object  Sí Información del solicitante  
+data.solicitante.dni  String  Sí DNI del solicitante  
+data.solicitante.nombreCompleto  String  Sí Nombre completo del solicitante  
+data.programacion  Object  Sí Información de la programación  
+data.programacion.fechaCita  String 
+(Date)  Sí Fecha de la cita  
+data.programacion.horaCita  String 
+(Time)  Sí Hora de la cita  
+data.programacion.fechaHoraCompleta  String 
+(DateTime 
+ISO 8601)  Sí Fecha y hora completa  
+data.tecnicoAsignado  Object  No Información del técnico asignado  
+data.tecnicoAsignado.idTecnico  String  No ID del técnico  
+data.tecnicoAsignado.nombreCompleto  String  No Nombre del técnico  
+data.tokenReagendamiento  String  Sí Token para permitir 
+reagendamiento  
+data.fechaLimiteReagendamiento  String 
+(DateTime 
+ISO 8601)  Sí Fecha límite para reagendar  
+data.fechaRegistro  String 
+(DateTime 
+ISO 8601)  Sí Fecha de registro de la cita  
+data.usuarioRegistro  String  Sí Usuario que registró la cita  
+data._links  Object  Sí Enlaces HATEOAS  
+metadata.timestamp  String 
+(DateTime 
+ISO 8601)  Sí Marca de tiempo del 
+procesamiento  
+metadata.correlationId  String  Sí Identificador de correlación para 
+trazabilidad  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto que especifica algún 
+error existente  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título del error  
+
+=== PÁGINA 9 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  9 
+error.estado  Integer  No Número del estado de error  
+error.errores  Array  No Listado de errores  
+error.errores[].detalleError  String  No Detalle del error generado  
+ 
+3.1.1.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201 Created  Cita creada exitosamente  
+400 Bad Request  Datos inválidos o incompletos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para crear citas  
+409 Conflict  Ya existe una cita activa para este trámite o no hay disponibilidad  
+422 Unprocessable Entity  Datos válidos pero lógica de negocio no permite procesarlos  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+503 Service Unavailable  Servicio temporalmente no disponible  
+3.1.2  Endpoint: Actualizar Cita  
+Endpoint que permite actualizar una cita existente (reagendamiento).  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}  
+API Gateway  Interno  
+Método HTTP  PUT 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación para trazabilidad end -to-end) 
+X-Office -Code String (Código de oficina o sede)  
+X-User -Role String (Rol del usuario que realiza la operación)  
+Entrada  { 
+  "tokenReagendamiento": "string",  
+  "nuevaProgramacion": {  
+    "fechaCita": "YYYY -MM-DD",  
+    "horaCita": "HH:mm",  
+    "idDisponibilidad": "string"  
+  }, 
+  "tecnicoAsignado": {  
+    "idTecnico": "string",  
+    "nombreCompleto": "string"  
+  }, 
+  "motivoCambio": "string",  
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "citaId": "string",  
+    "codigoCita": "string",  
+
+=== PÁGINA 10 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  10 
+    "estado": "string",  
+    "programacionAnterior": {  
+      "fechaCita": "YYYY -MM-DD",  
+      "horaCita": "HH:mm"  
+    }, 
+    "programacionNueva": {  
+      "fechaCita": "YYYY -MM-DD",  
+      "horaCita": "HH:mm",  
+      "fechaHoraCompleta": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "sedeServicio": {  
+      "codigoSede": "string",  
+      "nombreSede": "string",  
+      "direccion": "string"  
+    }, 
+    "tecnicoAsignado": {  
+      "idTecnico": "string",  
+      "nombreCompleto": "string"  
+    }, 
+    "tokenReagendamiento": "string",  
+    "fechaLimiteReagendamiento": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "cantidadReagendamientos": "integer",  
+    "fechaActualizacion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioActualizacion": "string",  
+    "_links": {  
+      "self": "string",  
+      "cancelar": "string",  
+      "historial": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error 
+Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.2.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Token 
+Reagendamiento  tokenReagendamiento  String  Sí 32 64 
+Nueva 
+Programación  nuevaProgramacion  Object  Sí NA NA 
+Fecha Cita  nuevaProgramacion.fechaCita  String 
+(Date)  Sí 10 10 
+Hora Cita  nuevaProgramacion.horaCita  String 
+(Time)  Sí 5 5 
+
+=== PÁGINA 11 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  11 
+ID 
+Disponibilidad  nuevaProgramacion.idDisponibilidad  String  Sí 36 36 
+Técnico 
+Asignado  tecnicoAsignado  Object  No NA NA 
+ID Técnico  tecnicoAsignado.idTecnico  String  No 8 20 
+Nombre Técnico  tecnicoAsignado.nombreCompleto  String  No 3 200 
+Motivo Cambio  motivoCambio  String  Sí 10 300 
+Observaciones  observaciones  String  No 0 500 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Cuerpo principal de la respuesta  
+data.citaId  String  Sí UUID de la cita  
+data.codigoCita  String  Sí Código legible de la cita  
+data.estado  String  Sí Estado actual de la cita  
+data.programacionAnterior  Object  Sí Programación anterior  
+data.programacionAnterior.fechaCita  String 
+(Date)  Sí Fecha anterior  
+data.programacionAnterior.horaCita  String 
+(Time)  Sí Hora anterior  
+data.programacionNueva  Object  Sí Nueva programación  
+data.programacionNueva.fechaCita  String 
+(Date)  Sí Nueva fecha  
+data.programacionNueva.horaCita  String 
+(Time)  Sí Nueva hora  
+data.programacionNueva.fechaHoraC
+ompleta  String 
+(DateTime 
+ISO 8601)  Sí Fecha y hora completa nueva  
+data.sedeServicio  Object  Sí Información de la sede  
+data.tecnicoAsignado  Object  No Información del técnico  
+data.tokenReagendamiento  String  Sí Nuevo token para 
+reagendamiento  
+data.fechaLimiteReagendamiento  String 
+(DateTime 
+ISO 8601)  Sí Nueva fecha límite  
+data.cantidadReagendamientos  Integer  Sí Número de veces que se ha 
+reagendado  
+data.fechaActualizacion  String 
+(DateTime 
+ISO 8601)  Sí Fecha de actualización  
+data.usuarioActualizacion  String  Sí Usuario que actualizó  
+
+=== PÁGINA 12 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  12 
+metadata.timestamp  String 
+(DateTime 
+ISO 8601)  Sí Marca de tiempo  
+metadata.correlationId  String  Sí ID de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Información del error si ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción del error  
+error.estado  Integer  No Código de estado del error  
+error.errores  Array  No Lista de errores específicos  
+error.errores[].detalleError  String  No Detalle del error individual  
+3.1.2.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Cita actualizada exitosamente  
+400 Bad Request  Datos inválidos o incompletos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Token de reagendamiento inválido o expirado  
+404 Not Found  Cita no encontrada  
+409 Conflict  No hay disponibilidad en la nueva fecha/hora o cita en estado no 
+modificable  
+422 Unprocessable Entity  Excedido límite de reagendamientos  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+3.1.3  Endpoint: Consultar Cita  
+Endpoint que permite consultar los detalles de una cita específica.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+X-Correlation -ID UUID (Identificador único de correlación para trazabilidad end -to-end) 
+X-Office -Code String (Código de oficina o sede)  
+X-User -Role String (Rol del usuario que realiza la operación)  
+Parámetros  • citaId (string):  Identificador único de la cita.  
+• incluirHistorial (boolean):  Indica si debe incluirse el historial asociado.  
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "citaId": "string",  
+
+=== PÁGINA 13 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  13 
+    "codigoCita": "string",  
+    "estado": {  
+      "codigo": "string",  
+      "descripcion": "string",  
+      "permiteModificacion": "boolean",  
+      "permiteCancelacion": "boolean"  
+    }, 
+    "sedeServicio": {  
+      "codigoSede": "string",  
+      "nombreSede": "string",  
+      "direccion": "string",  
+      "telefono": "string"  
+    }, 
+    "solicitud": {  
+      "idSolicitud": "string",  
+      "numeroTramite": "string"  
+    }, 
+    "solicitante": {  
+      "dni": "string",  
+      "nombreCompleto": "string",  
+      "email": "string",  
+      "telefono": "string"  
+    }, 
+    "programacion": {  
+      "fechaCita": "YYYY -MM-DD",  
+      "horaCita": "HH:mm",  
+      "fechaHoraCompleta": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "tecnicoAsignado": {  
+      "idTecnico": "string",  
+      "nombreCompleto": "string"  
+    }, 
+    "tokenReagendamiento": "string",  
+    "fechaLimiteReagendamiento": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "cantidadReagendamientos": "integer",  
+    "maximoReagendamientos": "integer",  
+    "observaciones": "string",  
+    "fechaRegistro": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioRegistro": "string",  
+    "fechaActualizacion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioActualizacion": "string",  
+    "historial": [  
+      { 
+        "idHistorial": "string",  
+        "fechaCambio": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+        "estadoAnterior": "string",  
+        "estadoNuevo": "string",  
+        "fechaAnterior": "YYYY -MM-DD",  
+        "horaAnterior": "HH:mm",  
+        "fechaNueva": "YYYY -MM-DD",  
+        "horaNueva": "HH:mm",  
+        "motivoCambio": "string",  
+        "usuarioCambio": "string"  
+      } 
+    ], 
+    "_links": {  
+      "self": "string",  
+      "actualizar": "string",  
+      "cancelar": "string",  
+      "disponibilidad": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+
+=== PÁGINA 14 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  14 
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error 
+Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.3.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+ID Cita  citaId  String (UUID)  Sí 36 36 
+Incluir Historial  incluirHistorial  Boolean  No NA NA 
+3.1.3.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Cuerpo principal de la respuesta  
+data.citaId  String  Sí UUID de la cita  
+data.codigoCita  String  Sí Código legible de la cita  
+data.estado  Object  Sí Estado de la cita  
+data.estado.codigo  String  Sí Código del estado  
+data.estado.descripcion  String  Sí Descripción del estado  
+data.estado.permiteModificacion  Boolean  Sí Indica si permite modificación  
+data.estado.permiteCancelacion  Boolean  Sí Indica si permite cancelación  
+data.sedeServicio  Object  Sí Información de la sede  
+data.solicitud  Object  Sí Información de la solicitud asociada  
+data.solicitante  Object  Sí Información del solicitante  
+data.programacion  Object  Sí Información de la programación  
+data.tecnicoAsignado  Object  No Información del técnico asignado  
+data.tokenReagendamiento  String  Sí Token para reagendamiento  
+data.fechaLimiteReagendamiento  String 
+(DateTime 
+ISO 8601)  Sí Fecha límite para reagendar  
+data.cantidadReagendamientos  Integer  Sí Número de veces reagendada  
+data.maximoReagendamientos  Integer  Sí Máximo de reagendamientos 
+permitidos  
+
+=== PÁGINA 15 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  15 
+data.observaciones  String  No Observaciones de la cita  
+data.fechaRegistro  String 
+(DateTime 
+ISO 8601)  Sí Fecha de creación  
+data.usuarioRegistro  String  Sí Usuario que creó la cita  
+data.fechaActualizacion  String 
+(DateTime 
+ISO 8601)  No Fecha de última actualización  
+data.usuarioActualizacion  String  No Usuario de última actualización  
+data.historial  Array  No Historial de cambios (si se solicitó)  
+data._links  Object  Sí Enlaces HATEOAS  
+metadata  Object  Sí Metadatos de la respuesta  
+error  Object  No Información del error si ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción del error  
+error.estado  Integer  No Código de estado del error  
+error.errores  Array  No Lista de errores específicos  
+error.errores[].detalleError  String  No Detalle del error individual  
+3.1.3.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Cita consultada  exitosamente  
+400 Bad Request  Parámetros de consulta inválidos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para consultar esta cita  
+404 Not Found  Cita no encontrada  
+500 Internal Server Error  Error interno del servidor  
+3.1.4  Endpoint: Listar Citas  
+Endpoint que permite listar citas con parámetros de filtrado y paginación.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/citas  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+X-Correlation -ID UUID (Identificador único de correlación)  
+X-Office -Code String (Código de oficina o sede)  
+X-User -Role String (Rol del usuario)  
+Parámetros  • codigoSede (string):  Código de la sede utilizada como filtro.  
+
+=== PÁGINA 16 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  16 
+• estado (string):  Estado aplicado al criterio de búsqueda.  
+• dniSolicitante (string):  Identificador del solicitante utilizado como filtro.  
+• numeroTramite (string):  Número del trámite asociado a la consulta.  
+• idTecnico (string):  Identificador del técnico relacionado con la 
+búsqueda.  
+• fechaDesde (string):  Fecha inicial del rango de consulta.  
+• fechaHasta (string):  Fecha final del rango de consulta.  
+• page (integer):  Número de página para la paginación.  
+• size (integer):  Cantidad de registros por página.  
+• sort (string):  Campo utilizado para ordenar los resultados.  
+• direction (string):  Dirección del ordenamiento.  
+Respuesta  { 
+  "success": "boolean",  
+  "data": [  
+    { 
+      "citaId": "string",  
+      "codigoCita": "string",  
+      "estado": {  
+        "codigo": "string",  
+        "descripcion": "string"  
+      }, 
+      "sedeServicio": {  
+        "codigoSede": "string",  
+        "nombreSede": "string"  
+      }, 
+      "solicitante": {  
+        "dni": "string",  
+        "nombreCompleto": "string"  
+      }, 
+      "numeroTramite": "string",  
+      "programacion": {  
+        "fechaCita": "YYYY -MM-DD",  
+        "horaCita": "HH:mm"  
+      }, 
+      "tecnicoAsignado": {  
+        "idTecnico": "string",  
+        "nombreCompleto": "string"  
+      } 
+    } 
+  ], 
+  "paginacion": {  
+    "totalRegistros": "integer",  
+    "totalPaginas": "integer",  
+    "paginaActual": "integer",  
+    "registrosPorPagina": "integer",  
+    "tieneAnterior": "boolean",  
+    "tieneSiguiente": "boolean"  
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+
+=== PÁGINA 17 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  17 
+    ] 
+ } 
+3.1.4.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Código Sede  codigoSede  String  No 1 50 
+Estado  estado  String  No 1 20 
+DNI Solicitante  dniSolicitante  String  No 8 8 
+Número de Trámite  numeroTramite  String  No 1 20 
+ID Técnico  idTecnico  String  No 1 20 
+Fecha Desde  fechaDesde  String (Date)  No 10 10 
+Fecha Hasta  fechaHasta  String (Date)  No 10 10 
+Página  page  Integer  No 0 NA 
+Tamaño  size Integer  No 1 100 
+Ordenar por  sort String  No 1 50 
+Dirección  direction  String  No 3 4 
+3.1.4.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue 
+exitosa  
+data Array  Sí Listado de citas encontradas  
+data[].citaId  String  Sí Identificador único (UUID) de 
+la cita  
+data[].codigoCita  String  Sí Código legible de la cita  
+data[].estado  Object  Sí Información del estado de la 
+cita 
+data[].estado.codigo  String  Sí Código del estado  
+data[].estado.descripcion  String  Sí Descripción del estado  
+data[].sedeServicio  Object  Sí Información de la sede de 
+atención  
+data[].sedeServicio.codigoSede  String  Sí Código de sede  
+data[].sedeServicio.nombreSede  String  Sí Nombre de la sede  
+data[].solicitante  Object  Sí Información del solicitante  
+data[].solicitante.dni  String  Sí DNI del solicitante  
+data[].solicitante.nombreCompleto  String  Sí Nombre completo del 
+solicitante  
+data[].numeroTramite  String  Sí Número de trámite 
+relacionado  
+data[].programacion  Object  Sí Programación de la cita  
+
+=== PÁGINA 18 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  18 
+data[].programacion.fechaCita  String 
+(Date)  Sí Fecha programada de la cita  
+data[].programacion.horaCita  String 
+(Time)  Sí Hora programada de la cita  
+data[].tecnicoAsignado  Object  No Información del técnico 
+asignado  
+data[].tecnicoAsignado.idTecnico  String  No Identificador del técnico  
+data[].tecnicoAsignado.nombreCompleto  String  No Nombre del técnico asignado  
+paginacion  Object  Sí Información de paginación  
+paginacion.totalRegistros  Integer  Sí Total de registros 
+encontrados  
+paginacion.totalPaginas  Integer  Sí Total de páginas disponibles  
+paginacion.paginaActual  Integer  Sí Número de página actual  
+paginacion.registrosPorPagina  Integer  Sí Cantidad de registros por 
+página  
+paginacion.tieneAnterior  Boolean  Sí Indica si existe página 
+anterior  
+paginacion.tieneSiguiente  Boolean  Sí Indica si existe página 
+siguiente  
+metadata  Object  Sí Metadatos de la operación  
+metadata.timestamp  String  Sí Marca de tiempo de la 
+respuesta  
+metadata.correlationId  String  Sí ID de correlación de la 
+solicitud  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto de error si ocurre  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o detalle general del 
+error  
+error.estado  Integer  No Código de estado asociado al 
+error  
+error.errores  Array  No Listado de errores específicos  
+error.errores[].detalleError  String  No Detalle del error específico  
+ 
+3.1.4.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Listado consultado  exitosamente  
+400 Bad Request  Parámetros de consulta inválidos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para listar citas  
+
+=== PÁGINA 19 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  19 
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+3.1.5  Endpoint: Cancelar Cita  
+Endpoint que permite cancelar una cita existente.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}/cancelar  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación)  
+X-Office -Code String (Código de oficina)  
+X-User -Role String (Rol del usuario)  
+Entrada  { 
+  "motivoCancelacion": "string",  
+  "tokenReagendamiento": "string",  
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "citaId": "string",  
+    "codigoCita": "string",  
+    "estadoAnterior": "string",  
+    "estadoNuevo ": "string",  
+    "fechaCancelacion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioCancelacion": "string",  
+    "motivoCancelacion": "string",  
+    "disponibilidadLiberada": "boolean"  
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.5.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+
+=== PÁGINA 20 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  20 
+Motivo Cancelación  motivoCancelacion  String  Sí 10 300 
+Token 
+Reagendamiento  tokenReagendamiento  String  No 32 64 
+Observaciones  observaciones  String  No 0 500 
+3.1.5.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Cuerpo principal de la respuesta  
+data.citaId  String  Sí Identificador único de la cita  
+data.codigoCita  String  Sí Código legible de la cita  
+data.estadoAnterior  String  Sí Estado anterior de la cita  
+data.estadoNuevo  String  Sí Nuevo estado asignado a la cita  
+data.fechaCancelacion  String 
+(DateTime 
+ISO 8601)  Sí Fecha y hora de cancelación  
+data.usuarioCancelacion  String  Sí Usuario que realizó la cancelación  
+data.motivoCancelacion  String  Sí Motivo indicado para cancelar la cita  
+data.disponibilidadLiberada  Boolean  Sí Indica si la disponibilidad fue liberada  
+metadata  Object  Sí Metadatos de la operación  
+metadata.timestamp  String  Sí Marca de tiempo de la respuesta  
+metadata.correlationId  String  Sí Identificador único de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto de error si ocurre  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción general del error  
+error.estado  Integer  No Código de estado asociado al error  
+error.errores  Array  No Listado de errores específicos  
+error.errores[].detalleError  String  No Detalle específico del error  
+3.1.5.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Cita cancelada exitosamente  
+400 Bad Request  Datos inválidos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Token de reagendamiento inválido o sin permisos  
+404 Not Found  Cita no encontrada  
+409 Conflict  Cita en estado no cancelable  
+500 Internal Server Error  Error interno del servidor  
+
+=== PÁGINA 21 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  21 
+3.1.6  Endpoint: Consultar Disponibilidad  
+Endpoint que permite consultar la disponibilidad horaria de una sede para programar citas.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/disponibilidad  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación)  
+X-Correlation -ID UUID (Identificador único de correlación)  
+X-Office -Code String (Código de oficina)  
+Parámetros  • codigoSede (string):  Código de la sede utilizada como filtro.  
+• fechaDesde (string):  Fecha inicial del rango de consulta.  
+• fechaHasta (string):  Fecha final del rango de consulta.  
+• soloDisponibles (boolean):  Indica si únicamente deben considerarse 
+elementos disponibles.  
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "sedeServicio": {  
+      "codigoSede": "string",  
+      "nombreSede": "string",  
+      "direccion": "string",  
+      "tiempoAtencionMinutos": "integer"  
+    }, 
+    "rangoConsultado": {  
+      "fechaDesde": " YYYY -MM-DD", 
+      "fechaHasta": "YYYY -MM-DD" 
+    }, 
+    "disponibilidad": [  
+      { 
+        "fecha": "YYYY -MM-DD",  
+        "diaSemana": "string",  
+        "esHabil": "boolean",  
+        "motivoNoHabil": "string",  
+        "franjas": [  
+          { 
+            "idDisponibilidad": "string",  
+            "horaInicio": "HH:mm",  
+            "horaFin": "HH:mm",  
+            "capacidadTotal": "integer",  
+            "capacidadOcupada": "integer",  
+            "capacidadDisponible": "integer",  
+            "estado": "string"  
+          } 
+        ] 
+      } 
+    ], 
+    "resumen": {  
+      "totalDias": "integer",  
+      "diasHabiles": "integer",  
+      "diasNoHabiles": "integer",  
+      "totalFranjas": "integer",  
+      "franjasDisponibles": "integer",  
+      "franjasOcupadas": "integer"  
+    } 
+  }, 
+  "metadata": {  
+
+=== PÁGINA 22 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  22 
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.6.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Código Sede  codigoSede  String  Sí 1 50 
+Fecha Desde  fechaDesde  String (Date)  Sí 10 10 
+Fecha Hasta  fechaHasta  String (Date)  Sí 10 10 
+Solo Disponibles  soloDisponibles  Boolean  No NA NA 
+3.1.6.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la 
+operación fue 
+exitosa  
+data.sedeServicio  Object  Sí Información de 
+la sede 
+consultada  
+data.sedeServicio.codigoSede  String  Sí Código de la 
+sede  
+data.sedeServicio.nombreSede  String  Sí Nombre de la 
+sede  
+data.sedeServicio.direccion  String  Sí Dirección de la 
+sede  
+data.sedeServicio.tiempoAtencionMinutos  Integer  Sí Duración de 
+cada cita en 
+minutos  
+data.rangoConsultado  Object  Sí Rango de 
+fechas 
+consultado  
+data.disponibilidad  Array  Sí Lista de 
+disponibilidad 
+por día  
+
+=== PÁGINA 23 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  23 
+data.disponibilidad[].fecha  String 
+(Date)  Sí Fecha del día  
+data.disponibilidad[].diaSemana  String  Sí Nombre del día  
+data.disponibilidad[].esHabil  Boolean  Sí Indica si es día 
+hábil  
+data.disponibilidad[]. motivoNoHabil  String  No Motivo si no es 
+hábil  
+data.disponibilidad[].franjas  Array  Sí Franjas horarias 
+del día  
+data.disponibilidad[].franjas[].idDisponibilidad  String  Sí ID único de la 
+franja  
+data.disponibilidad[].franjas[].horaInicio  String 
+(Time)  Sí Hora de inicio 
+de la franja  
+data.disponibilidad[].franjas[].horaFin  String 
+(Time)  Sí Hora de fin de la 
+franja  
+data.disponibilidad[].franjas[].capacidadTotal  Integer  Sí Capacidad 
+máxima de la 
+franja  
+data.disponibilidad [].franjas[].capacidadOcupada  Integer  Sí Citas ya 
+programadas  
+data.disponibilidad[].franjas[].capacidadDisponible  Integer  Sí Cupos 
+disponibles  
+data.disponibilidad[].franjas[].estado  String  Sí Estado de la 
+franja  
+data.resumen  Object  Sí Resumen de la 
+consulta  
+metadata  Object  Sí Metadatos de la 
+respuesta  
+error  Object  No Información del 
+error si ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o 
+descripción del 
+error  
+error.estado  Integer  No Código de 
+estado del error  
+error.errores  Array  No Lista de errores 
+específicos  
+error.errores[].detalleError  String  No Detalle del error 
+individual  
+3.1.6.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Disponibilidad consultada exitosamente  
+
+=== PÁGINA 24 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  24 
+400 Bad Request  Parámetros de consulta inválidos o rango de fechas excede el 
+máximo permitido  
+401 Unauthorized  Token JWT inválido o expirado  
+404 Not Found  Sede no encontrada  
+500 Internal Server Error  Error interno del servidor  
+3.1.7  Endpoint: Configurar Disponibilidad  
+Endpoint que permite configurar la disponibilidad horaria de una sede.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/disponibilidad  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación)  
+X-Office -Code String (Código de oficina)  
+X-User -Role String (Rol del usuario: ADMINISTRADOR)  
+Entrada  { 
+  "sedeServicio": {  
+    "codigoSede": "string",  
+    "nombreSede": "string",  
+    "direccion": "string",  
+    "capacidadDiariaMaxima": "integer",  
+    "tiempoAtencionMinutos": "integer"  
+  }, 
+  "horarioServicio": [  
+    { 
+      "diaSemana": "integer",  
+      "nombreDia": "string",  
+      "horaInicio": "HH:mm",  
+      "horaFin": "HH:mm",  
+      "capacidadPorFranja": "integer",  
+      "duracionFranjaMinutos": "integer",  
+      "activo": "boolean"  
+    } 
+  ], 
+  "rangoAplicacion": {  
+    "fechaDesde": "YYYY -MM-DD",  
+    "fechaHasta": "YYYY -MM-DD" 
+  }, 
+  "generarDisponibilidadAutomatica": "boolean"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "sedeServicioId": "string",  
+    "codigoSede": "string",  
+    "nombreSede": "string",  
+    "configuracion": {  
+      "capacidadDiariaMaxima ": "integer",  
+      "tiempoAtencionMinutos": "integer",  
+      "horariosConfigurados": "integer"  
+    }, 
+
+=== PÁGINA 25 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  25 
+    "disponibilidadGenerada": {  
+      "diasGenerados": "integer",  
+      "franjasGeneradas": "integer",  
+      "fechaDesde": "YYYY -MM-DD",  
+      "fechaHasta": "YYYY -MM-DD" 
+    }, 
+    "fechaConfiguracion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioConfiguracion": "string"  
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.7.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Sede 
+Servicio  sedeServicio  Object  Sí NA NA 
+Código 
+Sede  sedeServicio.codigoSede  String  Sí 3 10 
+Nombre 
+Sede  sedeServicio.nombreSede  String  Sí 3 100 
+Dirección  sedeServicio.direccion  String  Sí 5 300 
+Capacidad 
+Diaria  sedeServicio.capacidadDiariaMaxima  Integer  Sí 1 1000  
+Tiempo 
+Atención  sedeServicio.tiempoAtencionMinutos  Integer  Sí 15 240 
+Horario 
+Servicio  horarioServicio  Array  Sí 1 7 
+Día 
+Semana  horarioServicio[].diaSemana  Integer  Sí 1 7 
+Nombre 
+Día horarioServicio[].nombreDia  String  No 5 15 
+Hora Inicio  horarioServicio[].horaInicio  String 
+(Time)  Sí 5 5 
+Hora Fin  horarioServicio[].horaFin  String 
+(Time)  Sí 5 5 
+
+=== PÁGINA 26 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  26 
+Capacidad 
+por Franja  horarioServicio[].capacidadPorFranja  Integer  Sí 1 100 
+Duración 
+Franja  horarioServicio[].duracionFranjaMinutos  Integer  Sí 15 240 
+Activo  horarioServicio[].activo  Boolean  Sí NA NA 
+Rango 
+Aplicación  rangoAplicacion  Object  No NA NA 
+Fecha 
+Desde  rangoAplicacion.fechaDesde  String 
+(Date)  No 10 10 
+Fecha 
+Hasta  rangoAplicacion.fechaHasta  String 
+(Date)  No 10 10 
+Generar 
+Automático  generarDisponibilidadAutomatica  Boolean  No NA NA 
+3.1.7.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación 
+fue exitosa  
+data Object  Sí Información principal de 
+la configuración 
+aplicada  
+data.sedeServicioId  String  Sí Identificador único de la 
+sede de servicio  
+data.codigoSede  String  Sí Código de la sede  
+data.nombreSede  String  Sí Nombre de la sede  
+data.configuracion  Object  Sí Configuración aplicada 
+a la sede  
+data.configuracion.capacidadDiariaMaxima  Integer  Sí Capacidad diaria 
+máxima definida  
+data.configuracion.tiempoAtencionMinutos  Integer  Sí Duración de cada cita 
+en minutos  
+data.configuracion.horariosConfigurados  Integer  Sí Cantidad de 
+horarios/franjas 
+configuradas  
+data.disponibilidadGenerada  Object  Sí Información de la 
+disponibilidad generada 
+automáticamente  
+data.disponibilidadGenerada.diasGenerados  Integer  Sí Número de días 
+generados  
+data.disponibilidadGenerada.franjasGeneradas  Integer  Sí Número total de franjas 
+generadas  
+data.disponibilidadGenerada.fechaDesde  String 
+(Date)  Sí Fecha inicial del rango 
+generado  
+
+=== PÁGINA 27 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  27 
+data.disponibilidadGenerada.fechaHasta  String 
+(Date)  Sí Fecha final del rango 
+generado  
+data.fechaConfiguracion  String 
+(DateTime 
+ISO 8601)  Sí Fecha/hora en que se 
+registró la configuración  
+data.usuarioConfiguracion  String  Sí Usuario que realizó la 
+configuración  
+metadata  Object  Sí Metadatos de la 
+operación  
+metadata.timestamp  String  Sí Fecha y hora de la 
+respuesta  
+metadata.correlationId  String  Sí Identificador único de 
+correlación  
+metadata.version  String  Sí Versión del servicio 
+utilizado  
+error  Object  No Información del error si 
+ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción del 
+error  
+error.estado  Integer  No Código de estado del 
+error  
+error.errores  Array  No Lista de errores 
+detallados  
+error.errores[].detalleError  String  No Detalle específico del 
+error  
+3.1.7.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201 Created  Disponibilidad configurada exitosamente  
+400 Bad Request  Datos inválidos o incompletos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos de administrador  
+409 Conflict  Ya existe configuración para esta sede  
+422 Unprocessable Entity  Configuración inválida (horarios superpuestos, etc.)  
+500 Internal Server Error  Error interno del servidor  
+3.1.8  Endpoint: Actualizar Disponibilidad  
+Endpoint que permite actualizar la disponibilidad de una franja horaria específica.  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/disponibilidad/{disponibilidadId}  
+API Gateway  Interno  
+
+=== PÁGINA 28 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  28 
+Método HTTP  PUT 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación)  
+X-Office -Code String (Código de oficina)  
+X-User -Role String (Rol del usuario: ADMINISTRADOR)  
+Entrada  { 
+  "capacidadTotal": "integer",  
+  "estado": "string",  
+  "motivoCambio": "string"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "idDisponibilidad": "string",  
+    "fecha": "YYYY -MM-DD",  
+    "horaInicio": "HH:mm",  
+    "horaFin": "HH:mm",  
+    "capacidadAnterior": "integer",  
+    "capacidadNueva": "integer",  
+    "capacidadOcupada": "integer",  
+    "capacidadDisponible": "integer",  
+    "estadoAnterior": "string",  
+    "estadoNuevo": "string",  
+    "fechaActualizacion ": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioActualizacion": "string"  
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.8.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Capacidad Total  capacidadTotal  Integer  No NA NA 
+Estado  estado  String  No 4 10 
+Motivo Cambio  motivoCambio  String  Sí 10 300 
+3.1.8.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+
+=== PÁGINA 29 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  29 
+success  Boolean  Sí Indica si la operación fue 
+exitosa  
+data Object  Sí Información principal de la 
+franja actualizada  
+data.idDisponibilidad  String  Sí Identificador único de la 
+disponibilidad  
+data.fecha  String (Date)  Sí Fecha de la franja actualizada  
+data.horaInicio  String (Time)  Sí Hora de inicio de la franja  
+data.horaFin  String (Time)  Sí Hora de fin de la franja  
+data.capacidadAnterior  Integer  Sí Capacidad registrada antes de 
+la actualización  
+data.capacidadNueva  Integer  Sí Nueva capacidad asignada a la 
+franja  
+data.capacidadOcupada  Integer  Sí Número de citas ya ocupando la 
+franja  
+data.capacidadDisponible  Integer  Sí Cupos disponibles luego de la 
+actualización  
+data.estadoAnterior  String  Sí Estado anterior de la franja 
+(DISPONIBLE, CERRADO, etc.)  
+data.estadoNuevo  String  Sí Nuevo estado asignado a la 
+franja  
+data.fechaActualizacion  String 
+(DateTime ISO 
+8601)  Sí Fecha y hora de la actualización  
+data.usuarioActualizacion  String  Sí Usuario responsable de la 
+actualización  
+metadata  Object  Sí Metadatos de la respuesta  
+metadata.timestamp  String  Sí Marca de tiempo de la 
+respuesta  
+metadata.correlationId  String  Sí Identificador único de 
+correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Información del error si ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción del error  
+error.estado  Integer  No Código de estado del error  
+error.errores  Array  No Lista de errores específicos  
+error.errores[].detalleError  String  No Detalle del error individual  
+3.1.8.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Disponibilidad actualizada exitosamente  
+
+=== PÁGINA 30 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  30 
+400 Bad Request  Datos inválidos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos de administrador  
+404 Not Found  Disponibilidad no encontrada  
+409 Conflict  Capacidad nueva menor que citas ya programadas  
+500 Internal Server Error  Error interno del servidor  
+3.1.9  Endpoint: Registrar Excepción Horaria  
+Endpoint que permite registrar excepciones horarias (feriados, cierres temporales, horarios 
+especiales).  
+Atributo  Valor  
+Path  /api/v1/agendamiento/MsDatosAgendamiento/excepciones  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación)  
+X-Office -Code String (Código de oficina)  
+X-User -Role String (Rol del usuario: ADMINISTRADOR)  
+Entrada  { 
+  "codigoSede": "string",  
+  "fechaExcepcion": "YYYY -MM-DD",  
+  "tipoExcepcion": "string",  
+  "descripcion": "string",  
+  "horarioEspecial": {  
+    "horaInicio": "HH:mm",  
+    "horaFin": "HH:mm",  
+    "capacidadPorFranja": "integer"  
+  }, 
+  "afectaCitasExistentes": "boolean",  
+  "notificarAfectados": "boolean"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "idExcepcion": "string",  
+    "codigoSede": "string",  
+    "nombreSede": "string",  
+    "fechaExcepcion": "YYYY -MM-DD",  
+    "tipoExcepcion": "string",  
+    "descripcion": "string",  
+    "horarioEspecial": {  
+      "horaInicio": "HH:mm",  
+      "horaFin": "HH:mm"  
+    }, 
+    "citasAfectadas": {  
+      "cantidad": "integer",  
+      "accion": "string",  
+      "citasIds": ["string"]  
+    }, 
+    "fechaRegistro": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioRegistro": "string"  
+
+=== PÁGINA 31 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  31 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+3.1.9.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Código Sede  codigoSede  String  No 1 10 
+Fecha 
+Excepción  fechaExcepcion  String 
+(Date)  Sí 10 10 
+Tipo 
+Excepción  tipoExcepcion  String  Sí 5 20 
+Descripción  descripcion  String  Sí 5 200 
+Horario 
+Especial  horarioEspecial  Object  No NA NA 
+Hora Inicio  horarioEspecial.horaInicio  String 
+(Time)  Condicional  5 5 
+Hora Fin  horarioEspecial.horaFin  String 
+(Time)  Condicional  5 5 
+Capacidad por 
+Franja  horarioEspecial.capacidadPorFranja  Integer  Condicional  NA NA 
+Afecta Citas  afectaCitasExistentes  Boolean  No NA NA 
+Notificar  notificarAfectados  Boolean  No NA NA 
+3.1.9.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Información principal de la 
+excepción registrada  
+data.idExcepcion  String  Sí Identificador único de la excepción  
+data.codigoSede  String  Sí Código de la sede asociada  
+data.nombreSede  String  Sí Nombre de la sede asociada  
+data.fechaExcepcion  String (Date)  Sí Fecha en que aplica la excepción  
+
+=== PÁGINA 32 ===
+
+ 
+ 
+Microservicio MsDatosAgendamiento  32 
+data.tipoExcepcion  String  Sí Tipo de excepción configurada  
+data.descripcion  String  No Descripción o justificación de la 
+excepción  
+data.horarioEspecial  Object  No Horario especial asignado por la 
+excepción  
+data.horarioEspecial.horaInicio  String (Time)  No Hora de inicio del horario especial  
+data.horarioEspecial.horaFin  String (Time)  No Hora de fin del horario especial  
+data.citasAfectadas  Object  No Información sobre las citas 
+afectadas  
+data.citasAfectadas.cantidad  Integer  No Número de citas afectadas  
+data.citasAfectadas.accion  String  No Acción tomada  
+data.citasAfectadas.citasIds  Array  No Lista de IDs de citas afectadas  
+data.fechaRegistro  String 
+(DateTime 
+ISO 8601)  Sí Fecha y hora del registro  
+data.usuarioRegistro  String  Sí Usuario que registró la excepción  
+metadata  Object  Sí Metadatos de la respuesta  
+metadata.timestamp  String  Sí Marca temporal de la respuesta  
+metadata.correlationId  String  Sí Identificador único de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Información de error si ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción del error  
+error.estado  Integer  No Código de error  
+error.errores  Array  No Lista de errores específicos  
+error.errores[].detalleError  String  No Detalle específico del error  
+3.1.9.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201 Created  Excepción registrada exitosamente  
+400 Bad Request  Datos inválidos o incompletos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos de administrador  
+409 Conflict  Ya existe excepción para esa fecha/sede  
+422 Unprocessable Entity  Fecha de excepción en el pasado  
+500 Internal Server Error  Error interno del servidor  
+ 
+ 

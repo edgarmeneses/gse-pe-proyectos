@@ -1,0 +1,858 @@
+
+================================================================================
+P?GINA 1
+================================================================================
+   
+ 
+  
+ 
+Microservicio 
+MsCoreogValidadorDocumentos  
+Documento Versión: 1.0  
+Gestión de Seguridad Electrónica  
+  Fecha generación:  01/12/2025 
+    
+ 
+  
+
+
+================================================================================
+P?GINA 2
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 03/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+1.1 29/11/2025  Control de Arquitectura  Revisión estructura de 
+objetos JSON  
+    
+    
+    
+
+================================================================================
+P?GINA 3
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ...............  4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ....... 4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ .............  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ .............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ........  5 
+3.1 Microservicio MsCoreogValidadorDocumentos  ................................ ................................ .................  5 
+3.1.1 Endpoint: Calificar Documento ................................ ................................ ................................ ... 5 
+ 
+ 
+ 
+ 
+  
+
+================================================================================
+P?GINA 4
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+
+================================================================================
+P?GINA 5
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio 
+MsCoreogValidadorDocumentos  
+El Microservicio de Validación de Documentos con IA (MsCoreogValidadorDocumentos) es 
+responsable de la evaluación automática de documentos digitales dentro de la plataforma SIIRC, 
+utilizando modelos de inteligencia artificial para detectar posibles inconsi stencias, errores o señales de 
+fraude.  
+3.1.1 Endpoint: Calificar Documento  
+Este endpoint recibe una solicitud para evaluar uno o más documentos digitales asociados a un trámite 
+específico, aplicando modelos de inteligencia artificial para determinar su nivel de confiabilidad y 
+detectar posibles riesgos de fraude o inconsistencias . 
+Atributo  Valor  
+Path  /api/v1/documentos/MsCoreogValidadorDocumentos/calificar  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization: Bearer {JWT_TOKEN}  
+Content -Type: application/json  
+X-Correlation -Id: {UUID} (opcional, para trazabilidad)  
+X-Usuario -Id: {ID_USUARIO}  
+X-Oficina -Id: {ID_OFICINA}  
+Entrada  { 
+  "solicitudId": "string",  
+  "tramiteId": "string",  
+  "tipoTramite": "string",  
+  "documentos": [  
+    { 
+      "documentoId": "string",  
+      "tipoDocumental": "string",  
+      "nombreArchivo": "string",  
+      "rutaGestorDocumental": "string",  
+      "hashSHA256": "string",  
+      "formatoDocumento": "string",  
+      "tamanioBytes": "integer",  
+
+================================================================================
+P?GINA 6
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  6 
+      "requiereValidacionIA": "boolean"  
+    } 
+  ], 
+  "parametrosValidacion": {  
+    "nivelPonderacionMinimo": "number",  
+    "modeloIA": "string",  
+    "tiposObservacion": [  
+      { 
+        "codigo": "string",  
+        "descripcion": "string"  
+      } 
+    ] 
+  }, 
+  "usuarioSolicita": "string",  
+  "oficinaOrigen": "string",  
+  "fechaSolicitud": "string (Date -Time)",  
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "evaluacionId": "string (UUID)",  
+    "solicitudId": "string (UUID)",  
+    "tramiteId": "string",  
+    "fechaEvaluacion": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "modeloIAUtilizado": "string",  
+    "tiempoProcesamientoMs": "integer",  
+    "resultadoGeneral": {  
+      "estado": "string",  
+      "scorePromedio": "number",  
+      "nivelRiesgo": "string",  
+      "alertaFraude": "boolean",  
+      "requiereRevisionManual": "boolean",  
+      "observacionesGenerales": "string"  
+    }, 
+    "documentosEvaluados": [  
+      { 
+        "documentoId": "string (UUID)",  
+        "tipoDocumental": "string",  
+        "nombreArchivo": "string",  
+        "estadoEvaluacion": "string",  
+        "scoreConfiabilidad": "number",  
+        "nivelRiesgo": "string",  
+        "alertaFraude": "boolean",  
+ 
+        "observaciones": [  
+          { 
+            "codigo": "string",  
+            "descripcion": "string",  
+            "severidad": "string",  
+            "evidencias": [  
+              "string"  
+            ] 
+          } 
+        ], 
+        "metricas": {  
+          "calidadImagen": "number",  
+          "legibilidadTexto": "number",  
+          "integridadEstructura": "number",  
+          "confianzaOCR": "number"  
+        }, 
+        "tiempoProcesamientoMs": "integer"  
+      } 
+    ], 
+
+================================================================================
+P?GINA 7
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  7 
+    "accionesRecomendadas": [  
+      { 
+        "tipo": "string",  
+        "descripcion": "string",  
+        "prioridad": "string"  
+      } 
+    ] 
+  }, 
+  "metadata": {  
+    "timestamp": "(YYYY -MM-DDThh:mm:ss±hh:mm)",  
+    "correlationId": "string (UUID)",  
+    "version": "string",  
+    "servidorProcesamiento": "string"  
+  } 
+} 
+Error Response     "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "codigo ": "string"  
+         "campo ": "string"  
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.1.1  Parámetros  de Entrada  
+Dato  Atributo  Tipo  Obligator
+io Longitu
+d 
+mínima  Longitu
+d 
+máxim
+a 
+ID Solicitud  solicitudId  String 
+(UUID)  Sí 36 36 
+ID Trámite  tramiteId  String  Sí 3 50 
+Tipo Trámite  tipoTramite  String  Sí 5 100 
+Documentos 
+a Validar  documentos  Array  Sí 1 20 
+ID 
+Documento  documentos[].documentoId  String 
+(UUID)  Sí 36 36 
+Tipo 
+Documental  documentos[].tipoDocumental  String  Sí 3 50 
+Nombre 
+Archivo  documentos[].nombreArchivo  String  Sí 3 200 
+Ruta Gestor 
+Documental  documentos[].rutaGestorDocumental  String 
+(URI)  Sí 10 500 
+Hash SHA -
+256 documentos[].hashSHA256  String  Sí 64 64 
+Formato 
+Documento  documentos[].formatoDocumento  String  Sí 3 10 
+
+================================================================================
+P?GINA 8
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  8 
+Tamaño en 
+Bytes  documentos[].tamanioBytes  Integer  Sí NA NA 
+Requiere 
+Validación 
+IA documentos[].requiereValidacionIA  Boolea
+n Sí NA NA 
+Parámetros 
+Validación  parametrosValidacion  Object  No NA NA 
+Nivel 
+Ponderación 
+Mínimo  parametrosValidacion.nivelPonderacionMini
+mo Decim
+al No NA NA 
+Modelo IA a 
+Utilizar  parametrosValidacion.modeloIA  String  No 3 50 
+Tipos 
+Observación 
+Aplicables  parametrosValidacion.tiposObservacion  Array  No 0 20 
+Código 
+Observación  parametrosValidacion.tiposObservacion[].cod
+igo String  No 3 20 
+Descripción 
+Observación  parametrosValidacion.tiposObservacion[].des
+cripcion  String  No 5 200 
+Usuario 
+Solicitante  usuarioSolicita  String  Sí 5 50 
+Oficina 
+Origen  oficinaOrigen  String  Sí 5 50 
+Fecha 
+Solicitud  fechaSolicitud  String 
+(Date 
+ISO 
+8601)  Sí NA NA 
+Observacion
+es observaciones  String  No 0 500 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa.  
+data Object  Sí Cuerpo principal de la respuesta.  
+data.evaluacionId  String (UUID)  Sí Identificador único de la 
+evaluación generada.  
+data.solicitudId  String (UUID)  Sí UUID de la solicitud evaluada.  
+data.tramiteId  String  Sí Identificador del trámite asociado.  
+data.fechaEvaluacion  String (Date ISO 
+8601)  Sí Fecha/hora de procesamiento de 
+la evaluación.  
+data.modeloIAUtilizado  String  Sí Versión del modelo de IA 
+utilizado para la evaluación.  
+data.tiempoProcesamientoMs  Integer  Sí Tiempo total de procesamiento 
+en milisegundos.  
+
+================================================================================
+P?GINA 9
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  9 
+data.resultadoGeneral  Object  Sí Resultado consolidado de la 
+evaluación.  
+data.resultadoGeneral.estado  String  Sí Estado general: APROBADO, 
+ALERTA, RECHAZADO.  
+data.resultadoGeneral.scorePro
+medio  Decimal  Sí Puntaje promedio de 
+confiabilidad (0 -100).  
+data.resultadoGeneral.nivelRie
+sgo String  Sí Nivel de riesgo: BAJO, MEDIO, 
+ALTO, CRITICO.  
+data.resultadoGeneral.alertaFra
+ude Boolean  Sí Indica si se detectó alerta de 
+fraude.  
+data.resultadoGeneral.requiere
+RevisionManual  Boolean  Sí Indica si requiere revisión manual 
+adicional.  
+data.resultadoGeneral.observa
+cionesGenerales  String  No Observaciones generales de la 
+evaluación.  
+data.documentosEvaluados[]  Array  Sí Detalle de evaluación por 
+documento.  
+data.documentosEvaluados[].d
+ocumentoId  String (UUID)  Sí Identificador del documento 
+evaluado.  
+data.documentosEvaluados[].ti
+poDocumental  String  Sí Tipo documental evaluado.  
+data.documentosEvaluados[].n
+ombreArchivo  String  Sí Nombre del archivo evaluado.  
+data.documentosEvaluados[].e
+stadoEvaluacion  String  Sí Estado: APROBADO, 
+OBSERVADO, RECHAZADO.  
+data.documentosEvaluados[].s
+coreConfiabilidad  Decimal  Sí Puntaje de confiabilidad del 
+documento (0 -100).  
+data.documentosEvaluados[].ni
+velRiesgo  String  Sí Nivel de riesgo  
+data.documentosEvaluados[].al
+ertaFraude  Boolean  Sí Indica si se detectó alerta de 
+fraude en este documento.  
+data.documentosEvaluados[].o
+bservaciones[]  Array  No Lista de observaciones 
+detectadas.  
+data.documentosEvaluados[].o
+bservaciones[].codigo  String  No Código de observación.  
+data.documentosEvaluados[].o
+bservaciones[].descripcion  String  No Descripción de la observación.  
+data.documentosEvaluados[].o
+bservaciones[].severidad  String  No Severidad  
+data.documentosEvaluados[].o
+bservaciones[].evidencias  Array  No Evidencias técnicas de la 
+observación.  
+data.documentosEvaluados[].m
+etricas  Object  No Métricas técnicas de evaluación.  
+data.documentosEvaluados[].m
+etricas.calidadImagen  Decimal  No Calidad de imagen detectada  
+
+================================================================================
+P?GINA 10
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  10 
+data.documentosEvaluados[].m
+etricas.legibilidadTexto  Decimal  No Legibilidad de texto  
+data.documentosEvaluados[].m
+etricas.integridadEstructura  Decimal  No Integridad estructural del 
+documento  
+data.documentosEvaluados[].m
+etricas.confianzaOCR  Decimal  No Nivel de confianza del OCR  
+data.documentosEvaluados[].ti
+empoProcesamientoMs  Integer  Sí Tiempo de procesamiento del 
+documento.  
+data.accionesRecomendadas[]  Array  No Acciones sugeridas basadas en 
+la evaluación.  
+data.accionesRecomendadas[].
+tipo String  No Tipo de acción  
+data.accionesRecomendadas[].
+descripcion  String  No Descripción de la acción 
+recomendada.  
+data.accionesRecomendadas[].
+prioridad  String  No Prioridad  
+metadata  Object  Sí Metadatos de la operación.  
+metadata.timestamp  String (Date ISO 
+8601)  Sí Marca de tiempo del 
+procesamiento.  
+metadata.correlationId  String  Sí Identificador de correlación para 
+trazabilidad.  
+metadata.version  String  Sí Versión del servicio.  
+metadata.servidorProcesamient
+o String  Sí Identificador del servidor que 
+procesó la solicitud.  
+error  Object  No Objeto que especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error.  
+error.titulo  String  No Título del error.  
+error.status  Integer  No Número del estado de error.  
+error.errores[]  Array  No Lista detallada de errores  
+error.errores[].codigo  String  No Código interno del error  
+error.errores[].campo  String  No Campo que generó el error  
+error.errores[].detalleError  String  No Descripción específica del error  
+3.1.1.3  Valores para el atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Evaluación realizada exitosamente  
+400 Bad Request  Parámetros de entrada inválidos o documentos no encontrados en 
+gestor documental  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para solicitar validación de documentos para esta 
+solicitud  
+
+================================================================================
+P?GINA 11
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  11 
+404 Not Found  Solicitud no encontrada o documentos no localizados en gestor 
+documental  
+408 Request Timeout  Timeout al intentar obtener documentos del gestor documental  
+422 Unprocessable 
+Entity  Documentos en formato no soportado o trámite en estado no válido 
+para evaluación  
+429 Too Many 
+Requests  Límite de rate limit excedido  
+500 Internal Server 
+Error  Error interno del servicio de validación  
+502 Bad Gateway  Error al comunicarse con el gestor documental o servicio de IA  
+503 Service 
+Unavailable  Servicio de inferencia de IA temporalmente no disponible - Circuit 
+Breaker activado  
+504 Gateway Timeout  Timeout en servicio de inferencia de IA - tiempo de procesamiento 
+excedido  
+ 
+3.1.2 Endpoint: Verificar Firma del Registrador  
+Este endpoint realiza la validación automática de la firma digital del registrador asociada a un 
+documento registral (acta certificada o constancia negativa), verificando:  
+• La validez criptográfica de la firma digital en el Sistema de Firma Digital.  
+• La correspondencia de la identidad del registrador con la Base de Datos de Registradores 
+Civiles.  
+• La vigencia del periodo de actuación del registrador al momento de la firma.  
+El resultado de la verificación se devuelve al sistema SIIRC para apoyar la decisión del Autenticador 
+Registral dentro del proceso CU-053-001 Analizar solicitud  y se registra para efectos de trazabilidad 
+y auditoría.  
+Atributo  Valor  
+Path  /api/v1/documentos/MsCoreogValidadorDocumentos/verificar -firma -registrador  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization: Bearer {JWT_TOKEN}  
+Content -Type: application/json  
+X-Correlation -Id: {UUID} (opcional, para trazabilidad)  
+X-Usuario -Id: {ID_USUARIO}  
+X-Oficina -Id: {ID_OFICINA}  
+Entrada  { 
+  "solicitudId": "string",  
+  "tramiteId": "string",  
+  "tipoTramite": "string",  
+  "documento": {  
+    "documentoId": "string",  
+    "tipoDocumental": "string",  
+    "nombreArchivo": "string",  
+    "rutaGestorDocumental": "string",  
+    "hashSHA256": "string",  
+    "formatoDocumento": "string",  
+    "tamanioBytes": 0  
+
+================================================================================
+P?GINA 12
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  12 
+  }, 
+  "registrador": {  
+    "codigoRegistrador": "string",  
+    "nombreRegistrador": "string",  
+    "documentoIdentidad": "string",  
+    "oficinaRegistral": "string",  
+    "periodoInicio": "YYYY -MM-DD", 
+    "periodoFin": "YYYY -MM-DD" 
+  }, 
+  "firmaDigital ": { 
+    "idFirma": "string",  
+    "numeroSerieCertificado": "string",  
+    "subjectDN": "string",  
+    "algoritmoFirma": "string",  
+    "fechaFirma": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "huellaCertificado": "string",  
+    "entidadCertificadora": "string"  
+  }, 
+  "parametrosValidacionFirma": {  
+    "validarContraBDRegistradores": true,  
+    "validarPeriodoVigencia": true,  
+    "validarCertificadoDigital": true  
+  }, 
+  "usuarioSolicita": "string",  
+  "oficinaOrigen": "string",  
+  "fechaSolicitud": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": true,  
+  "data": {  
+    "verificacionId": "string (UUID)",  
+    "solicitudId": "string (UUID)",  
+    "tramiteId": "string",  
+    "documentoId": "string (UUID)",  
+    "fechaVerificacion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "resultadoVerificacion": {  
+      "estadoFirma": "string",  
+      "esFirmaValida": true,  
+      "detalleEstado": "string",  
+      "fuenteValidacion": "string",  
+      "requiereRevisionManual": false  
+    }, 
+    "datosRegistrador": {  
+      "codigoRegistrador": "string",  
+      "nombreRegistrador": "string",  
+      "documentoIdentidad": "string",  
+      "oficinaRegistral": "string",  
+      "periodoInicio": "YYYY -MM-DD",  
+      "periodoFin": "YYYY -MM-DD",  
+      "enPeriodoVigencia": true  
+    }, 
+    "datosFirmaDigital": {  
+      "idFirma": "string",  
+      "numeroSerieCertificado": "string",  
+      "subjectDN": "string",  
+      "algoritmoFirma": "string",  
+      "fechaFirma": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+      "huellaCertificado": "string",  
+      "entidadCertificadora": "string"  
+    }, 
+    "alertas": [  
+      { 
+        "codigo": "string",  
+
+================================================================================
+P?GINA 13
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  13 
+        "descripcion": "string",  
+        "severidad": "string"  
+      } 
+    ] 
+  }, 
+  "metadata": {  
+    "timestamp": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "correlationId": "string (UUID)",  
+    "version": "string",  
+    "servidorProcesamiento": "string"  
+  } 
+} 
+Error Response     "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+      "errores": [  
+        { 
+         "codigo": "string"  
+         "campo": "string"  
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+3.1.2.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+ID Solicitud  solicitudId  String (UUID)  Sí 36 36 
+ID Trámite  tramiteId  String  Sí 3 50 
+Tipo Trámite  tipoTramite  String  Sí 5 100 
+Documento  documento  Object  Sí NA NA 
+ID Documento  documento.documentoId  String (UUID)  Sí 36 36 
+Tipo 
+Documental  documento.tipoDocument
+al String  Sí 3 50 
+Nombre Archivo  documento.nombreArchiv
+o String  Sí 3 200 
+Ruta Gestor 
+Documental  documento.rutaGestorDo
+cumental  String (URI)  Sí 10 500 
+Hash SHA -256 documento.hashSHA256  String  Sí 64 64 
+Formato 
+Documento  documento.formatoDocu
+mento  String  Sí 3 10 
+Tamaño en 
+Bytes  documento.tamanioBytes  Integer  Sí NA NA 
+Datos 
+Registrador  registrador  Object  Sí NA NA 
+Código 
+Registrador  registrador.codigoRegistr
+ador String  Sí 3 20 
+Nombre 
+Registrador  registrador.nombreRegistr
+ador String  Sí 5 150 
+
+================================================================================
+P?GINA 14
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  14 
+Documento 
+Identidad 
+Registrador  registrador.documentoIde
+ntidad  String  Sí 8 12 
+Oficina Registral  registrador.oficinaRegistra
+l String  Sí 3 100 
+Periodo Inicio  registrador.periodoInicio  String (Date 
+ISO 8601)  Sí 10 10 
+Periodo Fin  registrador.periodoFin  String (Date 
+ISO 8601)  Sí 10 10 
+Datos Firma 
+Digital  firmaDigital  Object  Sí NA NA 
+ID Firma  firmaDigital.idFirma  String  Sí 1 50 
+Nº Serie 
+Certificado  firmaDigital.numeroSerie
+Certificado  String  Sí 5 100 
+Subject DN 
+Certificado  firmaDigital.subjectDN  String  Sí 5 255 
+Algoritmo de 
+Firma  firmaDigital.algoritmoFirm
+a String  Sí 3 50 
+Fecha Firma  firmaDigital.fechaFirma  String (Date -
+Time ISO 
+8601)  Sí 19 25 
+Huella 
+Certificado  firmaDigital.huellaCertifica
+do String  Sí 40 128 
+Entidad 
+Certificadora  firmaDigital.entidadCertific
+adora  String  Sí 3 100 
+Parámetros 
+Validación Firma  parametrosValidacionFirm
+a Object  No NA NA 
+Validar contra 
+BD 
+Registradores  parametrosValidacionFirm
+a.validarContraBDRegistr
+adores  Boolean  No NA NA 
+Validar periodo 
+vigencia  parametrosValidacionFirm
+a.validarPeriodoVigencia  Boolean  No NA NA 
+Validar 
+certificado digital  parametrosValidacionFirm
+a.validarCertificadoDigital  Boolean  No NA NA 
+Usuario 
+Solicitante  usuarioSolicita  String  Sí 5 50 
+Oficina Origen  oficinaOrigen  String  Sí 5 50 
+Fecha Solicitud  fechaSolicitud  String (Date -
+Time ISO 
+8601)  Sí 19 25 
+Observaciones  observaciones  String  No 0 500 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+
+================================================================================
+P?GINA 15
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  15 
+success  Boolean  Sí Indica si la operación fue exitosa.  
+data Object  Sí Cuerpo principal de la respuesta.  
+data.verificacionId  String (UUID)  Sí Identificador único de la verificación 
+de firma.  
+data.solicitudId  String (UUID)  Sí UUID de la solicitud evaluada.  
+data.tramiteId  String  Sí Identificador del trámite asociado.  
+data.documentoId  String (UUID)  Sí Identificador del documento 
+asociado a la firma.  
+data.fechaVerificacion  String (Date 
+ISO 8601)  Sí Fecha/hora en que se realizó la 
+verificación.  
+data.resultadoVerificacion  Object  Sí Resultado de la verificación de la 
+firma.  
+data.resultadoVerificacion.estadoFi
+rma String  Sí Estado de la firma  
+data.resultadoVerificacion.esFirma
+Valida  Boolean  Sí Indica si la firma es 
+criptográficamente válida.  
+data.resultadoVerificacion.detalleEs
+tado String  No Detalle técnico/funcional del estado 
+de la firma.  
+data.resultadoVerificacion.fuenteVa
+lidacion  String  Sí Origen principal de la validación  
+data.resultadoVerificacion.requiere
+RevisionManual  Boolean  Sí Indica si se requiere revisión 
+manual del autenticador.  
+data.datosRegistrador  Object  Sí Datos del registrador contra los que 
+se validó la firma.  
+data.datosRegistrador.codigoRegist
+rador  String  Sí Código del registrador.  
+data.datosRegistrador.nombreRegi
+strador  String  Sí Nombre completo del registrador.  
+data.datosRegistrador.documentoId
+entidad  String  Sí Documento de identidad del 
+registrador.  
+data.datosRegistrador.oficinaRegist
+ral String  Sí Oficina registral donde ejerce.  
+data.datosRegistrador.periodoInicio  String (Date 
+ISO 8601)  Sí Fecha de inicio del periodo de 
+actuación.  
+data.datosRegistrador.periodoFin  String (Date 
+ISO 8601)  Sí Fecha de fin del periodo de 
+actuación.  
+data.datosRegistrador.enPeriodoVi
+gencia  Boolean  Sí Indica si la firma se realizó dentro 
+del periodo vigente.  
+data.datosFirmaDigital  Object  Sí Datos de la firma digital analizada.  
+data.datosFirmaDigital.idFirma  String  Sí Identificador de la firma en el 
+sistema de firma digital.  
+data.datosFirmaDigital.numeroSeri
+eCertificado  String  Sí Número de serie del certificado 
+usado en la firma.  
+
+================================================================================
+P?GINA 16
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  16 
+data.datosFirmaDigital.subjectDN  String  Sí Subject DN del certificado.  
+data.datosFirmaDigital.algoritmoFir
+ma String  Sí Algoritmo utilizado para la firma (ej. 
+SHA256withRSA).  
+data.datosFirmaDigital.fechaFirma  String (Date -
+Time)  Sí Fecha/hora registrada en la firma 
+digital.  
+data.datosFirmaDigital.huellaCertifi
+cado  String  Sí Huella digital (fingerprint) del 
+certificado.  
+data.datosFirmaDigital.entidadCerti
+ficadora  String  Sí Entidad certificadora que emitió el 
+certificado.  
+data.alertas  Array  No Lista de alertas generadas durante 
+la verificación.  
+data.alertas[].codigo  String  No Código de alerta.  
+data.alertas[].descripcion  String  No Descripción de la alerta.  
+data.alertas[].severidad  String  No Severidad  
+metadata  Object  Sí Metadatos de la operación.  
+metadata.timestamp  String (Date 
+ISO 8601)  Sí Marca de tiempo del 
+procesamiento.  
+metadata.correlationId  String  Sí Identificador de correlación para 
+trazabilidad.  
+metadata.version  String  Sí Versión del servicio.  
+metadata.servidorProcesamiento  String  Sí Identificador del servidor que 
+procesó la solicitud.  
+error  Object  No Objeto que especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error.  
+error.titulo  String  No Título del error.  
+error.estado  Integer  No Código HTTP de error.  
+error.errores  Array  No Listado de errores.  
+error.errores[].codigo  String  No Código interno del error  
+error.errores[].campo  String  No Campo que generó el error  
+error.errores[].detalleError  String  No Descripción específica del error  
+3.1.2.3  Valores para el atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Verificación de firma realizada exitosamente.  
+201 Created  (No aplica normalmente; reservado para futuros escenarios de registro de 
+verificación como recurso separado).  
+400 Bad Request  Parámetros de entrada inválidos o datos incompletos (solicitudId, 
+documentoId, datos de firma, etc.).  
+401 Unauthorized  Token JWT inválido o expirado.  
+403 Forbidden  Usuario sin permisos para verificar firma para la solicitud/trámite indicado.  
+
+================================================================================
+P?GINA 17
+================================================================================
+ 
+ 
+Microservicio MsCoreogValidadorDocumentos  17 
+404 Not Found  Solicitud, documento o registrador no encontrados en los sistemas asociados.  
+408 Request 
+Timeout  Tiempo de espera agotado al comunicarse con el sistema de firma digital  o 
+BD de registradores.  
+422 Unprocessable 
+Entity  Firma en formato no soportado o inconsistente con el registrador/periodo 
+registrado.  
+429 Too Many 
+Requests  Límite de rate limit excedido.  
+500 Internal Server 
+Error  Error interno del servicio de verificación de firma.  
+502 Bad Gateway  Error al comunicarse con el sistema de firma digital o BD de registradores.  
+503 Service 
+Unavailable  Sistema de firma digital o BD de registradores temporalmente no disponible – 
+Circuit Breaker activado.  
+504 Gateway 
+Timeout  Timeout en sistema de firma digital o BD de registradores – tiempo de 
+respuesta excedido.  
+ 
