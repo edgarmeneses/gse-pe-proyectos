@@ -1,0 +1,630 @@
+1 
+ 
+  
+Microservicio  
+MsDatosRegistradores  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sistema Integrado de Identificación y 
+Registro Civil (SIIRC)  
+ Documento versión 1.0 
+
+
+ 
+ 
+Microservicio Ms  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+    
+    
+    
+    
+    
+
+ 
+ 
+Microservicio Ms  
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ................................ ................................ ..........  3 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ................................ ...............................  4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ ................................ ....................  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................................ ................................ ... 4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ ................................ ................................ .............  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ................................ ...........................  5 
+3.1 Microservicio MsDatosRegistradores  ................................ ................................ ................................ ................................ ..............  5 
+3.1.1  Endpoint: Crear Registrador  ................................ ................................ ................................ ................................ .......................  5 
+3.1.2  Endpoint: Listar Registradores ................................ ................................ ................................ ................................ ..................  7 
+3.1.3  Endpoint: Consultar Registrador Específico  ................................ ................................ ................................ ....................  11 
+ 
+ 
+ 
+ 
+  
+
+ 
+ 
+Microservicio Ms  
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado de la 
+identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos vitales. 
+En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado el DNI 
+Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, permitiendo la au-
+tenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización del 
+DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con gestión 
+centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200  OK - Operación completada exitosamente  
+201  Created - Recurso creado exitosamente  
+400  Bad Request - Parámetros inválidos o datos incompletos  
+401  Unauthorized - Token JWT inválido, expirado o ausente  
+403  Forbidden - Sin permisos suficientes para ejecutar la operación  
+
+ 
+ 
+Microservicio Ms  
+404  Not Found - Recurso no encontrado en el sistema  
+408  Request Timeout - Tiempo de espera agotado al conectar  
+409  Conflict - Conflicto con el estado actual del recurso  
+422  Unprocessable Entity - Datos válidos pero no procesables por reglas de 
+negocio  
+429  Too Many Requests - Límite de rate limit excedido  
+500  Internal Server Error - Error interno del servicio (información generalizada 
+al exterior, detalle en logs)  
+502  Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503  Service Unavailable - Servicio temporalmente no disponible o Circuit 
+Breaker abierto  
+504  Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio MsDatosRegistradores  
+• El Microservicio Datos Registradores es un componente de persistencia y acceso a datos dedicado. 
+Su propósito principal es interactuar de manera exclusiva con la Base de Datos de Registradores, 
+actuando como el único intermediario para su administración. S e encarga de almacenar, recuperar y 
+gestionar de forma segura toda la información operacional del registrador y sus elementos de 
+autenticación.  
+• Funciones Principales  
+• Operaciones CRUD sobre Registradores:  Realiza las operaciones básicas sobre la información de 
+asignación y datos personales de los registradores.  
+• Almacenamiento de Elementos de Autenticación:  Persiste de forma segura las imágenes y hashes 
+de la firma manuscrita y el sello oficial del registrador.  
+• Gestión de Periodos:  Administra los rangos de fechas en que un registrador estuvo activo en una 
+oficina específica.  
+• Consulta por Trazabilidad:  Proporciona funciones de consulta para determinar la ubicación y el 
+periodo exacto en el que un registrador específico estuvo activo, lo cual es esencial para auditar la 
+validez de un acta . 
+3.1.1  Endpoint: Crear Registrador  
+Endpoint que permite registrar un nuevo registrador civil en el sistema.  
+Atributo  Valor  
+Path  /api/v1/registradores/MsDatosRegistradores  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación para trazabilidad)  
+X-Office -Code String (Código de oficina desde donde se realiza la operación)  
+
+ 
+ 
+Microservicio Ms  
+X-User -Role String (Rol del usuario: ADMINISTRADOR_REGISTRADORES)  
+X-Idempotency -Key UUID (Clave para evitar creaciones duplicadas)  
+Entrada  { 
+  "idRegistrador": "string",  
+  "numeroDni": "string",  
+  "primerApellido": "string",  
+  "segundoApellido": "string",  
+  "prenombres": "string",  
+  "codigoLocal": "string",  
+  "tipoRegistrador": "string",  
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": true,  
+  "data": {  
+    "idRegistrador": "string",  
+    "numeroDni": "string",  
+    "nombreCompleto": "string",  
+    "codigoLocal": "string",  
+    "descripcionLocal": "string",  
+    "codigoEstadoRegistrador": "01",  
+    "descripcionEstado": "REGISTRADOR ACTIVO ", 
+    "fechaRegistro": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "usuarioRegistro": "string",  
+    "_links": {  
+      "self": "string",  
+      "firmas": "string",  
+      "sellos": "string",  
+      "periodos": "string",  
+      "asignaciones": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+    "correlationId": "string",  
+    "version": "1.0.0"  
+  }, 
+  "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+} 
+3.1.1.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Long itud 
+mínima  Lon gitud má-
+xima  
+ID Registrador  idRegistrador  String  Sí 1 8 
+Número DNI  numeroDni  String  Sí 8 8 
+Primer Apellido  primerApellido  String  Sí 1 128  
+Segundo Ape-
+llido  segundoApellido  String  No 1 128  
+
+ 
+ 
+Microservicio Ms  
+Prenombres  prenombres  String  Sí 1 160  
+Código Local  codigoLocal  String  Sí 6 6 
+Tipo Registrador  tipoRegistrador  String  No 2 2 
+Observaciones  observaciones  String  No 0 500  
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligato-
+rio Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data  Object  Sí Cuerpo principal de la respuesta  
+data.idRegistrador  String  Sí Identificador único del registra-
+dor 
+data.numeroDni  String  Sí DNI del registrador  
+data.nombreCompleto  String  Sí Nombre completo concatenado  
+data.codigoLocal  String  Sí Código de la oficina asignada  
+data.descripcionLocal  String  Sí Nombre de la oficina  
+data.codigoEstadoRegistra-
+dor String  Sí Código del estado (01=Activo, 
+02=Baja)  
+data.descripcionEstado  String  Sí Descripción del estado  
+data.fechaRegistro  String (ISO 8601)  Sí Fecha/hora de registro  
+data.usuarioRegistro  String  Sí Usuario que registra  
+data._links  Object  Sí Hipervínculos de navegación  
+metadata.timestamp  String (ISO 8601)  Sí Marca de tiempo del procesa-
+miento  
+metadata.correlationId  String  Sí Identificador de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto de error si aplica  
+3.1.1.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201  Created  Registrador creado exitosamente  
+400  Bad Request  Datos inválidos o incompletos  
+401  Unauthorized  Token JWT inválido o expirado  
+403  Forbidden  Usuario sin permisos para crear registradores  
+409  Conflict  Ya existe un registrador con ese DNI/ID  
+422  Unprocessable Entity  Datos válidos pero lógica de negocio no permite procesarlos  
+500  Internal Server Error  Error interno del servidor  
+
+ 
+ 
+Microservicio Ms  
+3.1.2  Endpoint: Listar Registradores  
+Endpoint que permite listar registradores con filtros opcionales.  
+Atributo  Valor  
+Path  /api/v1/registradores/MsDatosRegistradores  
+API Gateway  Interno  
+Método HTTP  GET  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT)  
+X-Correlation -ID UUID  
+X-Office -Code String  
+X-User -Role String  
+Entrada  { 
+  "codigoLocal": "string",  
+  "estado": "string",  
+  "numeroDni": "string",  
+  "nombreRegistrador": "string",  
+  "pagina": "integer",  
+  "registrosPorPagina": "integer"  
+} 
+Respuesta  { 
+  "success": true,  
+  "data": {  
+    "registradores": [  
+      { 
+        "idRegistrador": "string",  
+        "numeroDni": "string",  
+        "nombreCompleto": "string",  
+        "primerApellido": "string",  
+        "segundoApellido": "string",  
+        "prenombres": "string",  
+        "codigoLocal": "string",  
+        "descripcionLocal": "string",  
+        "codigoEstadoRegistrador": "string",  
+        "descripcionEstado": "string",  
+        "tieneFirmaRegistrada": true,  
+        "tieneSellosRegistrado": true,  
+        "fechaCreacion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+        "_links": {  
+          "self": "string",  
+          "firmas": "string",  
+          "sellos": "string",  
+          "periodos": "string"  
+        } 
+      } 
+    ], 
+    "paginacion": {  
+      "totalRegistros": 150,  
+      "totalPaginas": 8,  
+      "paginaActual": 1,  
+      "registrosPorPagina": 20,  
+      "tieneAnterior": false,  
+      "tieneSiguiente": true  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+
+ 
+ 
+Microservicio Ms  
+    "correlationId": "string",  
+    "version": "1.0.0"  
+  }, 
+  "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+} 
+3.1.2.1  Parámetros de Query  
+Dato  Atributo  Tipo  Obliga-
+torio  Longitud Mí-
+nima  Longitud 
+Máxima  
+Código Local  codigoLocal  String  No 6 6 
+Estado  estado  String  No 2 2 
+Número DNI  numeroDni  String  No 8 8 
+Nombre Registra-
+dor nombreRegistrador  String  No 1 100 
+Página  pagina  Integer  No 1 9999  
+Registros por Pá-
+gina  registrosPorPagina  Integer  No 1 100 
+3.1.2.2  Respuesta  
+Nombre  Tipo  Obligato-
+rio Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data  Object  Sí Contenedor principal de la información  
+data.registradores  Array  Sí Lista de registradores encontrados  
+data.registradores[].idRe-
+gistrador  String  Sí Identificador único del registrador  
+data.registradores[].nu-
+meroDni  String  Sí DNI del registrador  
+data.registradores[].nom-
+breCompleto  String  Sí Nombre completo del registrador  
+data.registradores[].pri-
+merApellido  String  Sí Primer apellido del registrador  
+data.registradores[].se-
+gundoApellido  String  No Segundo apellido del registrador  
+data.registradores[].pre-
+nombres  String  Sí Nombres del registrador  
+
+ 
+ 
+Microservicio Ms  
+data.registradores[].codi-
+goLocal  String  Sí Código de la oficina asignada  
+data.registradores[].des-
+cripcionLocal  String  Sí Nombre o descripción de la oficina  
+data.registradores[].co-
+digoEstadoRegistrador  String  Sí Código del estado del registrador  
+data.registradores[].des-
+cripcionEstado  String  Sí Descripción del estado del registrador  
+data.registradores[].tiene-
+FirmaRegistrada  Boolean  Sí Indica si tiene firma registrada  
+data.registradores[].tiene-
+SellosRegistrado  Boolean  Sí Indica si tiene sello registrado  
+data.registradores[].fecha-
+Creacion  String 
+(Date-
+Time ISO 
+8601)  Sí Fecha/hora de creación del registro  
+data.registradores[]._links  Object  Sí Conjunto de enlaces relacionados  
+data.registrado-
+res[]._links.self  String  Sí URL del registrador  
+data.registrado-
+res[]._links.firmas  String  Sí URL para consultar firmas  
+data.registrado-
+res[]._links.sellos  String  Sí URL para consultar sellos  
+data.registrado-
+res[]._links.periodos  String  Sí URL para consultar periodos del registrador  
+data.paginacion  Object  Sí Información de paginación de la consulta  
+data.paginacion.totalRe-
+gistros  Integer  Sí Total de registros encontrados  
+data.paginacion.totalPagi-
+nas Integer  Sí Total de páginas disponibles  
+data.paginacion.paginaAc-
+tual  Integer  Sí Número de página actual  
+data.paginacion.registros-
+PorPagina  Integer  Sí Número de registros por página  
+data.paginacion.tieneAn-
+terior  Boolean  Sí Indica si existe página anterior  
+data.paginacion.tieneSi-
+guiente  Boolean  Sí Indica si existe página siguiente  
+metadata  Object  Sí Metadatos asociados a la operación  
+metadata.timestamp  String 
+(Date-
+Time ISO 
+8601)  Sí Fecha/hora de la respuesta  
+
+ 
+ 
+Microservicio Ms  
+metadata.correlationId  String  Sí Identificador único de trazabilidad  
+metadata.version  String  Sí Versión del servicio  
+3.1.2.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200  OK Lista de registradores recuperada exitosamente  
+400  Bad Request  Parámetros de filtro inválidos  
+401  Unauthorized  Token JWT inválido o expirado  
+403  Forbidden  Usuario sin permisos para consultar  
+500  Internal Server 
+Error  Error interno del servidor  
+3.1.3  Endpoint: Consultar Registrador Específico  
+Endpoint que permite obtener la información detallada de un registrador específico.  
+Atributo  Valor  
+Path  /api/v1/registradores/MsDatosRegistradores/{idRegistrador}  
+API Gateway  Interno  
+Método 
+HTTP  GET  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT)  
+X-Correlation -ID UUID  
+X-Office -Code String  
+Entrada  Sin parametros  
+Respuesta  { 
+  "success": true,  
+  "data": {  
+    "idRegistrador": "string",  
+    "numeroDni": "string",  
+    "primerApellido": "string",  
+    "segundoApellido": "string",  
+    "prenombres": "string",  
+    "nombreCompleto": "string",  
+    "numeroImagen": "string",  
+    "asignacionActual": {  
+      "codigoLocal": "string",  
+      "descripcionLocal": "string",  
+      "codigoEstadoRegistrador": "01",  
+      "descripcionEstado": "REGISTRADOR ACTIVO ", 
+      "fechaAsignacion": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "firma": {  
+      "tieneRegistrada": true,  
+      "hashFirma": "string",  
+      "fechaUltimaActualizacion": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "sello": {  
+      "tieneRegistrado": true,  
+
+ 
+ 
+Microservicio Ms  
+      "hashSello": "string",  
+      "fechaUltimaActualizacion": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "periodos": [  
+      { 
+        "idPeriodo": "string",  
+        "codigoLocal": "string",  
+        "descripcionLocal": "string",  
+        "fechaInicio": "YYYY -MM-DD",  
+        "fechaFin": "YYYY -MM -DD",  
+        "estado": "string"  
+      } 
+    ], 
+    "auditoria": {  
+      "usuarioCreacion": "string",  
+      "fechaCreacion": "YYYY -MM-DDThh:mm:ss±hh:mm",  
+      "usuarioModificacion": "string",  
+      "fechaModificacion": "YYYY -MM-DDThh:mm:ss±hh:mm"  
+    }, 
+    "_links": {  
+      "self": "string",  
+      "firmas": "string",  
+      "sellos": "string",  
+      "periodos": "string",  
+      "asignaciones": "string",  
+      "historialFirmas": "string",  
+      "historialSellos": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "YYYY -MM -DDThh:mm:ss±hh:mm",  
+    "correlationId": "string",  
+    "version": "1.0.0"  
+  }, 
+  "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+} 
+3.1.3.1  Parámetros de Path  
+Dato  Atributo  Tipo  Obligato-
+rio Longitud Mínima  Longitud Má-
+xima  
+ID Registrador  idRegistrador  String  Sí 1 8 
+3.1.3.2  Respuesta  
+Nombre  Tipo  Obligato-
+rio Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data  Object  Sí Información principal del registrador  
+data.idRegistrador  String  Sí Identificador único del registrador  
+
+ 
+ 
+Microservicio Ms  
+data.numeroDni  String  Sí DNI del registrador  
+data.primerApellido  String  Sí Primer apellido del registrador  
+data.segundoApe-
+llido  String  No Segundo apellido del registrador  
+data.prenombres  String  Sí Nombres del registrador  
+data.nombreCom-
+pleto  String  Sí Nombre completo del registrador  
+data.numeroImagen  String  No Código o identificador de la imagen asociada  
+data.asignacionAc-
+tual  Object  Sí Información de asignación vigente  
+data.asignacionAc-
+tual.codigoLocal  String  Sí Código de la oficina asignada  
+data.asignacionAc-
+tual.descripcionLocal  String  Sí Nombre o descripción de la oficina  
+data.asignacionAc-
+tual.codigoEstadoRe-
+gistrador  String  Sí Código del estado actual del registrador  
+data.asignacionAc-
+tual.descripcionEs-
+tado  String  Sí Descripción del estado actual  
+data.asignacionAc-
+tual.fechaAsignacion  String (Date-
+Time ISO 8601)  Sí Fecha/hora de asignación  
+data.firma  Object  Sí Información de la firma registrada  
+data.firma.tieneRe-
+gistrada  Boolean  Sí Indica si tiene firma registrada  
+data.firma.hashFirma  String  No Hash de la firma  
+data.firma.fechaUlti-
+maActualizacion  String (Date-
+Time ISO 8601)  No Última actualización de la firma  
+data.sello  Object  Sí Información del sello registrado  
+data.sello.tieneRegis-
+trado  Boolean  Sí Indica si tiene un sello registrado  
+data.sello.hashSello  String  No Hash del sello  
+data.sello.fechaUlti-
+maActualizacion  String (Date-
+Time ISO 8601)  No Última actualización del sello  
+data.periodos  Array  Sí Lista de periodos registrados  
+data.periodos[].idPe-
+riodo  String  Sí Identificador del periodo  
+data.periodos[].codi-
+goLocal  String  Sí Código de la oficina asignada  
+data.periodos[].des-
+cripcionLocal  String  Sí Descripción de la oficina  
+
+ 
+ 
+Microservicio Ms  
+data.periodos[].fe-
+chaInicio  String (Date)  Sí Fecha de inicio  
+data.periodos[].fe-
+chaFin  String (Date)  Sí Fecha de fin  
+data.periodos[].es-
+tado  String  Sí Estado del periodo  
+data.auditoria  Object  Sí Información de auditoría  
+data.auditoria.usua-
+rioCreacion  String  Sí Usuario que creó el registro  
+data.auditoria.fecha-
+Creacion  String (Date-
+Time ISO 8601)  Sí Fecha de creación  
+data.auditoria.usua-
+rioModificacion  String  No Usuario que modificó el registro  
+data.auditoria.fecha-
+Modificacion  String (Date-
+Time ISO 8601)  No Fecha de la última modificación  
+data._links  Object  Sí Conjunto de enlaces HATEOAS  
+data._links.self  String  Sí URL del recurso principal  
+data._links.firmas  String  Sí URL del recurso de firmas  
+data._links.sellos  String  Sí URL del recurso de sellos  
+data._links.periodos  String  Sí URL del recurso de periodos  
+data._links.asignacio-
+nes String  Sí URL del histórico de asignaciones  
+data._links.historial-
+Firmas  String  Sí URL del historial de firmas  
+data._links.historial-
+Sellos  String  Sí URL del historial de sellos  
+metadata  Object  Sí Metadatos de la operación  
+metadata.timestamp  String (Date-
+Time ISO 8601)  Sí Marca temporal de la respuesta  
+metadata.correlatio-
+nId String  Sí Identificador único de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto de error si ocurrió  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o detalle del error  
+error.estado  Integer  No Código del error  
+error.errores  Array  No Lista de errores detallados  
+error.errores[].deta-
+lleError  String  No Descripción del error específico  
+
+ 
+ 
+Microservicio Ms  
+3.1.3.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200  OK Registrador encontrado exitosamente  
+400  Bad Request  ID de registrador inválido  
+401  Unauthorized  Token JWT inválido o expirado  
+403  Forbidden  Usuario sin permisos para consultar  
+404  Not Found  Registrador no encontrado  
+500  Internal  Server Error  Error interno del servidor  
+ 
+ 
+
