@@ -1,0 +1,436 @@
+
+================================================================================
+PÁGINA 1 de 10
+================================================================================
+
+   
+ 
+  
+ 
+Microservicio MsD NI  
+Documento Versión: 1.0  
+Gestión de Seguridad Electrónica  
+  Fecha generación:   01/12/2025  
+    
+ 
+  
+
+================================================================================
+PÁGINA 2 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 03/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+2.0 01/12/2025  Desarrollador Junior  Información inicial del 
+documento  
+    
+    
+    
+================================================================================
+PÁGINA 3 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ................................ ................................ ..........  3 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ................................ ...............................  4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ ................................ ....................  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................................ ................................ ... 4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ ................................ ................................ .............  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ................................ ...........................  5 
+3.1 Microservicio MsDNI  ................................ ................................ ................................ ................................ ................................ ................  5 
+3.1.1  Endpoint: DatosMayorEdad  ................................ ................................ ................................ ................................ ........................  5 
+3.1.2  Endpoint: DatosMenorEdad  ................................ ................................ ................................ ................................ ........................  7 
+3.1.3  Endpoint: DatosTarjetaDNI  ................................ ................................ ................................ ................................ .........................  9 
+ 
+ 
+ 
+ 
+  
+================================================================================
+PÁGINA 4 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+================================================================================
+PÁGINA 5 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos,  pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio MsDNI  
+El microservicio se encarga de exponer tres puntos de consulta y opere tanto en entorno de producción 
+como en entorno de pruebas; a través del CUI (o DNI) del ciudadano como parámetro de entrada el 
+servicio retornará la información solicitada en un formato  estructurado (JSON). El servicio está 
+destinado exclusivamente a aplicaciones informáticas del proyecto DNId desplegados en servidores 
+con IPs específicas.  
+El servicio no realizará operaciones de escritura, modificación o borrado de datos, su única función es 
+la consulta.  
+3.1.1   Endpoint: DatosMayorEdad  
+Permite a partir de un CUI, devolver los datos e imágenes del ciudadano consultado.  
+ 
+Atributo  Valor  
+Path  /api/v1/solicitudes/MsDatosSolicitudes  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -
+LIMA -CENTRO)  
+Parametros  CUI (string) : Número de documento utilizado como filtro.  
+Respuesta  { 
+  "datosTitular": {  
+    "CUI": "string  (número de DNI/CUI)",  
+    "nombres": "string",  
+    "apellidoPaterno": "string",  
+    "apellidoMaterno": "string",  
+    "fechaNacimiento": "string (Date ISO 8601)",  
+    "lugarNacimiento": "string",  
+    "sexo": "string",  
+    "estadoCivil": "string",  
+    "fotografia": "string (base64 o URL de la imagen)",  
+    "firma": "string (base64 o URL de la imagen)",  
+    "domicilio": "string"  
+================================================================================
+PÁGINA 6 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  6 
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.1.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Identificador 
+de Solicitud  CUI String  Sí 8 8 
+ 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+CUI String  Si Código Único de Identificación del 
+ciudadano  
+datosTitular  Object  Si Objeto que contiene los datos del 
+titular  
+datosTitular.nombres  String  Si Nombre del ciudadano  
+datosTitular.apellidoPaterno  String  Si Apellido del ciudadano  
+datosTitular.apellidoMaterno  String  Si Apellido materno del ciudadano  
+datosTitular.fechaNacimiento  String (Date ISO 
+8601)  Si Fecha de nacimiento del 
+ciudadano  
+datosTitular.lugarNacimiento  String  Si Lugar de nacimiento del ciudadano  
+datosTitular.sexo  String  Si Tipo de sexo del ciudadano  
+datosTitular.estadoCivil  String  Si Estado civil del ciudadano  
+datosTitular.fotografia  String  Si Fotografía del ciudadano  
+datosTitular.firma  String  Si Firma del ciudadano  
+datosTitular.domicilio  String  Si Dirección residencial del 
+ciudadano  
+error  Object  No Objeto que especifica el detalle del 
+error si ocurrió durante la 
+operación.  
+error.tipo  String  No Tipo o categoría del error.  
+error.titulo  String  No Título o descripción corta del error.  
+error.status  Integer  No Código de estado HTTP o interno 
+asociado al error.  
+error.errores  Arrayobject(String)  No Lista de mensajes o detalles 
+específicos de los errores 
+detectados.  
+================================================================================
+PÁGINA 7 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  7 
+ 
+3.1.1.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar el análisis de redacción  
+408 Request Timeout  Tiempo de espera agotado  
+413 Payload Too Large  Tamaño del lote excede el límite (50 MB)  
+422 Unprocessable Entity  Datos válidos, pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+500 Internal Server Error  Error interno del servicio  
+ 
+3.1.2   Endpoint: DatosMenorEdad  
+A partir del CUI de un menor de edad, devuelve sus datos e imágenes.  
+ 
+Atributo  Valor  
+Path  /api/v1/solicitudes/MsDatosSolicitudes  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -
+LIMA -CENTRO)  
+Parametros  CUI (string):  Número de documento utilizado como filtro.  
+Respuesta  { 
+  "datosTitular": {  
+    "CUI": "string (número de DNI/CUI)",  
+    "nombresApellidos": "string",  
+    "fechaNacimiento": "string (Date ISO 8601)",  
+    "lugarNacimiento": "string",  
+    "sexo": "string",  
+    "fotografia": "string (imagen en base64 o URL)",  
+    "domicilio": "string",  
+    "madre": {  
+      "CUI": "string (número de DNI/CUI) ", 
+      "nombresApellidos": "string"  
+    }, 
+    "padre": {  
+      "CUI": "string  (número de DNI/CUI)",  
+      "nombresApellidos": "string"  
+    } 
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+================================================================================
+PÁGINA 8 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  8 
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.2.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Identificador 
+de Solicitud  CUI String  Sí 8 8 
+ 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+CUI String  Si Código Único de Identificación 
+del ciudadano  
+datosTitular  Object  Si Objeto que contiene los datos 
+del titular  
+datosTitular.nombres  String  Si Nombre del ciudadano  
+datosTitular.apellidoPaterno  String  Si Apellido del ciudadano  
+datosTitular.apellidoMaterno  String  Si Apellido materno del ciudadano  
+datosTitular.fechaNacimiento  String (Date ISO 
+8601)  Si Fecha de nacimiento del 
+ciudadano  
+datosTitular.lugarNacimiento  String  Si Lugar de nacimiento del 
+ciudadano  
+datosTitular.sexo  String  Si Tipo de sexo del ciudadano  
+datosTitular.estadoCivil  String  Si Estado civil del ciudadano  
+datosTitular.fotografia  String  Si Fotografía del ciudadano  
+datosTitular.firma  String  Si Firma del ciudadano  
+datosTitular.domicilio  String  Si Dirección residencial del 
+ciudadano  
+error  Object  No Objeto que especifica el detalle 
+del error si ocurrió durante la 
+operación.  
+error.tipo  String  No Tipo o categoría del error.  
+error.titulo  String  No Título o descripción corta del 
+error.  
+error.status  Integer  No Código de estado HTTP o 
+interno asociado al error.  
+error.errores  Arrayobject(String)  No Lista de mensajes o detalles 
+específicos de los errores 
+detectados.  
+ 
+3.1.2.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+================================================================================
+PÁGINA 9 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  9 
+200 OK Consulta realizada exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar el análisis de redacción  
+408 Request Timeout  Tiempo de espera agotado  
+413 Payload Too Large  Tamaño del lote excede el límite (50 MB)  
+422 Unprocessable Entity  Datos válidos, pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+500 Internal Server Error  Error interno del servicio  
+ 
+3.1.3   Endpoint: Datos TarjetaDNI  
+A partir del CUI de un menor de edad, devuelve sus datos e imágenes.  
+ 
+Atributo  Valor  
+Path  /api/v1/solicitudes/MsDatosSolicitudes  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -
+LIMA -CENTRO)  
+Parametros  CUI (string):  Número de documento utilizado como filtro.  
+Respuesta  { 
+  "datosTarjeta": {  
+    "fechaEmisionDni": "string (YYYY -MM-DD)",  
+    "fechaCaducidadDni": "string (Date ISO 8601)",  
+    "versionDni": " integer (0: azul , 1: DNIev1, 2: DNIev2, 3: DNIev3)  ", 
+    "numeroTarjeta": "string"  
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.3.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Identificador 
+de Solicitud  CUI String  Sí 8 8 
+================================================================================
+PÁGINA 10 de 10
+================================================================================
+
+ 
+ 
+Microservicio MsDNI  10 
+ 
+3.1.3.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+fechaEmisionDNI  String (Date ISO 
+8601)  Si Fecha de emisión el DNI  
+FechaCad  String (Date ISO 
+8601)  Si Fecha en la que el DNI caduca  
+versionDNI  Integer  Si Código que indica la versión del 
+DNI, por ejemplo: 0 azul, 1 
+DNIev1, etc.)  
+numeroTarjeta  String  Si Número único de la tarjeta de DNI  
+error  Object  No Objeto que especifica el detalle 
+del error si ocurrió durante la 
+operación.  
+error.tipo  String  No Tipo o categoría del error.  
+error.titulo  String  No Título o descripción corta del error.  
+error.status  Integer  No Código de estado HTTP o interno 
+asociado al error.  
+error.errores  Arrayobject(String)  No Lista de mensajes o detalles 
+específicos de los errores 
+detectados.  
+ 
+3.1.3.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar el análisis de redacción  
+408 Request Timeout  Tiempo de espera agotado  
+413 Payload Too Large  Tamaño del lote excede el límite (50 MB)  
+422 Unprocessable Entity  Datos válidos, pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+500 Internal Server Error  Error interno del servicio  
+ 
+ 
