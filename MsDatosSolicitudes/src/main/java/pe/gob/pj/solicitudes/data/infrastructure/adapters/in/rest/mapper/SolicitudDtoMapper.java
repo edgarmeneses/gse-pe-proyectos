@@ -4,7 +4,6 @@ import pe.gob.pj.solicitudes.data.domain.model.Solicitud;
 import pe.gob.pj.solicitudes.data.domain.model.Diligencia;
 import pe.gob.pj.solicitudes.data.infrastructure.adapters.in.rest.dto.SolicitudRequestDto;
 import pe.gob.pj.solicitudes.data.infrastructure.adapters.in.rest.dto.SolicitudResponseDto;
-import pe.gob.pj.solicitudes.data.infrastructure.adapters.in.rest.dto.DiligenciaRequestDto;
 import pe.gob.pj.solicitudes.data.infrastructure.adapters.in.rest.dto.DiligenciaResponseDto;
 import java.util.List;
 import java.util.stream.Collectors;

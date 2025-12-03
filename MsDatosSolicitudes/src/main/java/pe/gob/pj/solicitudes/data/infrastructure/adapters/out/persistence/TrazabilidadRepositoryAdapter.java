@@ -2,8 +2,6 @@ package pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence;
 
 import pe.gob.pj.solicitudes.data.domain.model.Trazabilidad;
 import pe.gob.pj.solicitudes.data.domain.ports.out.TrazabilidadRepositoryPort;
-import pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence.entity.TrazabilidadEntity;
-import pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence.mapper.TrazabilidadPersistenceMapper;
 import java.util.List;
 
 public class TrazabilidadRepositoryAdapter implements TrazabilidadRepositoryPort {

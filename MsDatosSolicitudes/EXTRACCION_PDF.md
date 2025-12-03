@@ -1,120 +1,106 @@
-# Extracción del PDF - Microservicio MsDatosSolicitudes V1.3
+# Extracción de Especificación - MsDatosSolicitudes V1.3
 
 ## Información General
-- **Nombre**: MsDatosSolicitudes
-- **Versión**: V1.3
-- **Tipo**: MsData (microservicio de datos)
-- **Paquete base**: pe.gob.pj.solicitudes.data
-- **Contexto**: Microservicio de datos para la gestión de solicitudes
+- **Nombre del Microservicio**: MsDatosSolicitudes
+- **Tipo**: MsData (Microservicio de Datos)
+- **Versión API**: V1.3
+- **Paquete Base**: pe.gob.pj.solicitudes.data
+- **Contexto**: Gestión y persistencia de solicitudes, diligencias y trazabilidad en el sistema judicial
 
-## Endpoints Identificados
+## Análisis del PDF
 
-### 3.1.1 Endpoint: Crear Solicitud
-- **Método**: POST
-- **Ruta**: /solicitudes
-- **Parámetros de Entrada**:
-  - Body: SolicitudRequest (JSON)
-- **Parámetros de Respuesta**:
-  - SolicitudResponse (JSON)
-- **Status Codes**: 200 (OK), 400 (Bad Request), 500 (Internal Server Error)
+El PDF proporcionado contiene información sobre el microservicio MsDatosSolicitudes. Basándome en la estructura actual del proyecto y el documento README.md existente, puedo identificar los siguientes endpoints y entidades:
 
-### 3.1.2 Endpoint: Listar Solicitudes
-- **Método**: GET
-- **Ruta**: /solicitudes
-- **Parámetros de Entrada**:
-  - Query parameters (filtros)
-- **Parámetros de Respuesta**:
-  - Lista de SolicitudResponse
-- **Status Codes**: 200 (OK), 500 (Internal Server Error)
+### Endpoints Identificados (según estructura actual):
 
-### 3.1.3 Endpoint: Consultar Solicitud
-- **Método**: GET
-- **Ruta**: /solicitudes/{id}
-- **Parámetros de Entrada**:
-  - Path: id (identificador de solicitud)
-- **Parámetros de Respuesta**:
-  - SolicitudResponse
-- **Status Codes**: 200 (OK), 404 (Not Found), 500 (Internal Server Error)
+1. **POST /solicitudes** - Crear Nueva Solicitud
+   - Service: CrearSolicitudService
+   - UseCase: CrearSolicitudUseCase
 
-### 3.1.4 Endpoint: Actualizar Solicitud Completa
-- **Método**: PUT
-- **Ruta**: /solicitudes/{id}
-- **Parámetros de Entrada**:
-  - Path: id
-  - Body: SolicitudRequest (JSON)
-- **Parámetros de Respuesta**:
-  - SolicitudResponse
-- **Status Codes**: 200 (OK), 404 (Not Found), 400 (Bad Request), 500 (Internal Server Error)
+2. **GET /solicitudes** - Listar Solicitudes
+   - Service: ListarSolicitudesService
+   - UseCase: ListarSolicitudesUseCase
 
-### 3.1.5 Endpoint: Actualizar Parcialmente Solicitud
-- **Método**: PATCH
-- **Ruta**: /solicitudes/{id}
-- **Parámetros de Entrada**:
-  - Path: id
-  - Body: Campos parciales de SolicitudRequest
-- **Parámetros de Respuesta**:
-  - SolicitudResponse
-- **Status Codes**: 200 (OK), 404 (Not Found), 400 (Bad Request), 500 (Internal Server Error)
+3. **GET /solicitudes/{id}** - Consultar Solicitud por ID
+   - Service: ConsultarSolicitudService
+   - UseCase: ConsultarSolicitudUseCase
 
-### 3.1.6 Endpoint: Crear Diligencia
-- **Método**: POST
-- **Ruta**: /solicitudes/{id}/diligencias
-- **Parámetros de Entrada**:
-  - Path: id (solicitud)
-  - Body: DiligenciaRequest (JSON)
-- **Parámetros de Respuesta**:
-  - DiligenciaResponse
-- **Status Codes**: 200 (OK), 404 (Not Found), 400 (Bad Request), 500 (Internal Server Error)
+4. **PUT /solicitudes/{id}** - Actualizar Solicitud Completa
+   - Service: ActualizarSolicitudService
+   - UseCase: ActualizarSolicitudUseCase
 
-### 3.1.7 Endpoint: Verificar Duplicados
-- **Método**: POST
-- **Ruta**: /solicitudes/verificar-duplicados
-- **Parámetros de Entrada**:
-  - Body: CriteriosDuplicadosRequest
-- **Parámetros de Respuesta**:
-  - VerificacionDuplicadosResponse
-- **Status Codes**: 200 (OK), 400 (Bad Request), 500 (Internal Server Error)
+5. **POST /solicitudes/{id}/diligencias** - Crear Diligencia
+   - Service: CrearDiligenciaService
+   - UseCase: CrearDiligenciaUseCase
 
-### 3.1.8 Endpoint: Ver Trazabilidad
-- **Método**: GET
-- **Ruta**: /solicitudes/{id}/trazabilidad
-- **Parámetros de Entrada**:
-  - Path: id (solicitud)
-- **Parámetros de Respuesta**:
-  - Lista de TrazabilidadResponse
-- **Status Codes**: 200 (OK), 404 (Not Found), 500 (Internal Server Error)
+6. **POST /solicitudes/verificar-duplicados** - Verificar Duplicados
+   - Service: VerificarDuplicadosService
+   - UseCase: VerificarDuplicadosUseCase
 
-## Entidades del Dominio (inferidas del PDF)
+7. **GET /solicitudes/{id}/trazabilidad** - Ver Trazabilidad
+   - Service: VerTrazabilidadService
+   - UseCase: VerTrazabilidadUseCase
 
-### Solicitud
-- id: Long
-- numeroSolicitud: String
-- fechaSolicitud: LocalDateTime
-- tipoSolicitud: String
-- estado: String
-- solicitante: String
-- descripcion: String
-- diligencias: List<Diligencia>
+### Entidades del Dominio:
 
-### Diligencia
-- id: Long
-- numeroDigencia: String
-- fechaDiligencia: LocalDateTime
-- tipoDiligencia: String
-- estado: String
-- descripcion: String
-- solicitudId: Long
+1. **Solicitud** - Entidad principal que representa una solicitud judicial
+2. **Diligencia** - Entidad que representa las diligencias asociadas a una solicitud
+3. **Trazabilidad** - Entidad que registra el historial de cambios de una solicitud
 
-### Trazabilidad
-- id: Long
-- solicitudId: Long
-- fecha: LocalDateTime
-- accion: String
-- usuario: String
-- detalle: String
+### DTOs Identificados:
 
-## Notas
-- Este es un MsData, por lo tanto DEBE definir RepositoryPort y RepositoryAdapter
-- Se deben crear Entities (POJOs sin anotaciones)
-- NO se define protocolo de conexión
-- Todos los DTOs serán records de Java
+**Request DTOs:**
+- SolicitudRequestDto
+- DiligenciaRequestDto
+- VerificarDuplicadosRequestDto
+
+**Response DTOs:**
+- SolicitudResponseDto
+- DiligenciaResponseDto
+- TrazabilidadResponseDto
+- VerificarDuplicadosResponseDto
+
+### Puertos Identificados:
+
+**Puertos de Entrada (in):**
+- CrearSolicitudUseCase
+- ActualizarSolicitudUseCase
+- ConsultarSolicitudUseCase
+- ListarSolicitudesUseCase
+- CrearDiligenciaUseCase
+- VerificarDuplicadosUseCase
+- VerTrazabilidadUseCase
+
+**Puertos de Salida (out) - Como MsData:**
+- SolicitudRepositoryPort
+- DiligenciaRepositoryPort
+- TrazabilidadRepositoryPort
+
+### Adaptadores:
+
+**Adaptadores de Entrada:**
+- SolicitudController (REST)
+- Mappers: SolicitudDtoMapper, DiligenciaDtoMapper, TrazabilidadDtoMapper
+
+**Adaptadores de Salida (Persistencia):**
+- SolicitudRepositoryAdapter
+- DiligenciaRepositoryAdapter
+- TrazabilidadRepositoryAdapter
+- Entities: SolicitudEntity, DiligenciaEntity, TrazabilidadEntity
+- Persistence Mappers: SolicitudPersistenceMapper, DiligenciaPersistenceMapper, TrazabilidadPersistenceMapper
+
+## Nota Importante
+
+El PDF proporcionado parece estar codificado o corrupto, por lo que no puedo extraer detalles específicos sobre:
+- Atributos exactos de cada entidad con sus tipos
+- Request/Response JSON completos
+- Códigos de estado HTTP específicos
+- Reglas de negocio detalladas
+- Parámetros query/path específicos
+
+**Recomendación**: Para completar la implementación según las especificaciones exactas del PDF, se necesitaría:
+1. Un PDF legible o 
+2. La especificación en otro formato (texto, Word, Excel) o
+3. Confirmación manual de los atributos y reglas de negocio
+
+Por ahora, procederé a revisar y completar la estructura del proyecto basándome en las convenciones estándar y la estructura actual identificada.

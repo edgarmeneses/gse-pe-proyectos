@@ -2,8 +2,6 @@ package pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence;
 
 import pe.gob.pj.solicitudes.data.domain.model.Solicitud;
 import pe.gob.pj.solicitudes.data.domain.ports.out.SolicitudRepositoryPort;
-import pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence.entity.SolicitudEntity;
-import pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence.mapper.SolicitudPersistenceMapper;
 import java.util.List;
 
 public class SolicitudRepositoryAdapter implements SolicitudRepositoryPort {
