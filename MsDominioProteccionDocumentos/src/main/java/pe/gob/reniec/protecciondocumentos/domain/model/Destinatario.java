@@ -1,40 +1,52 @@
 package pe.gob.reniec.protecciondocumentos.domain.model;
 
+import java.util.List;
+
 public class Destinatario {
-    private String email;
-    private String telefono;
-    private String nombreCompleto;
+    private String destinatarioId;
+    private String tipo;
+    private String nivelAcceso;
+    private List<String> permisos;
 
     public Destinatario() {
     }
 
-    public Destinatario(String email, String telefono, String nombreCompleto) {
-        this.email = email;
-        this.telefono = telefono;
-        this.nombreCompleto = nombreCompleto;
+    public Destinatario(String destinatarioId, String tipo, String nivelAcceso, List<String> permisos) {
+        this.destinatarioId = destinatarioId;
+        this.tipo = tipo;
+        this.nivelAcceso = nivelAcceso;
+        this.permisos = permisos;
     }
 
-    public String getEmail() {
-        return email;
+    public String getDestinatarioId() {
+        return destinatarioId;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDestinatarioId(String destinatarioId) {
+        this.destinatarioId = destinatarioId;
     }
 
-    public String getTelefono() {
-        return telefono;
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
-    public String getNombreCompleto() {
-        return nombreCompleto;
+    public String getNivelAcceso() {
+        return nivelAcceso;
     }
 
-    public void setNombreCompleto(String nombreCompleto) {
-        this.nombreCompleto = nombreCompleto;
+    public void setNivelAcceso(String nivelAcceso) {
+        this.nivelAcceso = nivelAcceso;
+    }
+
+    public List<String> getPermisos() {
+        return permisos;
+    }
+
+    public void setPermisos(List<String> permisos) {
+        this.permisos = permisos;
     }
 }

@@ -1,27 +1,30 @@
 package pe.gob.reniec.protecciondocumentos.domain.model;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public class SolicitudProteccion {
     private String solicitudId;
-    private String tipoDocumento;
-    private String nombreArchivo;
-    private FuenteDocumento fuenteDocumento;
-    private MetadatosSolicitud metadatos;
-    private ConfiguracionProteccion configuracionProteccion;
-    private Destinatario destinatario;
+    private TipoOperacion tipoOperacion;
+    private LocalDateTime fechaSolicitud;
+    private Fuente fuente;
+    private List<Documento> documentos;
+    private ConfiguracionProteccion configuracion;
+    private List<Destinatario> destinatarios;
 
     public SolicitudProteccion() {
     }
 
-    public SolicitudProteccion(String solicitudId, String tipoDocumento, String nombreArchivo, 
-                               FuenteDocumento fuenteDocumento, MetadatosSolicitud metadatos, 
-                               ConfiguracionProteccion configuracionProteccion, Destinatario destinatario) {
+    public SolicitudProteccion(String solicitudId, TipoOperacion tipoOperacion, LocalDateTime fechaSolicitud,
+                               Fuente fuente, List<Documento> documentos,
+                               ConfiguracionProteccion configuracion, List<Destinatario> destinatarios) {
         this.solicitudId = solicitudId;
-        this.tipoDocumento = tipoDocumento;
-        this.nombreArchivo = nombreArchivo;
-        this.fuenteDocumento = fuenteDocumento;
-        this.metadatos = metadatos;
-        this.configuracionProteccion = configuracionProteccion;
-        this.destinatario = destinatario;
+        this.tipoOperacion = tipoOperacion;
+        this.fechaSolicitud = fechaSolicitud;
+        this.fuente = fuente;
+        this.documentos = documentos;
+        this.configuracion = configuracion;
+        this.destinatarios = destinatarios;
     }
 
     public String getSolicitudId() {
@@ -32,51 +35,51 @@ public class SolicitudProteccion {
         this.solicitudId = solicitudId;
     }
 
-    public String getTipoDocumento() {
-        return tipoDocumento;
+    public TipoOperacion getTipoOperacion() {
+        return tipoOperacion;
     }
 
-    public void setTipoDocumento(String tipoDocumento) {
-        this.tipoDocumento = tipoDocumento;
+    public void setTipoOperacion(TipoOperacion tipoOperacion) {
+        this.tipoOperacion = tipoOperacion;
     }
 
-    public String getNombreArchivo() {
-        return nombreArchivo;
+    public LocalDateTime getFechaSolicitud() {
+        return fechaSolicitud;
     }
 
-    public void setNombreArchivo(String nombreArchivo) {
-        this.nombreArchivo = nombreArchivo;
+    public void setFechaSolicitud(LocalDateTime fechaSolicitud) {
+        this.fechaSolicitud = fechaSolicitud;
     }
 
-    public FuenteDocumento getFuenteDocumento() {
-        return fuenteDocumento;
+    public Fuente getFuente() {
+        return fuente;
     }
 
-    public void setFuenteDocumento(FuenteDocumento fuenteDocumento) {
-        this.fuenteDocumento = fuenteDocumento;
+    public void setFuente(Fuente fuente) {
+        this.fuente = fuente;
     }
 
-    public MetadatosSolicitud getMetadatos() {
-        return metadatos;
+    public List<Documento> getDocumentos() {
+        return documentos;
     }
 
-    public void setMetadatos(MetadatosSolicitud metadatos) {
-        this.metadatos = metadatos;
+    public void setDocumentos(List<Documento> documentos) {
+        this.documentos = documentos;
     }
 
-    public ConfiguracionProteccion getConfiguracionProteccion() {
-        return configuracionProteccion;
+    public ConfiguracionProteccion getConfiguracion() {
+        return configuracion;
     }
 
-    public void setConfiguracionProteccion(ConfiguracionProteccion configuracionProteccion) {
-        this.configuracionProteccion = configuracionProteccion;
+    public void setConfiguracion(ConfiguracionProteccion configuracion) {
+        this.configuracion = configuracion;
     }
 
-    public Destinatario getDestinatario() {
-        return destinatario;
+    public List<Destinatario> getDestinatarios() {
+        return destinatarios;
     }
 
-    public void setDestinatario(Destinatario destinatario) {
-        this.destinatario = destinatario;
+    public void setDestinatarios(List<Destinatario> destinatarios) {
+        this.destinatarios = destinatarios;
     }
 }

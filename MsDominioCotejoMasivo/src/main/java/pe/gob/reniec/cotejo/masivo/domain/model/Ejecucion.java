@@ -1,0 +1,278 @@
+package pe.gob.reniec.cotejo.masivo.domain.model;
+
+import java.time.LocalDateTime;
+
+public class Ejecucion {
+    private String ejecucionId;
+    private String solicitudId;
+    private String codigoOrganizacion;
+    private String nombreOrganizacion;
+    private String codigoEnvio;
+    private String numeroLote;
+    private String codigoEstado;
+    private String descripcionEstado;
+    private Long totalRegistrosEntrada;
+    private Long totalRegistrosProcesados;
+    private Long totalRegistrosCorrectos;
+    private Long totalRegistrosIncorrectos;
+    private LocalDateTime fechaInicioProceso;
+    private LocalDateTime fechaFinProceso;
+    private String documentoSustento;
+    private String observaciones;
+    private String urlReporteGenerado;
+    private String indicadorDomicilio;
+    private String codigoPrograma;
+    private ResumenResultados resumenResultados;
+    private LocalDateTime fechaCreacion;
+    private String usuarioCreacion;
+    private LocalDateTime fechaModificacion;
+    private String usuarioModificacion;
+
+    public Ejecucion() {
+    }
+
+    public Ejecucion(String solicitudId, String codigoOrganizacion, String nombreOrganizacion,
+                     String codigoEnvio, String numeroLote, Long totalRegistrosEntrada,
+                     String documentoSustento, String observaciones, String indicadorDomicilio,
+                     String codigoPrograma, String usuarioCreacion) {
+        this.solicitudId = solicitudId;
+        this.codigoOrganizacion = codigoOrganizacion;
+        this.nombreOrganizacion = nombreOrganizacion;
+        this.codigoEnvio = codigoEnvio;
+        this.numeroLote = numeroLote;
+        this.totalRegistrosEntrada = totalRegistrosEntrada;
+        this.documentoSustento = documentoSustento;
+        this.observaciones = observaciones;
+        this.indicadorDomicilio = indicadorDomicilio;
+        this.codigoPrograma = codigoPrograma;
+        this.usuarioCreacion = usuarioCreacion;
+        this.codigoEstado = "REGISTRADO";
+        this.descripcionEstado = "Ejecución registrada";
+        this.fechaCreacion = LocalDateTime.now();
+    }
+
+    public String getEjecucionId() {
+        return ejecucionId;
+    }
+
+    public void setEjecucionId(String ejecucionId) {
+        this.ejecucionId = ejecucionId;
+    }
+
+    public String getSolicitudId() {
+        return solicitudId;
+    }
+
+    public void setSolicitudId(String solicitudId) {
+        this.solicitudId = solicitudId;
+    }
+
+    public String getCodigoOrganizacion() {
+        return codigoOrganizacion;
+    }
+
+    public void setCodigoOrganizacion(String codigoOrganizacion) {
+        this.codigoOrganizacion = codigoOrganizacion;
+    }
+
+    public String getNombreOrganizacion() {
+        return nombreOrganizacion;
+    }
+
+    public void setNombreOrganizacion(String nombreOrganizacion) {
+        this.nombreOrganizacion = nombreOrganizacion;
+    }
+
+    public String getCodigoEnvio() {
+        return codigoEnvio;
+    }
+
+    public void setCodigoEnvio(String codigoEnvio) {
+        this.codigoEnvio = codigoEnvio;
+    }
+
+    public String getNumeroLote() {
+        return numeroLote;
+    }
+
+    public void setNumeroLote(String numeroLote) {
+        this.numeroLote = numeroLote;
+    }
+
+    public String getCodigoEstado() {
+        return codigoEstado;
+    }
+
+    public void setCodigoEstado(String codigoEstado) {
+        this.codigoEstado = codigoEstado;
+    }
+
+    public String getDescripcionEstado() {
+        return descripcionEstado;
+    }
+
+    public void setDescripcionEstado(String descripcionEstado) {
+        this.descripcionEstado = descripcionEstado;
+    }
+
+    public Long getTotalRegistrosEntrada() {
+        return totalRegistrosEntrada;
+    }
+
+    public void setTotalRegistrosEntrada(Long totalRegistrosEntrada) {
+        this.totalRegistrosEntrada = totalRegistrosEntrada;
+    }
+
+    public Long getTotalRegistrosProcesados() {
+        return totalRegistrosProcesados;
+    }
+
+    public void setTotalRegistrosProcesados(Long totalRegistrosProcesados) {
+        this.totalRegistrosProcesados = totalRegistrosProcesados;
+    }
+
+    public Long getTotalRegistrosCorrectos() {
+        return totalRegistrosCorrectos;
+    }
+
+    public void setTotalRegistrosCorrectos(Long totalRegistrosCorrectos) {
+        this.totalRegistrosCorrectos = totalRegistrosCorrectos;
+    }
+
+    public Long getTotalRegistrosIncorrectos() {
+        return totalRegistrosIncorrectos;
+    }
+
+    public void setTotalRegistrosIncorrectos(Long totalRegistrosIncorrectos) {
+        this.totalRegistrosIncorrectos = totalRegistrosIncorrectos;
+    }
+
+    public LocalDateTime getFechaInicioProceso() {
+        return fechaInicioProceso;
+    }
+
+    public void setFechaInicioProceso(LocalDateTime fechaInicioProceso) {
+        this.fechaInicioProceso = fechaInicioProceso;
+    }
+
+    public LocalDateTime getFechaFinProceso() {
+        return fechaFinProceso;
+    }
+
+    public void setFechaFinProceso(LocalDateTime fechaFinProceso) {
+        this.fechaFinProceso = fechaFinProceso;
+    }
+
+    public String getDocumentoSustento() {
+        return documentoSustento;
+    }
+
+    public void setDocumentoSustento(String documentoSustento) {
+        this.documentoSustento = documentoSustento;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+
+    public String getUrlReporteGenerado() {
+        return urlReporteGenerado;
+    }
+
+    public void setUrlReporteGenerado(String urlReporteGenerado) {
+        this.urlReporteGenerado = urlReporteGenerado;
+    }
+
+    public String getIndicadorDomicilio() {
+        return indicadorDomicilio;
+    }
+
+    public void setIndicadorDomicilio(String indicadorDomicilio) {
+        this.indicadorDomicilio = indicadorDomicilio;
+    }
+
+    public String getCodigoPrograma() {
+        return codigoPrograma;
+    }
+
+    public void setCodigoPrograma(String codigoPrograma) {
+        this.codigoPrograma = codigoPrograma;
+    }
+
+    public ResumenResultados getResumenResultados() {
+        return resumenResultados;
+    }
+
+    public void setResumenResultados(ResumenResultados resumenResultados) {
+        this.resumenResultados = resumenResultados;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    public String getUsuarioCreacion() {
+        return usuarioCreacion;
+    }
+
+    public void setUsuarioCreacion(String usuarioCreacion) {
+        this.usuarioCreacion = usuarioCreacion;
+    }
+
+    public LocalDateTime getFechaModificacion() {
+        return fechaModificacion;
+    }
+
+    public void setFechaModificacion(LocalDateTime fechaModificacion) {
+        this.fechaModificacion = fechaModificacion;
+    }
+
+    public String getUsuarioModificacion() {
+        return usuarioModificacion;
+    }
+
+    public void setUsuarioModificacion(String usuarioModificacion) {
+        this.usuarioModificacion = usuarioModificacion;
+    }
+
+    public void actualizarEstado(String codigoEstado, String descripcionEstado) {
+        this.codigoEstado = codigoEstado;
+        this.descripcionEstado = descripcionEstado;
+        this.fechaModificacion = LocalDateTime.now();
+    }
+
+    public void iniciarProceso() {
+        this.fechaInicioProceso = LocalDateTime.now();
+        this.codigoEstado = "EN_PROCESO";
+        this.descripcionEstado = "Cotejo en ejecución";
+        this.fechaModificacion = LocalDateTime.now();
+    }
+
+    public void finalizarProceso(ResumenResultados resumen) {
+        this.fechaFinProceso = LocalDateTime.now();
+        this.codigoEstado = "COMPLETADO";
+        this.descripcionEstado = "Cotejo finalizado";
+        this.resumenResultados = resumen;
+        this.totalRegistrosProcesados = resumen.getTotalCorrectos() + resumen.getTotalDniNoExiste() 
+            + resumen.getTotalDatosNoCoinciden() + resumen.getTotalErrores();
+        this.totalRegistrosCorrectos = resumen.getTotalCorrectos();
+        this.totalRegistrosIncorrectos = resumen.getTotalDniNoExiste() 
+            + resumen.getTotalDatosNoCoinciden() + resumen.getTotalErrores();
+        this.fechaModificacion = LocalDateTime.now();
+    }
+
+    public void registrarError(String mensajeError) {
+        this.codigoEstado = "ERROR";
+        this.descripcionEstado = mensajeError;
+        this.fechaFinProceso = LocalDateTime.now();
+        this.fechaModificacion = LocalDateTime.now();
+    }
+}

@@ -1,0 +1,217 @@
+# Extracción del PDF: Microservicio MsDominioCotejoMasivo V1.0
+
+## NOTA IMPORTANTE
+Debido a limitaciones en la extracción automática del PDF, se procederá a inferir la estructura
+basándose en:
+1. El patrón del PDF de MsDatosCotejoMasivo (ya procesado)
+2. La naturaleza de un microservicio de DOMINIO vs uno de DATOS
+3. Los índices y títulos visibles en el PDF
+
+## Estructura Inferida del PDF
+
+### 1. CONTEXTO
+- Mismo contexto que MsDatosCotejoMasivo: RENIEC, DNI Electrónico
+- Microservicio de DOMINIO que orquesta la lógica de negocio del Cotejo Masivo
+
+### 2. INTRODUCCIÓN
+- MsDominioCotejoMasivo es el microservicio de DOMINIO
+- Se conecta con MsDatosCotejoMasivo para persistencia
+- Contiene lógica de orquestación y validaciones de negocio
+- Arquitectura Hexagonal sin dependencias a frameworks
+
+### 3. CATÁLOGO DE ENDPOINTS
+
+Según el índice visible en el PDF, el microservicio MsDominioCotejoMasivo expone 3 endpoints principales:
+
+#### 3.1 Endpoint: Ejecutar Cotejo Masivo
+- **Path:** `/api/v1/ciudadano/MsDominioCotejoMasivo/cotejo/ejecutar`
+- **Método:** POST
+- **Descripción:** Inicia el proceso de cotejo masivo de datos de identidad
+- **Lógica de Negocio:**
+  - Recibe datos de solicitud de cotejo
+  - Crea una ejecución en MsDatosCotejoMasivo
+  - Registra los registros de entrada en batch
+  - Ejecuta el cotejo contra el Padrón de RENIEC
+  - Registra resultados de cotejo en batch
+  - Actualiza el estado de la ejecución
+  - Retorna el ID de ejecución y resumen
+
+#### 3.1.2 Endpoint: Consultar Estado de Ejecución
+- **Path:** `/api/v1/ciudadano/MsDominioCotejoMasivo/cotejo/ejecuciones/{ejecucionId}/estado`
+- **Método:** GET
+- **Descripción:** Consulta el estado actual de una ejecución de cotejo
+- **Lógica de Negocio:**
+  - Consulta la ejecución en MsDatosCotejoMasivo
+  - Retorna el estado con totales procesados
+  - Incluye resumen de resultados si está completado
+
+#### 3.1.3 Endpoint: Obtener Resultados de Cotejo
+- **Path:** `/api/v1/ciudadano/MsDominioCotejoMasivo/cotejo/ejecuciones/{ejecucionId}/resultados`
+- **Método:** GET
+- **Descripción:** Obtiene los resultados detallados del cotejo masivo
+- **Parámetros Query:**
+  - page (integer): Número de página (default: 0)
+  - size (integer): Tamaño de página (default: 100, max: 1000)
+  - codigoResultado (string): Filtro por código de resultado (opcional)
+- **Lógica de Negocio:**
+  - Consulta los resultados paginados desde MsDatosCotejoMasivo
+  - Aplica filtros solicitados
+  - Retorna resultados con paginación
+
+## ENTIDADES DEL DOMINIO (MsDominioCotejoMasivo)
+
+Las entidades del dominio en MsDominioCotejoMasivo deben reflejar el mismo modelo que MsDatosCotejoMasivo
+pero desde una perspectiva de negocio:
+
+### 1. Ejecucion
+- ejecucionId: String (UUID)
+- solicitudId: String (UUID)
+- codigoOrganizacion: String
+- nombreOrganizacion: String
+- codigoEnvio: String
+- numeroLote: String
+- codigoEstado: String (REGISTRADO, EN_PROCESO, COMPLETADO, ERROR, CANCELADO)
+- descripcionEstado: String
+- totalRegistrosEntrada: Long
+- totalRegistrosProcesados: Long
+- totalRegistrosCorrectos: Long
+- totalRegistrosIncorrectos: Long
+- fechaInicioProceso: LocalDateTime
+- fechaFinProceso: LocalDateTime
+- documentoSustento: String
+- observaciones: String
+- urlReporteGenerado: String
+- indicadorDomicilio: String (S/N)
+- codigoPrograma: String
+- resumenResultados: ResumenResultados
+- fechaCreacion: LocalDateTime
+- usuarioCreacion: String
+- fechaModificacion: LocalDateTime
+- usuarioModificacion: String
+
+### 2. RegistroEntrada
+- registroEntradaId: String (UUID)
+- ejecucionId: String (UUID)
+- numeroSecuencia: Long
+- numeroDni: String (8 dígitos)
+- apellidoPaterno: String
+- apellidoMaterno: String
+- nombres: String
+- fechaNacimiento: LocalDateTime
+- indicadorSexo: String (M/F)
+- identificadorInstitucion: String
+- datosAdicionales: String (JSON)
+
+### 3. ResultadoCotejo
+- resultadoId: String (UUID)
+- registroEntradaId: String (UUID)
+- ejecucionId: String (UUID)
+- codigoResultado: String (CORRECTO, DNI_NO_EXISTE, DATOS_NO_COINCIDEN, ERROR_SISTEMA)
+- numeroDniEncontrado: String
+- apellidoPaternoEncontrado: String
+- apellidoMaternoEncontrado: String
+- nombresEncontrado: String
+- fechaNacimientoEncontrada: LocalDateTime
+- indicadorSexoEncontrado: String
+- codigoUbigeoDomicilio: String
+- descripcionDomicilio: String
+- estadoCivil: String
+- condicionCiudadano: String
+- fechaCaducidadDni: LocalDateTime
+- indicadorRestriccion: String (S/N)
+- fechaRestriccion: LocalDateTime
+- coincideDni: String (S/N)
+- coincideApellidoPaterno: String (S/N)
+- coincideApellidoMaterno: String (S/N)
+- coincideNombres: String (S/N)
+- coincideFechaNacimiento: String (S/N)
+- coincideSexo: String (S/N)
+- mensajeObservacion: String
+
+### 4. ResumenResultados
+- totalCorrectos: Long
+- totalDniNoExiste: Long
+- totalDatosNoCoinciden: Long
+- totalErrores: Long
+- porcentajeExito: Double
+
+## REGLAS DE NEGOCIO
+
+1. **Validación de Entrada:**
+   - DNI debe tener exactamente 8 dígitos numéricos
+   - Los campos obligatorios deben estar presentes
+   - El total de registros de entrada debe ser > 0
+   - El indicador de domicilio debe ser 'S' o 'N'
+
+2. **Proceso de Cotejo:**
+   - El cotejo se ejecuta contra el Padrón Nacional de RENIEC
+   - Se compara: DNI, apellidos, nombres, fecha de nacimiento, sexo
+   - Se determina el código de resultado según coincidencias
+   - Se registra información adicional encontrada (domicilio, estado civil, etc.)
+
+3. **Estados de Ejecución:**
+   - REGISTRADO: Ejecución creada, esperando procesamiento
+   - EN_PROCESO: Cotejo en ejecución
+   - COMPLETADO: Cotejo finalizado exitosamente
+   - ERROR: Error durante el procesamiento
+   - CANCELADO: Ejecución cancelada manualmente
+
+4. **Códigos de Resultado:**
+   - CORRECTO: DNI existe y todos los datos coinciden
+   - DNI_NO_EXISTE: DNI no encontrado en el padrón
+   - DATOS_NO_COINCIDEN: DNI existe pero datos no coinciden
+   - ERROR_SISTEMA: Error técnico durante el cotejo
+
+5. **Procesamiento por Lotes:**
+   - Los registros de entrada se procesan en lotes de máximo 10,000
+   - Los resultados se registran en batch para optimizar rendimiento
+   - Se mantiene trazabilidad completa del proceso
+
+## INTEGRACIONES CON MSDATOSCOTEJOMASIVO
+
+El MsDominioCotejoMasivo se integra con MsDatosCotejoMasivo a través de los siguientes servicios:
+
+1. **CrearEjecucion:** POST `/api/v1/ciudadano/MsDatosCotejoMasivo/ejecuciones`
+2. **RegistrarRegistrosEntrada:** POST `/api/v1/ciudadano/MsDatosCotejoMasivo/ejecuciones/{ejecucionId}/registros`
+3. **RegistrarResultadosCotejo:** POST `/api/v1/ciudadano/MsDatosCotejoMasivo/ejecuciones/{ejecucionId}/resultados`
+4. **ConsultarEjecucion:** GET `/api/v1/ciudadano/MsDatosCotejoMasivo/ejecuciones/{ejecucionId}`
+5. **ListarEjecuciones:** GET `/api/v1/ciudadano/MsDatosCotejoMasivo/ejecuciones` (usado para obtener resultados paginados)
+
+## ARQUITECTURA HEXAGONAL
+
+**MsDominioCotejoMasivo es un microservicio de DOMINIO:**
+- NO tiene RepositoryPort (no accede directamente a BD)
+- Define puertos de salida (out) hacia MsDatosCotejoMasivo
+- Contiene lógica de orquestación y reglas de negocio
+- Implementa adaptadores "cliente" sin tecnología específica
+
+**Estructura de puertos:**
+- **Puertos IN:** Casos de uso expuestos (EjecutarCotejoUseCase, ConsultarEstadoUseCase, ObtenerResultadosUseCase)
+- **Puertos OUT:** Operaciones hacia MsDatosCotejoMasivo (EjecucionDataPort, RegistroEntradaDataPort, ResultadoCotejoDataPort)
+- **Adaptadores OUT:** Implementaciones que llaman a MsDatosCotejoMasivo (EjecucionDataAdapter, etc.)
+
+## STATUS CODES
+
+| Código | Descripción |
+|--------|-------------|
+| 200 | OK - Operación completada exitosamente |
+| 201 | Created - Ejecución creada y cotejo iniciado |
+| 400 | Bad Request - Parámetros inválidos |
+| 401 | Unauthorized - Token inválido |
+| 403 | Forbidden | Sin permisos |
+| 404 | Not Found - Ejecución no encontrada |
+| 409 | Conflict - Ejecución duplicada |
+| 422 | Unprocessable Entity - Datos válidos pero no procesables |
+| 429 | Too Many Requests - Rate limit excedido |
+| 500 | Internal Server Error - Error interno |
+| 503 | Service Unavailable - Servicio no disponible |
+
+## NOTAS
+
+Este documento ha sido generado basándose en:
+- El patrón y estructura del PDF de MsDatosCotejoMasivo
+- Los títulos de secciones visibles en el índice del PDF de MsDominioCotejoMasivo
+- Las convenciones arquitectónicas definidas en AGENT_PROMPT.md
+- La diferenciación entre microservicios de Dominio y Datos
+
+Para información más específica, consultar el PDF original.
