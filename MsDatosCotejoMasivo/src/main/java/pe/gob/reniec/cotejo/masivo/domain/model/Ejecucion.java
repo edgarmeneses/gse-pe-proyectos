@@ -1,21 +1,20 @@
 package pe.gob.reniec.cotejo.masivo.domain.model;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class Ejecucion {
-    private UUID ejecucionId;
-    private UUID solicitudId;
+    private String ejecucionId;
+    private String solicitudId;
     private String codigoOrganizacion;
     private String nombreOrganizacion;
     private String codigoEnvio;
     private String numeroLote;
     private String codigoEstado;
     private String descripcionEstado;
-    private Integer totalRegistrosEntrada;
-    private Integer totalRegistrosProcesados;
-    private Integer totalRegistrosCorrectos;
-    private Integer totalRegistrosIncorrectos;
+    private Long totalRegistrosEntrada;
+    private Long totalRegistrosProcesados;
+    private Long totalRegistrosCorrectos;
+    private Long totalRegistrosIncorrectos;
     private LocalDateTime fechaInicioProceso;
     private LocalDateTime fechaFinProceso;
     private String documentoSustento;
@@ -32,19 +31,41 @@ public class Ejecucion {
     public Ejecucion() {
     }
 
-    public UUID getEjecucionId() {
+    public Ejecucion(String ejecucionId, String solicitudId, String codigoOrganizacion, 
+                     String nombreOrganizacion, String codigoEnvio, String numeroLote,
+                     String codigoEstado, String descripcionEstado, Long totalRegistrosEntrada,
+                     String documentoSustento, String observaciones, String indicadorDomicilio,
+                     String codigoPrograma, String usuarioCreacion) {
+        this.ejecucionId = ejecucionId;
+        this.solicitudId = solicitudId;
+        this.codigoOrganizacion = codigoOrganizacion;
+        this.nombreOrganizacion = nombreOrganizacion;
+        this.codigoEnvio = codigoEnvio;
+        this.numeroLote = numeroLote;
+        this.codigoEstado = codigoEstado;
+        this.descripcionEstado = descripcionEstado;
+        this.totalRegistrosEntrada = totalRegistrosEntrada;
+        this.documentoSustento = documentoSustento;
+        this.observaciones = observaciones;
+        this.indicadorDomicilio = indicadorDomicilio;
+        this.codigoPrograma = codigoPrograma;
+        this.usuarioCreacion = usuarioCreacion;
+        this.fechaCreacion = LocalDateTime.now();
+    }
+
+    public String getEjecucionId() {
         return ejecucionId;
     }
 
-    public void setEjecucionId(UUID ejecucionId) {
+    public void setEjecucionId(String ejecucionId) {
         this.ejecucionId = ejecucionId;
     }
 
-    public UUID getSolicitudId() {
+    public String getSolicitudId() {
         return solicitudId;
     }
 
-    public void setSolicitudId(UUID solicitudId) {
+    public void setSolicitudId(String solicitudId) {
         this.solicitudId = solicitudId;
     }
 
@@ -96,35 +117,35 @@ public class Ejecucion {
         this.descripcionEstado = descripcionEstado;
     }
 
-    public Integer getTotalRegistrosEntrada() {
+    public Long getTotalRegistrosEntrada() {
         return totalRegistrosEntrada;
     }
 
-    public void setTotalRegistrosEntrada(Integer totalRegistrosEntrada) {
+    public void setTotalRegistrosEntrada(Long totalRegistrosEntrada) {
         this.totalRegistrosEntrada = totalRegistrosEntrada;
     }
 
-    public Integer getTotalRegistrosProcesados() {
+    public Long getTotalRegistrosProcesados() {
         return totalRegistrosProcesados;
     }
 
-    public void setTotalRegistrosProcesados(Integer totalRegistrosProcesados) {
+    public void setTotalRegistrosProcesados(Long totalRegistrosProcesados) {
         this.totalRegistrosProcesados = totalRegistrosProcesados;
     }
 
-    public Integer getTotalRegistrosCorrectos() {
+    public Long getTotalRegistrosCorrectos() {
         return totalRegistrosCorrectos;
     }
 
-    public void setTotalRegistrosCorrectos(Integer totalRegistrosCorrectos) {
+    public void setTotalRegistrosCorrectos(Long totalRegistrosCorrectos) {
         this.totalRegistrosCorrectos = totalRegistrosCorrectos;
     }
 
-    public Integer getTotalRegistrosIncorrectos() {
+    public Long getTotalRegistrosIncorrectos() {
         return totalRegistrosIncorrectos;
     }
 
-    public void setTotalRegistrosIncorrectos(Integer totalRegistrosIncorrectos) {
+    public void setTotalRegistrosIncorrectos(Long totalRegistrosIncorrectos) {
         this.totalRegistrosIncorrectos = totalRegistrosIncorrectos;
     }
 

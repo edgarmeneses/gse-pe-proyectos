@@ -25,7 +25,7 @@ Reglas Globales (sin tecnología)
 - Genera únicamente operaciones (use cases/endpoints) que existan en el PDF. No inventes.
 - Mantén el código compilable como Java puro (sin dependencias externas).
 - Por regla general, los proyectos deben seguir la estructura y convenciones de carpetas definida abajo.
-- los Dtos manejalos como records de java
+- los Dtos manejalos como clases de java
 - Trata de inferir el tipo de dato mas adecuado por ejemplo si son fechas o el string trae un formato tipo fecha usa LocalDateTime, si son valores enteros de acuerdo al tipo define cual es la mejor opcion si un int o un long
 
 Identificación del Tipo de Microservicio

@@ -1,70 +1,81 @@
 package pe.gob.reniec.cotejo.masivo.domain.model;
 
 public class ResumenResultados {
-    private Integer totalCorrectos;
-    private Integer totalIncorrectos;
-    private Integer totalNoEncontrados;
-    private Integer totalFallecidos;
-    private Integer totalRestringidos;
-    private Integer totalCaducados;
-    private Integer totalErrores;
+    private Long totalCorrectos;
+    private Long totalIncorrectos;
+    private Long totalNoEncontrados;
+    private Long totalFallecidos;
+    private Long totalRestringidos;
+    private Long totalCaducados;
+    private Long totalErrores;
 
     public ResumenResultados() {
     }
 
-    public Integer getTotalCorrectos() {
+    public ResumenResultados(Long totalCorrectos, Long totalIncorrectos, Long totalNoEncontrados,
+                             Long totalFallecidos, Long totalRestringidos, Long totalCaducados, Long totalErrores) {
+        this.totalCorrectos = totalCorrectos;
+        this.totalIncorrectos = totalIncorrectos;
+        this.totalNoEncontrados = totalNoEncontrados;
+        this.totalFallecidos = totalFallecidos;
+        this.totalRestringidos = totalRestringidos;
+        this.totalCaducados = totalCaducados;
+        this.totalErrores = totalErrores;
+    }
+
+    public Long getTotalCorrectos() {
         return totalCorrectos;
     }
 
-    public void setTotalCorrectos(Integer totalCorrectos) {
+    public void setTotalCorrectos(Long totalCorrectos) {
         this.totalCorrectos = totalCorrectos;
     }
 
-    public Integer getTotalIncorrectos() {
+    public Long getTotalIncorrectos() {
         return totalIncorrectos;
     }
 
-    public void setTotalIncorrectos(Integer totalIncorrectos) {
+    public void setTotalIncorrectos(Long totalIncorrectos) {
         this.totalIncorrectos = totalIncorrectos;
     }
 
-    public Integer getTotalNoEncontrados() {
+    public Long getTotalNoEncontrados() {
         return totalNoEncontrados;
     }
 
-    public void setTotalNoEncontrados(Integer totalNoEncontrados) {
+    public void setTotalNoEncontrados(Long totalNoEncontrados) {
         this.totalNoEncontrados = totalNoEncontrados;
     }
 
-    public Integer getTotalFallecidos() {
+    public Long getTotalFallecidos() {
         return totalFallecidos;
     }
 
-    public void setTotalFallecidos(Integer totalFallecidos) {
+    public void setTotalFallecidos(Long totalFallecidos) {
         this.totalFallecidos = totalFallecidos;
     }
 
-    public Integer getTotalRestringidos() {
+    public Long getTotalRestringidos() {
         return totalRestringidos;
     }
 
-    public void setTotalRestringidos(Integer totalRestringidos) {
+    public void setTotalRestringidos(Long totalRestringidos) {
         this.totalRestringidos = totalRestringidos;
     }
 
-    public Integer getTotalCaducados() {
+    public Long getTotalCaducados() {
         return totalCaducados;
     }
 
-    public void setTotalCaducados(Integer totalCaducados) {
+    public void setTotalCaducados(Long totalCaducados) {
         this.totalCaducados = totalCaducados;
     }
 
-    public Integer getTotalErrores() {
+    public Long getTotalErrores() {
         return totalErrores;
     }
 
-    public void setTotalErrores(Integer totalErrores) {
+    public void setTotalErrores(Long totalErrores) {
         this.totalErrores = totalErrores;
     }
 }

@@ -6,9 +6,9 @@ import pe.gob.reniec.cotejo.masivo.domain.model.ResultadoCotejo;
 import pe.gob.reniec.cotejo.masivo.domain.ports.in.*;
 import pe.gob.reniec.cotejo.masivo.infrastructure.adapters.in.rest.dto.*;
 import pe.gob.reniec.cotejo.masivo.infrastructure.adapters.in.rest.mapper.EjecucionDtoMapper;
-import java.time.LocalDateTime;
+
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class EjecucionController {
     private final CrearEjecucionUseCase crearEjecucionUseCase;
@@ -16,52 +16,71 @@ public class EjecucionController {
     private final RegistrarResultadosCotejoUseCase registrarResultadosCotejoUseCase;
     private final ListarEjecucionesUseCase listarEjecucionesUseCase;
     private final ConsultarEjecucionUseCase consultarEjecucionUseCase;
+    private final EjecucionDtoMapper mapper;
 
     public EjecucionController(CrearEjecucionUseCase crearEjecucionUseCase,
                                RegistrarRegistrosEntradaUseCase registrarRegistrosEntradaUseCase,
                                RegistrarResultadosCotejoUseCase registrarResultadosCotejoUseCase,
                                ListarEjecucionesUseCase listarEjecucionesUseCase,
-                               ConsultarEjecucionUseCase consultarEjecucionUseCase) {
+                               ConsultarEjecucionUseCase consultarEjecucionUseCase,
+                               EjecucionDtoMapper mapper) {
         this.crearEjecucionUseCase = crearEjecucionUseCase;
         this.registrarRegistrosEntradaUseCase = registrarRegistrosEntradaUseCase;
         this.registrarResultadosCotejoUseCase = registrarResultadosCotejoUseCase;
         this.listarEjecucionesUseCase = listarEjecucionesUseCase;
         this.consultarEjecucionUseCase = consultarEjecucionUseCase;
+        this.mapper = mapper;
     }
 
-    public EjecucionResponseDto crear(CrearEjecucionRequestDto request) {
-        Ejecucion ejecucion = EjecucionDtoMapper.toDomain(request);
+    public EjecucionResponseDto crearEjecucion(CrearEjecucionRequestDto request) {
+        Ejecucion ejecucion = mapper.toDomain(request);
         Ejecucion ejecucionCreada = crearEjecucionUseCase.crear(ejecucion);
-        return EjecucionDtoMapper.toResponseDto(ejecucionCreada);
+        return mapper.toResponseDto(ejecucionCreada);
     }
 
-    public RegistrarRegistrosEntradaResponseDto registrarRegistrosEntrada(UUID ejecucionId, 
-                                                                          RegistrarRegistrosEntradaRequestDto request) {
-        List<RegistroEntrada> registros = EjecucionDtoMapper.toRegistroEntradaDomain(request.registros());
-        List<RegistroEntrada> registrosGuardados = registrarRegistrosEntradaUseCase.registrar(ejecucionId, registros);
-        throw new UnsupportedOperationException("Mapeo de respuesta no implementado");
+    public RegistrarRegistrosResponseDto registrarRegistros(String ejecucionId, RegistrarRegistrosRequestDto request) {
+        List<RegistroEntrada> registros = request.getRegistros().stream()
+                .map(dto -> mapper.toDomain(dto, ejecucionId))
+                .collect(Collectors.toList());
+        
+        RegistrarRegistrosEntradaUseCase.ResultadoRegistroBatch resultado = 
+                registrarRegistrosEntradaUseCase.registrarBatch(ejecucionId, registros);
+        
+        throw new UnsupportedOperationException("Implementación de mapeo pendiente");
     }
 
-    public RegistrarResultadosCotejoResponseDto registrarResultadosCotejo(UUID ejecucionId,
-                                                                          RegistrarResultadosCotejoRequestDto request) {
-        List<ResultadoCotejo> resultados = EjecucionDtoMapper.toResultadoCotejoDomain(request.resultados());
-        List<ResultadoCotejo> resultadosGuardados = registrarResultadosCotejoUseCase.registrar(ejecucionId, resultados);
-        throw new UnsupportedOperationException("Mapeo de respuesta no implementado");
+    public RegistrarResultadosResponseDto registrarResultados(String ejecucionId, RegistrarResultadosRequestDto request) {
+        List<ResultadoCotejo> resultados = request.getResultados().stream()
+                .map(dto -> mapper.toDomain(dto, ejecucionId))
+                .collect(Collectors.toList());
+        
+        RegistrarResultadosCotejoUseCase.ResultadoRegistroCotejoBatch resultado = 
+                registrarResultadosCotejoUseCase.registrarBatch(ejecucionId, resultados);
+        
+        throw new UnsupportedOperationException("Implementación de mapeo pendiente");
     }
 
-    public ListarEjecucionesResponseDto listar(UUID solicitudId, String codigoOrganizacion, String codigoEnvio,
-                                               String codigoEstado, LocalDateTime fechaDesde, LocalDateTime fechaHasta,
-                                               Integer page, Integer size, String sort, String direction) {
-        List<Ejecucion> ejecuciones = listarEjecucionesUseCase.listar(solicitudId, codigoOrganizacion, codigoEnvio,
-                                                                       codigoEstado, fechaDesde, fechaHasta,
-                                                                       page, size, sort, direction);
-        List<EjecucionListItemDto> items = EjecucionDtoMapper.toListItemDtos(ejecuciones);
-        PaginationDto pagination = new PaginationDto(page, size, items.size(), 1, true, true);
-        return new ListarEjecucionesResponseDto(items, pagination);
+    public ListarEjecucionesResponseDto listarEjecuciones(String solicitudId, String codigoOrganizacion,
+                                                          String codigoEnvio, String codigoEstado,
+                                                          String fechaDesde, String fechaHasta,
+                                                          Integer page, Integer size,
+                                                          String sort, String direction) {
+        ListarEjecucionesUseCase.FiltrosEjecucion filtros = new ListarEjecucionesUseCase.FiltrosEjecucion();
+        filtros.setSolicitudId(solicitudId);
+        filtros.setCodigoOrganizacion(codigoOrganizacion);
+        filtros.setCodigoEnvio(codigoEnvio);
+        filtros.setCodigoEstado(codigoEstado);
+        
+        ListarEjecucionesUseCase.Paginacion paginacion = 
+                new ListarEjecucionesUseCase.Paginacion(page, size, sort, direction);
+        
+        ListarEjecucionesUseCase.ResultadoPaginado resultado = listarEjecucionesUseCase.listar(filtros, paginacion);
+        
+        return mapper.toListaResponseDto(resultado.getEjecuciones());
     }
 
-    public EjecucionDetalleResponseDto obtenerPorId(UUID ejecucionId) {
-        Ejecucion ejecucion = consultarEjecucionUseCase.consultar(ejecucionId);
-        return EjecucionDtoMapper.toDetalleResponseDto(ejecucion);
+    public ConsultarEjecucionResponseDto consultarEjecucion(String ejecucionId) {
+        Ejecucion ejecucion = consultarEjecucionUseCase.consultarPorId(ejecucionId);
+        return mapper.toDetalleResponseDto(ejecucion);
     }
 }

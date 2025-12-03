@@ -13,6 +13,6 @@ public class CrearEjecucionService implements CrearEjecucionUseCase {
 
     @Override
     public Ejecucion crear(Ejecucion ejecucion) {
-        return ejecucionRepositoryPort.guardar(ejecucion);
+        return ejecucionRepositoryPort.crear(ejecucion);
     }
 }

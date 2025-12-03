@@ -1,45 +1,45 @@
 package pe.gob.reniec.cotejo.masivo.infrastructure.adapters.out.persistence.entity;
 
-import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 public class RegistroEntradaEntity {
-    private UUID registroEntradaId;
-    private UUID ejecucionId;
-    private Integer numeroSecuencia;
+    private String registroEntradaId;
+    private String ejecucionId;
+    private Long numeroSecuencia;
     private String numeroDni;
     private String apellidoPaterno;
     private String apellidoMaterno;
     private String nombres;
-    private LocalDate fechaNacimiento;
+    private LocalDateTime fechaNacimiento;
     private String indicadorSexo;
     private String identificadorInstitucion;
     private String datosAdicionales;
+    private LocalDateTime fechaCreacion;
 
     public RegistroEntradaEntity() {
     }
 
-    public UUID getRegistroEntradaId() {
+    public String getRegistroEntradaId() {
         return registroEntradaId;
     }
 
-    public void setRegistroEntradaId(UUID registroEntradaId) {
+    public void setRegistroEntradaId(String registroEntradaId) {
         this.registroEntradaId = registroEntradaId;
     }
 
-    public UUID getEjecucionId() {
+    public String getEjecucionId() {
         return ejecucionId;
     }
 
-    public void setEjecucionId(UUID ejecucionId) {
+    public void setEjecucionId(String ejecucionId) {
         this.ejecucionId = ejecucionId;
     }
 
-    public Integer getNumeroSecuencia() {
+    public Long getNumeroSecuencia() {
         return numeroSecuencia;
     }
 
-    public void setNumeroSecuencia(Integer numeroSecuencia) {
+    public void setNumeroSecuencia(Long numeroSecuencia) {
         this.numeroSecuencia = numeroSecuencia;
     }
 
@@ -75,11 +75,11 @@ public class RegistroEntradaEntity {
         this.nombres = nombres;
     }
 
-    public LocalDate getFechaNacimiento() {
+    public LocalDateTime getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+    public void setFechaNacimiento(LocalDateTime fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 
@@ -105,5 +105,13 @@ public class RegistroEntradaEntity {
 
     public void setDatosAdicionales(String datosAdicionales) {
         this.datosAdicionales = datosAdicionales;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
     }
 }
