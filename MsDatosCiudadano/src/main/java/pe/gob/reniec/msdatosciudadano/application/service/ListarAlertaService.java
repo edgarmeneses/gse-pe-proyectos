@@ -13,7 +13,7 @@ public class ListarAlertaService implements ListarAlertaUseCase {
     }
 
     @Override
-    public List<Alerta> listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3, List<String> fields) {
-        return repositoryPort.listar(page, size, queryParam1, queryParam2, queryParam3, fields);
+    public List<Alerta> listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3) {
+        return repositoryPort.listar(page, size, queryParam1, queryParam2, queryParam3);
     }
 }

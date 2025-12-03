@@ -4,7 +4,6 @@ import pe.gob.reniec.msdatosciudadano.domain.model.Alerta;
 import pe.gob.reniec.msdatosciudadano.domain.ports.in.*;
 import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.dto.*;
 import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.mapper.AlertaDtoMapper;
-import java.util.List;
 
 public class AlertaController {
     private final CrearAlertaUseCase crearAlertaUseCase;
@@ -25,12 +24,12 @@ public class AlertaController {
         return AlertaDtoMapper.toResponseDto(id, alerta);
     }
 
-    public List<Alerta> listar(Integer page, Integer size, String queryParam1, 
-                               String queryParam2, String queryParam3, List<String> fields) {
-        return listarAlertaUseCase.listar(page, size, queryParam1, queryParam2, queryParam3, fields);
+    public AlertaListResponseDto listar(Integer page, Integer size, String queryParam1,
+                               String queryParam2, String queryParam3) {
+        return listarAlertaUseCase.listar(page, size, queryParam1, queryParam2, queryParam3);
     }
 
-    public Alerta consultar(String alertaId) {
+    public AlertaConsultaResponseDto consultar(String alertaId) {
         return consultarAlertaUseCase.consultar(alertaId);
     }
 }
