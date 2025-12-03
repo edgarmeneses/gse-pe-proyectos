@@ -1,40 +1,61 @@
 package pe.gob.reniec.protecciondocumentos.domain.model;
 
 public class ConfiguracionProteccion {
-    private Boolean usarConfiguracionPorDefecto;
-    private String algoritmoCompresion;
-    private String nivelCompresion;
+    private NivelCompresion nivelCompresion;
+    private AlgoritmoCifrado algoritmoCifrado;
+    private String clavePublica;
+    private Boolean incluirMetadatos;
+    private ProteccionPassword proteccionPassword;
 
     public ConfiguracionProteccion() {
     }
 
-    public ConfiguracionProteccion(Boolean usarConfiguracionPorDefecto, String algoritmoCompresion, String nivelCompresion) {
-        this.usarConfiguracionPorDefecto = usarConfiguracionPorDefecto;
-        this.algoritmoCompresion = algoritmoCompresion;
+    public ConfiguracionProteccion(NivelCompresion nivelCompresion, AlgoritmoCifrado algoritmoCifrado, 
+                                  String clavePublica, Boolean incluirMetadatos, ProteccionPassword proteccionPassword) {
         this.nivelCompresion = nivelCompresion;
+        this.algoritmoCifrado = algoritmoCifrado;
+        this.clavePublica = clavePublica;
+        this.incluirMetadatos = incluirMetadatos;
+        this.proteccionPassword = proteccionPassword;
     }
 
-    public Boolean getUsarConfiguracionPorDefecto() {
-        return usarConfiguracionPorDefecto;
-    }
-
-    public void setUsarConfiguracionPorDefecto(Boolean usarConfiguracionPorDefecto) {
-        this.usarConfiguracionPorDefecto = usarConfiguracionPorDefecto;
-    }
-
-    public String getAlgoritmoCompresion() {
-        return algoritmoCompresion;
-    }
-
-    public void setAlgoritmoCompresion(String algoritmoCompresion) {
-        this.algoritmoCompresion = algoritmoCompresion;
-    }
-
-    public String getNivelCompresion() {
+    public NivelCompresion getNivelCompresion() {
         return nivelCompresion;
     }
 
-    public void setNivelCompresion(String nivelCompresion) {
+    public void setNivelCompresion(NivelCompresion nivelCompresion) {
         this.nivelCompresion = nivelCompresion;
+    }
+
+    public AlgoritmoCifrado getAlgoritmoCifrado() {
+        return algoritmoCifrado;
+    }
+
+    public void setAlgoritmoCifrado(AlgoritmoCifrado algoritmoCifrado) {
+        this.algoritmoCifrado = algoritmoCifrado;
+    }
+
+    public String getClavePublica() {
+        return clavePublica;
+    }
+
+    public void setClavePublica(String clavePublica) {
+        this.clavePublica = clavePublica;
+    }
+
+    public Boolean getIncluirMetadatos() {
+        return incluirMetadatos;
+    }
+
+    public void setIncluirMetadatos(Boolean incluirMetadatos) {
+        this.incluirMetadatos = incluirMetadatos;
+    }
+
+    public ProteccionPassword getProteccionPassword() {
+        return proteccionPassword;
+    }
+
+    public void setProteccionPassword(ProteccionPassword proteccionPassword) {
+        this.proteccionPassword = proteccionPassword;
     }
 }

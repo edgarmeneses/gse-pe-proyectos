@@ -1,365 +1,490 @@
-# MsDominioCotejoMasivo - Microservicio de Dominio
+# Microservicio MsDominioCotejoMasivo
 
-## Información General
+## Descripción General
 
-**Nombre del Microservicio:** MsDominioCotejoMasivo  
-**Tipo:** Microservicio de Dominio  
-**Versión API:** v1.0  
-**Paquete Base:** `pe.com.organizacion.cotejomasivo`  
-**Arquitectura:** Hexagonal (Ports and Adapters)
+**MsDominioCotejoMasivo** es un microservicio de dominio (MsDominio) que implementa la lógica de negocio para el cotejo masivo de datos personales contra el Padrón Nacional de Identificación (RENIEC). Este microservicio orquesta el proceso de validación masiva de identidades y coordina la persistencia de datos a través de su microservicio de datos asociado (MsDatosCotejoMasivo).
 
-## Contexto de Negocio
+**Tipo:** Microservicio de Dominio (MsDominio)  
+**Versión API:** 1.0  
+**Arquitectura:** Hexagonal (Ports & Adapters)  
+**Contexto:** Sistema de Cotejo Masivo RENIEC
 
-MsDominioCotejoMasivo es un microservicio de dominio responsable de la lógica de negocio para el proceso de cotejo masivo de datos. Este microservicio orquesta las operaciones de cotejo sin depender de tecnologías específicas de persistencia o comunicación.
+## Arquitectura
 
-### Características Principales
+### Patrón Hexagonal
 
-- Ejecución asíncrona de procesos de cotejo masivo
-- Seguimiento del estado de ejecución en tiempo real
-- Obtención paginada de resultados
-- Integración con MsDataCotejoMasivo para persistencia de datos
-- Arquitectura limpia sin dependencias de frameworks
-
-## Arquitectura Hexagonal
-
-### Tipo de Microservicio: Dominio
-
-Como microservicio de dominio (**MsDominio**), este proyecto:
-
-- **NO define RepositoryPort** - La persistencia es responsabilidad de MsDataCotejoMasivo
-- **Define DataPorts** - Interfaces para comunicarse con el microservicio de datos
-- **Implementa la lógica de negocio** - Casos de uso y reglas de dominio
-- **Mantiene neutralidad tecnológica** - Sin frameworks, sin anotaciones
-
-### Estructura del Proyecto
+El microservicio sigue estrictamente la arquitectura hexagonal con tres capas claramente definidas:
 
 ```
-src/main/java/pe/com/organizacion/cotejomasivo/
-├── domain/                          # Capa de Dominio
-│   ├── model/                       # Entidades y Value Objects
-│   │   ├── CotejoMasivo.java        # Aggregate Root
-│   │   ├── CriterioCotejo.java      # Value Object
-│   │   ├── ResultadoCotejo.java     # Value Object
-│   │   └── ResultadosPaginados.java # Value Object
-│   └── ports/                       # Puertos (Interfaces)
-│       ├── in/                      # Puertos de Entrada (Use Cases)
-│       │   ├── EjecutarCotejoMasivoUseCase.java
-│       │   ├── ConsultarCotejoMasivoUseCase.java
-│       │   └── ObtenerResultadosCotejoMasivoUseCase.java
-│       └── out/                     # Puertos de Salida (Data Ports)
-│           └── CotejoMasivoDataPort.java
-├── application/                     # Capa de Aplicación
-│   └── service/                     # Servicios (Implementan Use Cases)
-│       ├── EjecutarCotejoMasivoService.java
-│       ├── ConsultarCotejoMasivoService.java
-│       └── ObtenerResultadosCotejoMasivoService.java
-└── infrastructure/                  # Capa de Infraestructura
-    └── adapters/                    # Adaptadores
-        ├── in/                      # Adaptadores de Entrada
-        │   └── rest/                # Adaptador REST
+MsDominioCotejoMasivo/
+├── domain/                          # Núcleo de negocio (independiente)
+│   ├── model/                       # Entidades del dominio
+│   │   ├── Ejecucion.java          # Agregado raíz
+│   │   ├── RegistroEntrada.java    # Entidad de entrada
+│   │   ├── ResultadoCotejo.java    # Entidad de resultado
+│   │   └── ResumenResultados.java  # Objeto de valor
+│   └── ports/                       # Contratos del dominio
+│       ├── in/                      # Casos de uso (entrada)
+│       │   ├── EjecutarCotejoUseCase.java
+│       │   ├── ConsultarEstadoUseCase.java
+│       │   └── ObtenerResultadosUseCase.java
+│       └── out/                     # Puertos de salida
+│           └── EjecucionDataPort.java
+├── application/                     # Orquestación
+│   └── service/                     # Implementación de casos de uso
+│       ├── EjecutarCotejoService.java
+│       ├── ConsultarEstadoService.java
+│       └── ObtenerResultadosService.java
+└── infrastructure/                  # Adaptadores técnicos
+    └── adapters/
+        ├── in/                      # Adaptadores de entrada
+        │   └── rest/
         │       ├── controller/
-        │       │   └── CotejoMasivoController.java
-        │       ├── dto/             # DTOs (Java Records)
-        │       │   ├── EjecutarCotejoMasivoRequestDto.java
-        │       │   ├── EjecutarCotejoMasivoResponseDto.java
-        │       │   ├── ConsultarCotejoMasivoResponseDto.java
-        │       │   ├── ObtenerResultadosCotejoMasivoResponseDto.java
-        │       │   ├── CriterioCotejoDto.java
-        │       │   └── ResultadoCotejoDto.java
+        │       │   └── CotejoController.java
+        │       ├── dto/             # Objetos de transferencia
+        │       │   ├── EjecutarCotejoRequestDto.java
+        │       │   ├── RegistroEntradaDto.java
+        │       │   ├── EjecutarCotejoResponseDto.java
+        │       │   ├── ConsultarEstadoResponseDto.java
+        │       │   ├── ObtenerResultadosResponseDto.java
+        │       │   └── MetadataDto.java
         │       └── mapper/
-        │           └── CotejoMasivoDtoMapper.java
-        └── out/                     # Adaptadores de Salida
-            └── msdata/              # Adaptador para MsDataCotejoMasivo
+        │           └── CotejoDtoMapper.java
+        └── out/                     # Adaptadores de salida
+            └── msdata/
                 └── client/
-                    └── CotejoMasivoDataAdapter.java
+                    └── EjecucionDataAdapter.java
 ```
 
-## Entidades del Dominio
+### Características de la Arquitectura
 
-### CotejoMasivo (Aggregate Root)
+- **Sin frameworks**: Implementación en Java puro (POJOs) sin dependencias de Spring, Jakarta EE u otros frameworks
+- **Separación de responsabilidades**: 
+  - **Domain**: Contiene la lógica de negocio pura
+  - **Application**: Orquesta casos de uso
+  - **Infrastructure**: Adaptadores técnicos (REST, cliente MsData)
+- **Inversión de dependencias**: La infraestructura depende del dominio, nunca al revés
+- **Protocolo agnóstico**: Los puertos no asumen tecnologías específicas
 
-Representa una ejecución de cotejo masivo con los siguientes atributos:
+### Diferencia entre MsDominio y MsDatos
 
-| Atributo | Tipo | Descripción |
-|----------|------|-------------|
-| idEjecucion | String (UUID) | Identificador único de la ejecución |
-| fechaSolicitud | LocalDateTime | Fecha y hora de solicitud |
-| estado | String | PENDIENTE, EN_PROCESO, COMPLETADO, ERROR |
-| criteriosCotejo | List<CriterioCotejo> | Criterios de cotejo aplicados |
-| totalRegistros | Long | Total de registros a procesar |
-| registrosProcesados | Long | Registros ya procesados |
-| registrosExitosos | Long | Registros procesados exitosamente |
-| registrosConError | Long | Registros con errores |
-| fechaInicio | LocalDateTime | Fecha y hora de inicio del proceso |
-| fechaFin | LocalDateTime | Fecha y hora de finalización |
-| usuarioSolicitante | String | Usuario que solicitó el cotejo |
+**MsDominio (este microservicio)**:
+- NO tiene `RepositoryPort` (no accede directamente a base de datos)
+- SÍ tiene `DataPort` (puerto de salida hacia MsDatosCotejoMasivo)
+- Contiene lógica de negocio y orquestación
+- Delega persistencia al microservicio de datos
 
-### CriterioCotejo (Value Object)
+**MsDatos (MsDatosCotejoMasivo)**:
+- SÍ tiene `RepositoryPort` (acceso a base de datos)
+- NO tiene `DataPort` a otros microservicios
+- Responsable de operaciones CRUD
+- Expone endpoints para persistencia y consulta
 
-| Atributo | Tipo | Descripción |
-|----------|------|-------------|
-| campo | String | Campo sobre el que se aplica el criterio |
-| operador | String | IGUAL, CONTIENE, MAYOR_QUE, MENOR_QUE |
-| valor | String | Valor de comparación |
+## API REST
 
-### ResultadoCotejo (Value Object)
+### Endpoint 1: Ejecutar Cotejo Masivo
 
-| Atributo | Tipo | Descripción |
-|----------|------|-------------|
-| idRegistro | String | Identificador del registro procesado |
-| estadoCotejo | String | EXITOSO, ERROR, NO_ENCONTRADO |
-| detalles | String | Información adicional del resultado |
-| fechaProcesamiento | LocalDateTime | Fecha y hora de procesamiento |
+**Descripción**: Inicia una ejecución de cotejo masivo de registros contra el Padrón RENIEC.
 
-### ResultadosPaginados (Value Object)
+**Ruta**: `/api/v1/cotejo/ejecutar`  
+**Método**: `POST`  
+**Content-Type**: `application/json`
 
-| Atributo | Tipo | Descripción |
-|----------|------|-------------|
-| idEjecucion | String | Identificador de la ejecución |
-| estado | String | Estado actual de la ejecución |
-| resultados | List<ResultadoCotejo> | Lista de resultados |
-| paginaActual | Long | Número de página actual (base 0) |
-| tamanio | Long | Tamaño de página |
-| totalResultados | Long | Total de resultados disponibles |
-| totalPaginas | Long | Total de páginas |
+**Parámetros del Request Body**:
 
-## Endpoints API
-
-### 1. Ejecutar Cotejo Masivo
-
-**Endpoint:** `POST /api/v1/cotejo-masivo/ejecutar`  
-**Descripción:** Inicia un nuevo proceso de cotejo masivo
-
-**Request Body:**
 ```json
 {
-  "criteriosCotejo": [
+  "solicitudId": "string (required) - Identificador único de la solicitud",
+  "codigoOrganizacion": "string (required) - Código de la organización solicitante",
+  "nombreOrganizacion": "string (optional) - Nombre de la organización",
+  "codigoEnvio": "string (optional) - Código del envío",
+  "numeroLote": "string (optional) - Número de lote",
+  "documentoSustento": "string (optional) - Documento de sustento legal",
+  "observaciones": "string (optional) - Observaciones adicionales",
+  "indicadorDomicilio": "string (optional) - Indicador si se valida domicilio (S/N)",
+  "codigoPrograma": "string (optional) - Código del programa beneficiario",
+  "registros": [
     {
-      "campo": "nombreCompleto",
-      "operador": "CONTIENE",
-      "valor": "Juan"
+      "numeroSecuencia": "integer (required) - Número de secuencia del registro",
+      "numeroDni": "string (required) - Número de DNI a validar",
+      "apellidoPaterno": "string (required) - Apellido paterno",
+      "apellidoMaterno": "string (required) - Apellido materno",
+      "nombres": "string (required) - Nombres",
+      "fechaNacimiento": "string (optional) - Fecha de nacimiento (formato ISO 8601)",
+      "indicadorSexo": "string (optional) - Sexo (M/F)",
+      "identificadorInstitucion": "string (optional) - Identificador de la institución",
+      "datosAdicionales": "string (optional) - Datos adicionales en formato JSON"
     }
-  ],
-  "usuarioSolicitante": "usuario123"
+  ]
 }
 ```
 
-**Response (201 Created):**
+**Response Body (200 OK)**:
+
 ```json
 {
-  "idEjecucion": "550e8400-e29b-41d4-a716-446655440000",
-  "fechaSolicitud": "2025-12-01T10:00:00",
-  "estado": "PENDIENTE",
-  "statusCode": 201,
-  "mensaje": "Proceso de cotejo masivo iniciado exitosamente"
+  "success": true,
+  "data": {
+    "ejecucionId": 123,
+    "estadoProceso": "REGISTRADO",
+    "mensajeProceso": "Ejecución creada exitosamente",
+    "codigoEstado": "REG",
+    "descripcionEstado": "Registrado",
+    "totalRegistrosEntrada": 150,
+    "fechaCreacion": "2024-01-15T10:30:00Z"
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "correlationId": "uuid-v4",
+    "version": "1.0"
+  }
 }
 ```
 
-**Códigos de Estado:**
-- `201` - Cotejo masivo iniciado exitosamente
-- `400` - Solicitud inválida - criterios de cotejo incorrectos
-- `401` - No autorizado - usuario no válido
-- `500` - Error interno del servidor
+**Códigos de Estado HTTP**:
+- `200 OK`: Ejecución creada exitosamente
+- `400 Bad Request`: Datos de entrada inválidos
+- `500 Internal Server Error`: Error en el procesamiento
 
 ---
 
-### 2. Consultar Estado de Ejecución
+### Endpoint 2: Consultar Estado de Ejecución
 
-**Endpoint:** `GET /api/v1/cotejo-masivo/estado/{idEjecucion}`  
-**Descripción:** Consulta el estado actual de una ejecución de cotejo masivo
+**Descripción**: Consulta el estado actual de una ejecución de cotejo masivo.
 
-**Path Parameters:**
-- `idEjecucion`: String (UUID, requerido)
+**Ruta**: `/api/v1/cotejo/estado/{ejecucionId}`  
+**Método**: `GET`
 
-**Response (200 OK):**
+**Parámetros de Path**:
+- `ejecucionId` (Long, required): Identificador de la ejecución
+
+**Response Body (200 OK)**:
+
 ```json
 {
-  "idEjecucion": "550e8400-e29b-41d4-a716-446655440000",
-  "fechaSolicitud": "2025-12-01T10:00:00",
-  "estado": "EN_PROCESO",
-  "totalRegistros": 1000,
-  "registrosProcesados": 500,
-  "registrosExitosos": 450,
-  "registrosConError": 50,
-  "fechaInicio": "2025-12-01T10:00:05",
-  "fechaFin": null,
-  "usuarioSolicitante": "usuario123",
-  "statusCode": 200,
-  "mensaje": "Consulta exitosa"
+  "success": true,
+  "data": {
+    "ejecucionId": 123,
+    "codigoEstado": "COMP",
+    "descripcionEstado": "Completado",
+    "totalRegistrosEntrada": 150,
+    "totalRegistrosProcesados": 150,
+    "totalRegistrosCorrectos": 120,
+    "totalRegistrosIncorrectos": 30,
+    "fechaInicioProceso": "2024-01-15T10:30:00Z",
+    "fechaFinProceso": "2024-01-15T10:45:00Z",
+    "resumenResultados": {
+      "totalCorrectos": 120,
+      "totalDniNoExiste": 15,
+      "totalDatosNoCoinciden": 10,
+      "totalErrores": 5,
+      "porcentajeExito": 80.0
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T11:00:00Z",
+    "correlationId": "uuid-v4",
+    "version": "1.0"
+  }
 }
 ```
 
-**Códigos de Estado:**
-- `200` - Consulta exitosa
-- `404` - Ejecución no encontrada
-- `500` - Error interno del servidor
+**Códigos de Estado HTTP**:
+- `200 OK`: Consulta exitosa
+- `404 Not Found`: Ejecución no encontrada
+- `500 Internal Server Error`: Error en el procesamiento
 
 ---
 
-### 3. Obtener Resultados de Cotejo
+### Endpoint 3: Obtener Resultados de Cotejo
 
-**Endpoint:** `GET /api/v1/cotejo-masivo/resultados/{idEjecucion}`  
-**Descripción:** Obtiene los resultados paginados de una ejecución de cotejo masivo
+**Descripción**: Obtiene los resultados detallados de una ejecución con paginación.
 
-**Path Parameters:**
-- `idEjecucion`: String (UUID, requerido)
+**Ruta**: `/api/v1/cotejo/resultados/{ejecucionId}`  
+**Método**: `GET`
 
-**Query Parameters:**
-- `pagina`: Long (opcional, default: 0) - Número de página (base 0)
-- `tamanio`: Long (opcional, default: 100) - Tamaño de página
-- `estadoCotejo`: String (opcional) - Filtro por estado: EXITOSO, ERROR, NO_ENCONTRADO
+**Parámetros de Path**:
+- `ejecucionId` (Long, required): Identificador de la ejecución
 
-**Response (200 OK):**
+**Parámetros de Query**:
+- `codigoResultado` (String, optional): Filtrar por código de resultado (CORRECTO, DNI_NO_EXISTE, DATOS_NO_COINCIDEN, ERROR)
+- `numeroPagina` (Integer, optional, default=1): Número de página (1-indexed)
+- `elementosPorPagina` (Integer, optional, default=50): Cantidad de elementos por página
+
+**Response Body (200 OK)**:
+
 ```json
 {
-  "idEjecucion": "550e8400-e29b-41d4-a716-446655440000",
-  "estado": "COMPLETADO",
-  "resultados": [
-    {
-      "idRegistro": "REG001",
-      "estadoCotejo": "EXITOSO",
-      "detalles": "Registro procesado correctamente",
-      "fechaProcesamiento": "2025-12-01T10:05:00"
+  "success": true,
+  "data": {
+    "resultados": [
+      {
+        "resultadoId": 456,
+        "registroEntradaId": 789,
+        "codigoResultado": "CORRECTO",
+        "numeroDni": "12345678",
+        "apellidoPaterno": "PEREZ",
+        "apellidoMaterno": "GARCIA",
+        "nombres": "JUAN CARLOS",
+        "coincideDni": "S",
+        "coincideApellidoPaterno": "S",
+        "coincideApellidoMaterno": "S",
+        "coincideNombres": "S",
+        "mensajeObservacion": "Datos coinciden correctamente"
+      }
+    ],
+    "paginacion": {
+      "paginaActual": 1,
+      "elementosPorPagina": 50,
+      "totalElementos": 150,
+      "totalPaginas": 3
     }
-  ],
-  "paginaActual": 0,
-  "tamanio": 100,
-  "totalResultados": 1000,
-  "totalPaginas": 10,
-  "statusCode": 200,
-  "mensaje": "Resultados obtenidos exitosamente"
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T11:05:00Z",
+    "correlationId": "uuid-v4",
+    "version": "1.0"
+  }
 }
 ```
 
-**Códigos de Estado:**
-- `200` - Resultados obtenidos exitosamente
-- `404` - Ejecución no encontrada
-- `422` - Proceso no completado - resultados aún no disponibles
-- `500` - Error interno del servidor
+**Códigos de Estado HTTP**:
+- `200 OK`: Consulta exitosa
+- `404 Not Found`: Ejecución no encontrada
+- `500 Internal Server Error`: Error en el procesamiento
 
-## Mapeo de Tipos de Datos
+## Modelo de Dominio
 
-| Tipo en Especificación | Tipo en Java | Notas |
-|------------------------|--------------|-------|
-| string | String | Texto general |
-| integer/int | Long | Valores numéricos enteros |
-| number/decimal | Double | Valores numéricos decimales |
-| boolean | Boolean | Valores lógicos |
-| date | LocalDate | Fechas sin hora |
-| datetime/timestamp | LocalDateTime | Fechas con hora |
-| array/list | List<T> | Colecciones |
-| UUID | String | Identificadores únicos |
+### Entidad: Ejecucion (Agregado Raíz)
 
-## Integración con MsDataCotejoMasivo
+Representa una ejecución de cotejo masivo con su ciclo de vida completo.
 
-### Puerto de Salida: CotejoMasivoDataPort
+**Atributos**:
+- `ejecucionId` (Long): Identificador único
+- `solicitudId` (String): ID de la solicitud origen
+- `codigoOrganizacion` (String): Código de organización solicitante
+- `nombreOrganizacion` (String): Nombre de la organización
+- `codigoEnvio` (String): Código del envío
+- `numeroLote` (String): Número de lote
+- `documentoSustento` (String): Documento legal de sustento
+- `observaciones` (String): Observaciones
+- `indicadorDomicilio` (String): Indicador validación domicilio (S/N)
+- `codigoPrograma` (String): Código del programa
+- `codigoEstado` (String): Código del estado (REG, PROC, COMP, ERR)
+- `descripcionEstado` (String): Descripción del estado
+- `totalRegistrosEntrada` (Integer): Total de registros ingresados
+- `totalRegistrosProcesados` (Integer): Total procesados
+- `totalRegistrosCorrectos` (Integer): Total correctos
+- `totalRegistrosIncorrectos` (Integer): Total incorrectos
+- `fechaCreacion` (LocalDateTime): Fecha de creación
+- `fechaInicioProceso` (LocalDateTime): Fecha inicio del procesamiento
+- `fechaFinProceso` (LocalDateTime): Fecha fin del procesamiento
+- `mensajeError` (String): Mensaje de error si ocurre
+- `usuarioCreacion` (String): Usuario que creó la ejecución
+- `resumenResultados` (ResumenResultados): Resumen de resultados
 
-Este microservicio se integra con **MsDataCotejoMasivo** (microservicio de datos) a través del puerto de salida `CotejoMasivoDataPort`, que define las siguientes operaciones:
+**Métodos de negocio**:
+- `iniciarProceso()`: Cambia estado a EN_PROCESO y registra fecha inicio
+- `finalizarProceso(ResumenResultados)`: Cambia estado a COMPLETADO y registra resumen
+- `registrarError(String)`: Cambia estado a ERROR y registra mensaje
+- `actualizarEstado()`: Actualiza descripción según código de estado
 
-1. **crear(CotejoMasivo)** - Crea un nuevo registro de ejecución
-2. **actualizar(CotejoMasivo)** - Actualiza el estado de una ejecución
-3. **consultarPorId(String)** - Consulta una ejecución por su ID
-4. **obtenerResultados(String, Long, Long, String)** - Obtiene resultados paginados
+**Estados posibles**:
+- `REGISTRADO`: Ejecución creada, pendiente de procesar
+- `EN_PROCESO`: Procesamiento en curso
+- `COMPLETADO`: Procesamiento finalizado exitosamente
+- `ERROR`: Procesamiento finalizado con errores
 
-### Adaptador: CotejoMasivoDataAdapter
+---
 
-La clase `CotejoMasivoDataAdapter` implementa el puerto `CotejoMasivoDataPort`. 
+### Entidad: RegistroEntrada
 
-**IMPORTANTE:** El protocolo de comunicación (HTTP, SOAP, colas de mensajería, etc.) NO está definido en esta especificación y debe ser implementado según los requisitos del proyecto.
+Representa un registro individual a validar en el cotejo masivo.
 
-## Reglas de Negocio
+**Atributos**:
+- `registroEntradaId` (Long): Identificador único
+- `ejecucionId` (Long): ID de la ejecución asociada
+- `numeroSecuencia` (Integer): Número de secuencia en el lote
+- `numeroDni` (String): DNI a validar
+- `apellidoPaterno` (String): Apellido paterno
+- `apellidoMaterno` (String): Apellido materno
+- `nombres` (String): Nombres
+- `fechaNacimiento` (LocalDateTime): Fecha de nacimiento
+- `indicadorSexo` (String): Sexo (M/F)
+- `identificadorInstitucion` (String): ID de la institución
+- `datosAdicionales` (String): Datos adicionales (JSON)
 
-1. **Validación de Criterios:** Todos los criterios de cotejo deben ser válidos antes de iniciar el proceso
-2. **Ciclo de Estado:** El estado debe seguir el flujo: PENDIENTE → EN_PROCESO → COMPLETADO/ERROR
-3. **Generación de UUID:** Cada ejecución recibe un identificador UUID único
-4. **Paginación Obligatoria:** Los resultados siempre se devuelven paginados
-5. **Valores por Defecto:** 
-   - Página por defecto: 0
-   - Tamaño por defecto: 100 registros
-6. **Trazabilidad:** Se mantiene registro completo de fechas y usuario solicitante
+---
 
-## Características Técnicas
+### Entidad: ResultadoCotejo
 
-### Sin Frameworks
-Este proyecto está diseñado como **Java puro** sin dependencias de frameworks:
-- Sin Spring, JAX-RS, o similares
-- Sin JPA, Hibernate, o ORMs
-- Sin anotaciones de frameworks
-- Sin librerías de mapeo (MapStruct, ModelMapper, etc.)
+Representa el resultado del cotejo de un registro individual.
 
-### Java Records para DTOs
-Los DTOs utilizan Java Records (Java 14+) para mayor inmutabilidad y concisión:
-```java
-public record EjecutarCotejoMasivoRequestDto(
-    List<CriterioCotejoDto> criteriosCotejo,
-    String usuarioSolicitante
-) {}
-```
+**Atributos**:
+- `resultadoId` (Long): Identificador único
+- `ejecucionId` (Long): ID de la ejecución
+- `registroEntradaId` (Long): ID del registro de entrada
+- `codigoResultado` (String): Código del resultado
+- `numeroDniEncontrado` (String): DNI encontrado en Padrón
+- `apellidoPaternoEncontrado` (String): Apellido paterno encontrado
+- `apellidoMaternoEncontrado` (String): Apellido materno encontrado
+- `nombresEncontrado` (String): Nombres encontrados
+- `coincideDni` (String): Indica si coincide DNI (S/N)
+- `coincideApellidoPaterno` (String): Indica si coincide apellido paterno (S/N)
+- `coincideApellidoMaterno` (String): Indica si coincide apellido materno (S/N)
+- `coincideNombres` (String): Indica si coinciden nombres (S/N)
+- `mensajeObservacion` (String): Mensaje de observación
 
-### Compilación
-El código es compilable como **Java puro**:
-- Solo interfaces, clases, enums
-- Sin dependencias externas
-- POJOs con getters/setters estándar
+**Códigos de resultado**:
+- `CORRECTO`: Todos los datos coinciden
+- `DNI_NO_EXISTE`: DNI no existe en el Padrón RENIEC
+- `DATOS_NO_COINCIDEN`: DNI existe pero datos no coinciden
+- `ERROR`: Error en el procesamiento
 
-## Limitaciones Conocidas
+---
 
-1. **Protocolo de Comunicación No Definido:** La comunicación con MsDataCotejoMasivo debe ser implementada
-2. **Sin Build Configuration:** No se incluye `pom.xml` ni configuraciones de build
-3. **Sin Implementación de Persistencia:** Los adaptadores lanzan `UnsupportedOperationException`
-4. **Sin Manejo de Errores HTTP Real:** Los códigos de estado están documentados pero no implementados
-5. **Sin Validaciones:** La validación de entrada debe ser implementada
+### Objeto de Valor: ResumenResultados
 
-## Próximos Pasos para Implementación
+Representa el resumen consolidado de resultados de una ejecución.
 
-1. **Definir Protocolo de Comunicación:**
-   - Elegir: HTTP REST, SOAP, colas de mensajería, gRPC, etc.
-   - Implementar cliente de comunicación en `CotejoMasivoDataAdapter`
+**Atributos**:
+- `totalCorrectos` (Integer): Total de registros correctos
+- `totalDniNoExiste` (Integer): Total de DNI no encontrados
+- `totalDatosNoCoinciden` (Integer): Total con datos no coincidentes
+- `totalErrores` (Integer): Total con errores
+- `porcentajeExito` (Double): Porcentaje de éxito calculado
 
-2. **Agregar Framework Web (Opcional):**
-   - Añadir Spring Boot, Quarkus, Micronaut, etc.
-   - Agregar anotaciones al controlador (`@RestController`, `@PostMapping`, etc.)
+**Métodos**:
+- `calcularPorcentajeExito()`: Calcula el porcentaje de registros correctos
 
-3. **Implementar Validaciones:**
-   - Validar criterios de cotejo
-   - Validar formato de UUID
-   - Validar parámetros de paginación
+## Casos de Uso
 
-4. **Agregar Manejo de Errores:**
-   - Crear excepciones personalizadas
-   - Implementar controladores de excepciones
-   - Mapear excepciones a códigos HTTP
+### 1. EjecutarCotejoUseCase
 
-5. **Configurar Build:**
-   - Crear `pom.xml` o `build.gradle`
-   - Definir dependencias necesarias
-   - Configurar plugins de compilación
+**Responsabilidad**: Orquestar la ejecución de un cotejo masivo.
 
-6. **Implementar Tests:**
-   - Tests unitarios para servicios
-   - Tests de integración para adaptadores
-   - Tests de contrato para DTOs
+**Flujo**:
+1. Crear ejecución en estado REGISTRADO
+2. Registrar registros de entrada
+3. Ejecutar cotejo contra Padrón RENIEC
+4. Registrar resultados del cotejo
+5. Actualizar estado a COMPLETADO o ERROR
 
-## Documentación Adicional
+**Clases internas**:
+- `SolicitudCotejo`: DTO de entrada con datos de la solicitud
+- `ResultadoEjecucionCotejo`: DTO de salida con resultado de la ejecución
 
-- **PDF_TRANSCRIPTION.md**: Transcripción completa de la especificación original
-- **AGENT_PROMPT.md**: Prompt utilizado para generar este proyecto
+---
 
-## Criterios de Aceptación Cumplidos
+### 2. ConsultarEstadoUseCase
 
-✅ Uso exclusivo de información del PDF  
-✅ Estructura del proyecto coincide con la especificada  
-✅ Es MsDominio: existen puertos out hacia MsDataXXXX, NO existe RepositoryPort  
-✅ Código compila como Java puro sin dependencias externas  
-✅ Solo se crean casos de uso para endpoints documentados  
-✅ DTOs implementados como Java records  
-✅ Sin frameworks ni anotaciones  
-✅ Separación clara de capas: dominio, aplicación, infraestructura
+**Responsabilidad**: Consultar el estado actual de una ejecución.
 
-## Licencia
+**Entrada**: `ejecucionId` (Long)  
+**Salida**: `Ejecucion` con estado completo y resumen de resultados
 
-Este proyecto es generado automáticamente según especificaciones de arquitectura hexagonal.
+---
 
-## Contacto
+### 3. ObtenerResultadosUseCase
 
-Para más información sobre la especificación, consultar el documento PDF original.
+**Responsabilidad**: Obtener resultados paginados de una ejecución.
+
+**Entrada**: `FiltrosResultados` (ejecucionId, codigoResultado opcional, paginación)  
+**Salida**: `ResultadoPaginado` con lista de resultados y metadata de paginación
+
+**Clases internas**:
+- `FiltrosResultados`: Criterios de búsqueda y paginación
+- `ResultadoPaginado`: Resultados con información de paginación
+
+## Integración con MsDatosCotejoMasivo
+
+El microservicio se integra con **MsDatosCotejoMasivo** a través del puerto de salida `EjecucionDataPort`, que define las siguientes operaciones:
+
+### Operaciones disponibles:
+
+1. **crearEjecucion**: Persiste una nueva ejecución
+2. **registrarRegistrosEntrada**: Registra lote de registros de entrada
+3. **registrarResultadosCotejo**: Registra lote de resultados
+4. **consultarEjecucion**: Consulta una ejecución por ID
+5. **obtenerResultadosCotejo**: Obtiene resultados con paginación
+
+### Mapeo de endpoints:
+
+| Operación DataPort | Endpoint MsDatosCotejoMasivo |
+|-------------------|------------------------------|
+| crearEjecucion | POST /api/v1/ejecuciones |
+| registrarRegistrosEntrada | POST /api/v1/ejecuciones/{id}/registros-entrada |
+| registrarResultadosCotejo | POST /api/v1/ejecuciones/{id}/resultados |
+| consultarEjecucion | GET /api/v1/ejecuciones/{id} |
+| obtenerResultadosCotejo | GET /api/v1/ejecuciones/{id}/resultados |
+
+### Estado de implementación:
+
+⚠️ **Importante**: El adaptador `EjecucionDataAdapter` actualmente lanza `UnsupportedOperationException` ya que el protocolo de comunicación (HTTP/REST, SOAP, mensajería) no está definido en la especificación del proyecto.
+
+Para completar la integración se debe:
+1. Definir el protocolo de comunicación (recomendado: HTTP/REST con JSON)
+2. Implementar el cliente HTTP en `EjecucionDataAdapter`
+3. Mapear las estructuras de datos entre ambos microservicios
+4. Configurar manejo de errores y reintentos
+5. Implementar circuit breaker para resiliencia
+
+## Limitaciones y Consideraciones
+
+### Implementación actual:
+
+1. **Sin frameworks**: El código está implementado en Java puro sin dependencias de Spring, Jakarta EE, etc. Esto permite flexibilidad pero requiere implementación manual de:
+   - Inyección de dependencias
+   - Manejo de transacciones
+   - Configuración de servidor HTTP
+   - Serialización JSON
+
+2. **Integración con MsDatosCotejoMasivo**: Pendiente de implementación. Se requiere definir:
+   - Protocolo de comunicación
+   - Formato de mensajes
+   - Manejo de errores
+   - Estrategia de reintentos
+
+3. **Integración con Padrón RENIEC**: El método `ejecutarCotejoPadron()` en `EjecutarCotejoService` es un placeholder que lanza `UnsupportedOperationException`. Debe implementarse:
+   - Cliente del servicio de consulta RENIEC
+   - Lógica de comparación de datos
+   - Manejo de timeouts y errores
+   - Generación de objetos `ResultadoCotejo`
+
+4. **Sin anotaciones REST**: El `CotejoController` no tiene anotaciones de framework (como `@RestController`, `@PostMapping`, etc.). Se requiere:
+   - Configurar un servidor HTTP manualmente (Jetty, Netty, etc.)
+   - Implementar routing de endpoints
+   - Implementar serialización/deserialización JSON
+   - O migrar a un framework REST
+
+### Próximos pasos de implementación:
+
+1. **Configuración de infraestructura**:
+   - Servidor HTTP embebido
+   - Configuración de puertos y contexto
+   - Logging estructurado
+
+2. **Inyección de dependencias**:
+   - Factory para creación de servicios
+   - Configuración de adaptadores
+
+3. **Persistencia**:
+   - Implementar cliente HTTP para MsDatosCotejoMasivo
+   - Mapeo de DTOs entre microservicios
+
+4. **Integración externa**:
+   - Cliente del Padrón RENIEC
+   - Lógica de cotejo de datos
+   - Manejo de errores y reintentos
+
+5. **Observabilidad**:
+   - Logging de operaciones
+   - Métricas de rendimiento
+   - Trazabilidad distribuida
+
+## Contacto y Soporte
+
+Para dudas o soporte técnico contactar al equipo de desarrollo de RENIEC.
+
+**Versión del documento**: 1.0  
+**Fecha**: 2024-01-15

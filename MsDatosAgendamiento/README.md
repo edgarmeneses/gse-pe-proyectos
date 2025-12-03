@@ -1,33 +1,44 @@
 # Microservicio MsDatosAgendamiento
 
-## Resumen
+## Resumen del Microservicio
 
-**Nombre del Microservicio**: MsDatosAgendamiento  
-**Versión API**: v1  
-**Paquete Base**: `pe.gob.reniec.agendamiento.msdatos`  
-**Tipo**: MsData (Microservicio de Datos)
+**Nombre del Microservicio:** MsDatosAgendamiento  
+**Tipo de Microservicio:** MsData (Microservicio de Datos)  
+**Versión del API:** v1  
+**Contexto de Negocio:** Gestión de Seguridad Electrónica - RENIEC  
+**Paquete Base Java:** `pe.gob.reniec.gse.agendamiento.data`
 
-### Contexto de Negocio
+## Descripción
 
-El Microservicio Datos Agendamiento es un componente de persistencia y acceso a datos dedicado para el sistema de agendamiento del RENIEC. Su propósito principal es interactuar de manera exclusiva con la Base de Datos de Agendamiento, actuando como el único intermediario para su administración. Se encarga de almacenar, recuperar y gestionar de forma segura toda la información de las agendas, la disponibilidad horaria y los datos de las citas programadas para las visitas de lectura de documentos archivados en el sistema SIIRC.
+El Microservicio Datos Agendamiento es un componente de persistencia y acceso a datos dedicado. Su propósito principal es interactuar de manera exclusiva con la Base de Datos de Agendamiento, actuando como el único intermediario para su administración. Se encarga de almacenar, recuperar y gestionar de forma segura toda la información de las agendas, la disponibilidad horaria y los datos de las citas programadas para las visitas de lectura de documentos archivados.
+
+## Tipo de Microservicio: MsData
+
+Como **MsData**, este microservicio:
+- **SÍ define** `RepositoryPort` y `RepositoryAdapter` para cada entidad
+- **SÍ define** `Entities` (POJOs sin anotaciones JPA)
+- **NO depende** de frameworks ni tecnologías específicas
+- **NO usa** anotaciones de JPA, Spring, JAX-RS, etc.
+- **Gestiona** la persistencia de datos de agendamiento
 
 ## Endpoints
 
-### 3.1.1 Endpoint: Crear Agenda
+### 1. Crear Agenda (Cita)
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/citas`  
-**Método**: `POST`  
-**Descripción**: Permite la creación de una nueva cita para visita de lectura de documento archivado.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/citas`  
+**Método:** `POST`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `Content-Type`: application/json
-- `X-Correlation-ID`: UUID para trazabilidad
-- `X-Office-Code`: Código de oficina
-- `X-User-Role`: Rol del usuario
-- `X-Idempotency-Key`: UUID para evitar duplicados
+- `X-Correlation-ID`: UUID
+- `X-Office-Code`: String
+- `X-User-Role`: String
+- `X-Idempotency-Key`: UUID
 
-**Request Body**:
+**Request Body:**
 ```json
 {
   "sedeServicio": {
@@ -59,7 +70,33 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 }
 ```
 
-**Status Codes**:
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "data": {
+    "citaId": "string",
+    "codigoCita": "string",
+    "estado": "string",
+    "sedeServicio": {...},
+    "solicitante": {...},
+    "programacion": {...},
+    "tecnicoAsignado": {...},
+    "tokenReagendamiento": "string",
+    "fechaLimiteReagendamiento": "YYYY-MM-DDThh:mm:ssZ",
+    "fechaRegistro": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioRegistro": "string",
+    "_links": {...}
+  },
+  "metadata": {
+    "timestamp": "string",
+    "correlationId": "string",
+    "version": "string"
+  }
+}
+```
+
+**Status Codes:**
 - `201 Created`: Cita creada exitosamente
 - `400 Bad Request`: Datos inválidos o incompletos
 - `401 Unauthorized`: Token JWT inválido o expirado
@@ -72,20 +109,24 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 
 ---
 
-### 3.1.2 Endpoint: Actualizar Cita
+### 2. Actualizar Cita (Reagendamiento)
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}`  
-**Método**: `PUT`  
-**Descripción**: Permite actualizar una cita existente (reagendamiento).
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}`  
+**Método:** `PUT`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `Content-Type`: application/json
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
-- `X-User-Role`: Rol del usuario
+- `X-Office-Code`: String
+- `X-User-Role`: String
 
-**Request Body**:
+**Path Parameters:**
+- `citaId`: UUID de la cita a actualizar
+
+**Request Body:**
 ```json
 {
   "tokenReagendamiento": "string",
@@ -103,36 +144,94 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 }
 ```
 
-**Status Codes**:
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "citaId": "string",
+    "codigoCita": "string",
+    "estado": "string",
+    "programacionAnterior": {...},
+    "programacionNueva": {...},
+    "sedeServicio": {...},
+    "tecnicoAsignado": {...},
+    "tokenReagendamiento": "string",
+    "fechaLimiteReagendamiento": "YYYY-MM-DDThh:mm:ssZ",
+    "cantidadReagendamientos": 0,
+    "fechaActualizacion": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioActualizacion": "string",
+    "_links": {...}
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `200 OK`: Cita actualizada exitosamente
 - `400 Bad Request`: Datos inválidos o incompletos
 - `401 Unauthorized`: Token JWT inválido o expirado
 - `403 Forbidden`: Token de reagendamiento inválido o expirado
 - `404 Not Found`: Cita no encontrada
-- `409 Conflict`: No hay disponibilidad o cita en estado no modificable
+- `409 Conflict`: No hay disponibilidad en la nueva fecha/hora o cita en estado no modificable
 - `422 Unprocessable Entity`: Excedido límite de reagendamientos
 - `429 Too Many Requests`: Límite de rate limit excedido
 - `500 Internal Server Error`: Error interno del servidor
 
 ---
 
-### 3.1.3 Endpoint: Consultar Cita
+### 3. Consultar Cita
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/citas`  
-**Método**: `GET`  
-**Descripción**: Permite consultar los detalles de una cita específica.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/citas`  
+**Método:** `GET`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
-- `X-User-Role`: Rol del usuario
+- `X-Office-Code`: String
+- `X-User-Role`: String
 
-**Query Parameters**:
-- `citaId` (string, obligatorio): Identificador único de la cita
-- `incluirHistorial` (boolean, opcional): Indica si debe incluirse el historial
+**Query Parameters:**
+- `citaId` (required): UUID de la cita
+- `incluirHistorial` (optional): Boolean
 
-**Status Codes**:
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "citaId": "string",
+    "codigoCita": "string",
+    "estado": {
+      "codigo": "string",
+      "descripcion": "string",
+      "permiteModificacion": true,
+      "permiteCancelacion": true
+    },
+    "sedeServicio": {...},
+    "solicitud": {...},
+    "solicitante": {...},
+    "programacion": {...},
+    "tecnicoAsignado": {...},
+    "tokenReagendamiento": "string",
+    "fechaLimiteReagendamiento": "YYYY-MM-DDThh:mm:ssZ",
+    "cantidadReagendamientos": 0,
+    "maximoReagendamientos": 0,
+    "observaciones": "string",
+    "fechaRegistro": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioRegistro": "string",
+    "fechaActualizacion": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioActualizacion": "string",
+    "historial": [...],
+    "_links": {...}
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `200 OK`: Cita consultada exitosamente
 - `400 Bad Request`: Parámetros de consulta inválidos
 - `401 Unauthorized`: Token JWT inválido o expirado
@@ -142,32 +241,61 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 
 ---
 
-### 3.1.4 Endpoint: Listar Citas
+### 4. Listar Citas
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/citas`  
-**Método**: `GET`  
-**Descripción**: Permite listar citas con parámetros de filtrado y paginación.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/citas`  
+**Método:** `GET`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
-- `X-User-Role`: Rol del usuario
+- `X-Office-Code`: String
+- `X-User-Role`: String
 
-**Query Parameters**:
-- `codigoSede` (string, opcional): Código de la sede
-- `estado` (string, opcional): Estado de la cita
-- `dniSolicitante` (string, opcional): DNI del solicitante
-- `numeroTramite` (string, opcional): Número de trámite
-- `idTecnico` (string, opcional): ID del técnico
-- `fechaDesde` (string, opcional): Fecha inicial del rango
-- `fechaHasta` (string, opcional): Fecha final del rango
-- `page` (integer, opcional): Número de página (default: 0)
-- `size` (integer, opcional): Registros por página (default: 20)
-- `sort` (string, opcional): Campo para ordenar
-- `direction` (string, opcional): Dirección del ordenamiento (ASC/DESC)
+**Query Parameters:**
+- `codigoSede` (optional): String
+- `estado` (optional): String
+- `dniSolicitante` (optional): String
+- `numeroTramite` (optional): String
+- `idTecnico` (optional): String
+- `fechaDesde` (optional): String (Date)
+- `fechaHasta` (optional): String (Date)
+- `page` (optional): Integer
+- `size` (optional): Integer
+- `sort` (optional): String
+- `direction` (optional): String
 
-**Status Codes**:
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "citaId": "string",
+      "codigoCita": "string",
+      "estado": {...},
+      "sedeServicio": {...},
+      "solicitante": {...},
+      "numeroTramite": "string",
+      "programacion": {...},
+      "tecnicoAsignado": {...}
+    }
+  ],
+  "paginacion": {
+    "totalRegistros": 0,
+    "totalPaginas": 0,
+    "paginaActual": 0,
+    "registrosPorPagina": 0,
+    "tieneAnterior": false,
+    "tieneSiguiente": false
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `200 OK`: Listado consultado exitosamente
 - `400 Bad Request`: Parámetros de consulta inválidos
 - `401 Unauthorized`: Token JWT inválido o expirado
@@ -177,20 +305,24 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 
 ---
 
-### 3.1.5 Endpoint: Cancelar Cita
+### 5. Cancelar Cita
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}/cancelar`  
-**Método**: `POST`  
-**Descripción**: Permite cancelar una cita existente.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/citas/{citaId}/cancelar`  
+**Método:** `POST`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `Content-Type`: application/json
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
-- `X-User-Role`: Rol del usuario
+- `X-Office-Code`: String
+- `X-User-Role`: String
 
-**Request Body**:
+**Path Parameters:**
+- `citaId`: UUID de la cita a cancelar
+
+**Request Body:**
 ```json
 {
   "motivoCancelacion": "string",
@@ -199,7 +331,25 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 }
 ```
 
-**Status Codes**:
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "citaId": "string",
+    "codigoCita": "string",
+    "estadoAnterior": "string",
+    "estadoNuevo": "string",
+    "fechaCancelacion": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioCancelacion": "string",
+    "motivoCancelacion": "string",
+    "disponibilidadLiberada": true
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `200 OK`: Cita cancelada exitosamente
 - `400 Bad Request`: Datos inválidos
 - `401 Unauthorized`: Token JWT inválido o expirado
@@ -210,132 +360,226 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 
 ---
 
-### 3.1.6 Endpoint: Consultar Disponibilidad
+### 6. Consultar Disponibilidad
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/disponibilidad`  
-**Método**: `GET`  
-**Descripción**: Permite consultar la disponibilidad horaria de una sede.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/disponibilidad`  
+**Método:** `GET`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
+- `X-Office-Code`: String
 
-**Query Parameters**:
-- `codigoSede` (string, obligatorio): Código de la sede
-- `fechaDesde` (string, obligatorio): Fecha inicial del rango
-- `fechaHasta` (string, obligatorio): Fecha final del rango
-- `soloDisponibles` (boolean, opcional): Filtrar solo disponibles
+**Query Parameters:**
+- `codigoSede` (required): String
+- `fechaDesde` (required): String (Date)
+- `fechaHasta` (required): String (Date)
+- `soloDisponibles` (optional): Boolean
 
-**Status Codes**:
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "sedeServicio": {...},
+    "rangoConsultado": {...},
+    "disponibilidad": [
+      {
+        "fecha": "YYYY-MM-DDThh:mm:ssZ",
+        "diaSemana": "string",
+        "esHabil": true,
+        "motivoNoHabil": "string",
+        "franjas": [
+          {
+            "idDisponibilidad": "string",
+            "horaInicio": "HH:mm",
+            "horaFin": "HH:mm",
+            "capacidadTotal": 0,
+            "capacidadOcupada": 0,
+            "capacidadDisponible": 0,
+            "estado": "string"
+          }
+        ]
+      }
+    ],
+    "resumen": {
+      "totalDias": 0,
+      "diasHabiles": 0,
+      "diasNoHabiles": 0,
+      "totalFranjas": 0,
+      "franjasDisponibles": 0,
+      "franjasOcupadas": 0
+    }
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `200 OK`: Disponibilidad consultada exitosamente
-- `400 Bad Request`: Parámetros inválidos o rango excedido
+- `400 Bad Request`: Parámetros inválidos o rango de fechas excede el máximo
 - `401 Unauthorized`: Token JWT inválido o expirado
 - `404 Not Found`: Sede no encontrada
 - `500 Internal Server Error`: Error interno del servidor
 
 ---
 
-### 3.1.7 Endpoint: Configurar Disponibilidad
+### 7. Configurar Disponibilidad
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/disponibilidad`  
-**Método**: `POST`  
-**Descripción**: Permite configurar la disponibilidad horaria de una sede.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/disponibilidad`  
+**Método:** `POST`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `Content-Type`: application/json
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
+- `X-Office-Code`: String
 - `X-User-Role`: ADMINISTRADOR
 
-**Request Body**:
+**Request Body:**
 ```json
 {
   "sedeServicio": {
     "codigoSede": "string",
     "nombreSede": "string",
     "direccion": "string",
-    "capacidadDiariaMaxima": "integer",
-    "tiempoAtencionMinutos": "integer"
+    "capacidadDiariaMaxima": 0,
+    "tiempoAtencionMinutos": 0
   },
   "horarioServicio": [
     {
-      "diaSemana": "integer",
+      "diaSemana": 0,
       "nombreDia": "string",
       "horaInicio": "HH:mm",
       "horaFin": "HH:mm",
-      "capacidadPorFranja": "integer",
-      "duracionFranjaMinutos": "integer",
-      "activo": "boolean"
+      "capacidadPorFranja": 0,
+      "duracionFranjaMinutos": 0,
+      "activo": true
     }
   ],
   "rangoAplicacion": {
     "fechaDesde": "YYYY-MM-DDThh:mm:ssZ",
     "fechaHasta": "YYYY-MM-DDThh:mm:ssZ"
   },
-  "generarDisponibilidadAutomatica": "boolean"
+  "generarDisponibilidadAutomatica": true
 }
 ```
 
-**Status Codes**:
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "data": {
+    "sedeServicioId": "string",
+    "codigoSede": "string",
+    "nombreSede": "string",
+    "configuracion": {
+      "capacidadDiariaMaxima": 0,
+      "tiempoAtencionMinutos": 0,
+      "horariosConfigurados": 0
+    },
+    "disponibilidadGenerada": {
+      "diasGenerados": 0,
+      "franjasGeneradas": 0,
+      "fechaDesde": "YYYY-MM-DDThh:mm:ssZ",
+      "fechaHasta": "YYYY-MM-DDThh:mm:ssZ"
+    },
+    "fechaConfiguracion": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioConfiguracion": "string"
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `201 Created`: Disponibilidad configurada exitosamente
 - `400 Bad Request`: Datos inválidos o incompletos
 - `401 Unauthorized`: Token JWT inválido o expirado
 - `403 Forbidden`: Usuario sin permisos de administrador
 - `409 Conflict`: Ya existe configuración para esta sede
-- `422 Unprocessable Entity`: Configuración inválida (horarios superpuestos)
+- `422 Unprocessable Entity`: Configuración inválida (horarios superpuestos, etc.)
 - `500 Internal Server Error`: Error interno del servidor
 
 ---
 
-### 3.1.8 Endpoint: Actualizar Disponibilidad
+### 8. Actualizar Disponibilidad
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/disponibilidad/{disponibilidadId}`  
-**Método**: `PUT`  
-**Descripción**: Permite actualizar la disponibilidad de una franja horaria.
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/disponibilidad/{disponibilidadId}`  
+**Método:** `PUT`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `Content-Type`: application/json
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
+- `X-Office-Code`: String
 - `X-User-Role`: ADMINISTRADOR
 
-**Request Body**:
+**Path Parameters:**
+- `disponibilidadId`: UUID de la disponibilidad a actualizar
+
+**Request Body:**
 ```json
 {
-  "capacidadTotal": "integer",
+  "capacidadTotal": 0,
   "estado": "string",
   "motivoCambio": "string"
 }
 ```
 
-**Status Codes**:
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "idDisponibilidad": "string",
+    "fecha": "YYYY-MM-DDThh:mm:ssZ",
+    "horaInicio": "HH:mm",
+    "horaFin": "HH:mm",
+    "capacidadAnterior": 0,
+    "capacidadNueva": 0,
+    "capacidadOcupada": 0,
+    "capacidadDisponible": 0,
+    "estadoAnterior": "string",
+    "estadoNuevo": "string",
+    "fechaActualizacion": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioActualizacion": "string"
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `200 OK`: Disponibilidad actualizada exitosamente
 - `400 Bad Request`: Datos inválidos
 - `401 Unauthorized`: Token JWT inválido o expirado
 - `403 Forbidden`: Usuario sin permisos de administrador
 - `404 Not Found`: Disponibilidad no encontrada
-- `409 Conflict`: Capacidad nueva menor que citas programadas
+- `409 Conflict`: Capacidad nueva menor que citas ya programadas
 - `500 Internal Server Error`: Error interno del servidor
 
 ---
 
-### 3.1.9 Endpoint: Registrar Excepción Horaria
+### 9. Registrar Excepción Horaria
 
-**Path**: `/api/v1/agendamiento/MsDatosAgendamiento/excepciones`  
-**Método**: `POST`  
-**Descripción**: Permite registrar excepciones horarias (feriados, cierres).
+**Path:** `/api/v1/agendamiento/MsDatosAgendamiento/excepciones`  
+**Método:** `POST`  
+**API Gateway:** Interno  
+**Protocolo:** REST/HTTP
 
-**Headers**:
+**Headers:**
 - `Authorization`: Bearer token JWT
 - `Content-Type`: application/json
 - `X-Correlation-ID`: UUID
-- `X-Office-Code`: Código de oficina
+- `X-Office-Code`: String
 - `X-User-Role`: ADMINISTRADOR
 
-**Request Body**:
+**Request Body:**
 ```json
 {
   "codigoSede": "string",
@@ -345,14 +589,38 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
   "horarioEspecial": {
     "horaInicio": "HH:mm",
     "horaFin": "HH:mm",
-    "capacidadPorFranja": "integer"
+    "capacidadPorFranja": 0
   },
-  "afectaCitasExistentes": "boolean",
-  "notificarAfectados": "boolean"
+  "afectaCitasExistentes": true,
+  "notificarAfectados": true
 }
 ```
 
-**Status Codes**:
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "data": {
+    "idExcepcion": "string",
+    "codigoSede": "string",
+    "nombreSede": "string",
+    "fechaExcepcion": "YYYY-MM-DDThh:mm:ssZ",
+    "tipoExcepcion": "string",
+    "descripcion": "string",
+    "horarioEspecial": {...},
+    "citasAfectadas": {
+      "cantidad": 0,
+      "accion": "string",
+      "citasIds": ["string"]
+    },
+    "fechaRegistro": "YYYY-MM-DDThh:mm:ssZ",
+    "usuarioRegistro": "string"
+  },
+  "metadata": {...}
+}
+```
+
+**Status Codes:**
 - `201 Created`: Excepción registrada exitosamente
 - `400 Bad Request`: Datos inválidos o incompletos
 - `401 Unauthorized`: Token JWT inválido o expirado
@@ -365,18 +633,15 @@ El Microservicio Datos Agendamiento es un componente de persistencia y acceso a 
 
 ## Entidades del Dominio
 
-### Cita (Aggregate Root)
-Representa una cita agendada para visita de lectura de documento.
-
-**Atributos**:
+### 1. Cita (Aggregate Root)
 - `citaId`: String (UUID)
 - `codigoCita`: String
-- `estado`: EstadoCita (objeto de valor)
-- `sedeServicio`: SedeServicio (objeto de valor)
-- `solicitud`: Solicitud (objeto de valor)
-- `solicitante`: Solicitante (objeto de valor)
-- `programacion`: Programacion (objeto de valor)
-- `tecnicoAsignado`: TecnicoAsignado (objeto de valor, opcional)
+- `estado`: EstadoCita (Value Object)
+- `sedeServicio`: SedeServicio (Value Object)
+- `solicitud`: Solicitud (Value Object)
+- `solicitante`: Solicitante (Value Object)
+- `programacion`: Programacion (Value Object)
+- `tecnicoAsignado`: TecnicoAsignado (Value Object) - Optional
 - `tokenReagendamiento`: String
 - `fechaLimiteReagendamiento`: LocalDateTime
 - `cantidadReagendamientos`: Integer
@@ -384,185 +649,165 @@ Representa una cita agendada para visita de lectura de documento.
 - `observaciones`: String
 - `fechaRegistro`: LocalDateTime
 - `usuarioRegistro`: String
-- `fechaActualizacion`: LocalDateTime (opcional)
-- `usuarioActualizacion`: String (opcional)
+- `fechaActualizacion`: LocalDateTime
+- `usuarioActualizacion`: String
 
-### Disponibilidad (Aggregate Root)
-Representa la disponibilidad horaria configurada para una sede.
-
-**Atributos**:
+### 2. Disponibilidad (Aggregate Root)
 - `idDisponibilidad`: String (UUID)
 - `codigoSede`: String
 - `fecha`: LocalDate
 - `diaSemana`: String
 - `esHabil`: Boolean
-- `motivoNoHabil`: String (opcional)
-- `horaInicio`: String (Time)
-- `horaFin`: String (Time)
+- `motivoNoHabil`: String
+- `horaInicio`: LocalTime
+- `horaFin`: LocalTime
 - `capacidadTotal`: Integer
 - `capacidadOcupada`: Integer
 - `capacidadDisponible`: Integer
 - `estado`: String
+- `fechaRegistro`: LocalDateTime
+- `usuarioRegistro`: String
+- `fechaActualizacion`: LocalDateTime
+- `usuarioActualizacion`: String
 
-### ExcepcionHoraria (Aggregate Root)
-Representa excepciones en el horario (feriados, cierres).
-
-**Atributos**:
+### 3. ExcepcionHoraria (Aggregate Root)
 - `idExcepcion`: String (UUID)
 - `codigoSede`: String
 - `fechaExcepcion`: LocalDate
 - `tipoExcepcion`: String
 - `descripcion`: String
-- `horarioEspecial`: HorarioEspecial (objeto de valor, opcional)
+- `horarioEspecial`: HorarioEspecial (Value Object) - Optional
 - `afectaCitasExistentes`: Boolean
 - `notificarAfectados`: Boolean
 - `fechaRegistro`: LocalDateTime
 - `usuarioRegistro`: String
 
----
+### 4. HistorialCita (Entity)
+- `idHistorial`: String (UUID)
+- `citaId`: String (UUID)
+- `fechaCambio`: LocalDateTime
+- `estadoAnterior`: String
+- `estadoNuevo`: String
+- `fechaAnterior`: LocalDateTime
+- `horaAnterior`: LocalTime
+- `fechaNueva`: LocalDateTime
+- `horaNueva`: LocalTime
+- `motivoCambio`: String
+- `usuarioCambio`: String
 
-## Reglas de Mapeo de Tipos
+### Value Objects
 
-Según la especificación del PDF, se aplican las siguientes conversiones:
+#### EstadoCita
+- `codigo`: String
+- `descripcion`: String
+- `permiteModificacion`: Boolean
+- `permiteCancelacion`: Boolean
+
+#### SedeServicio
+- `codigoSede`: String
+- `nombreSede`: String
+- `direccion`: String
+- `telefono`: String
+- `capacidadDiariaMaxima`: Integer
+- `tiempoAtencionMinutos`: Integer
+
+#### Solicitud
+- `idSolicitud`: String (UUID)
+- `numeroTramite`: String
+
+#### Solicitante
+- `dni`: String
+- `nombres`: String
+- `apellidoPaterno`: String
+- `apellidoMaterno`: String
+- `email`: String
+- `telefono`: String
+
+#### Programacion
+- `fechaCita`: LocalDate
+- `horaCita`: LocalTime
+- `idDisponibilidad`: String (UUID)
+
+#### TecnicoAsignado
+- `idTecnico`: String
+- `nombreCompleto`: String
+
+#### HorarioEspecial
+- `horaInicio`: LocalTime
+- `horaFin`: LocalTime
+- `capacidadPorFranja`: Integer
+
+#### HorarioServicio
+- `diaSemana`: Integer
+- `nombreDia`: String
+- `horaInicio`: LocalTime
+- `horaFin`: LocalTime
+- `capacidadPorFranja`: Integer
+- `duracionFranjaMinutos`: Integer
+- `activo`: Boolean
+
+#### Paginacion
+- `totalRegistros`: Integer
+- `totalPaginas`: Integer
+- `paginaActual`: Integer
+- `registrosPorPagina`: Integer
+- `tieneAnterior`: Boolean
+- `tieneSiguiente`: Boolean
+
+#### ResumenDisponibilidad
+- `totalDias`: Integer
+- `diasHabiles`: Integer
+- `diasNoHabiles`: Integer
+- `totalFranjas`: Integer
+- `franjasDisponibles`: Integer
+- `franjasOcupadas`: Integer
+
+#### CitasAfectadas
+- `cantidad`: Integer
+- `accion`: String
+- `citasIds`: List\<String\>
+
+## Mapeo de Tipos
 
 | Tipo en PDF | Tipo Java |
 |-------------|-----------|
 | string | String |
-| integer / int | Integer |
-| long | Long |
-| number / decimal / double | Double |
+| integer | Integer |
 | boolean | Boolean |
 | date (YYYY-MM-DD) | LocalDate |
-| datetime / timestamp (ISO 8601) | LocalDateTime |
-| time (HH:mm) | String |
-| array / list | List<T> |
-| object | Clase POJO |
-
----
-
-## Características del Proyecto
-
-### Tipo de Microservicio: MsData
-
-Como este es un **MsData** (Microservicio de Datos):
-- ✅ Define `RepositoryPort` en `domain/ports/out/`
-- ✅ Define `Entities` en `infrastructure/adapters/out/persistence/entity/`
-- ✅ Implementa `RepositoryAdapter` en `infrastructure/adapters/out/persistence/`
-- ✅ No depende de componentes externos MsDataXXXX
-
-### Arquitectura Hexagonal
-
-El proyecto sigue estrictamente Arquitectura Hexagonal:
-- **Domain**: Lógica de negocio pura, independiente de frameworks
-- **Application**: Casos de uso que orquestan la lógica de dominio
-- **Infrastructure**: Adaptadores para interactuar con el mundo exterior
-
-### Sin Dependencias de Frameworks
-
-- ❌ No usa Spring, JAX-RS, JPA, MapStruct u otras librerías
-- ✅ Solo interfaces, clases e interfaces Java puras (POJOs)
-- ✅ Código compilable como Java estándar
-- ✅ Adaptadores con implementaciones stub/mínimas
-
----
-
-## Limitaciones
-
-1. **Sin Tecnología Específica**: No se define cómo se conecta a la base de datos. Los adaptadores de repositorio tienen métodos stub que lanzan `UnsupportedOperationException`.
-
-2. **Sin Frameworks**: No hay anotaciones de Spring, JPA, ni configuraciones de frameworks. El código es Java puro.
-
-3. **Sin Configuración de Build**: No se incluye `pom.xml`, `build.gradle` ni configuraciones Maven/Gradle por neutralidad tecnológica.
-
-4. **Mappers Manuales**: Los mappers son clases con métodos de conversión sin usar librerías como MapStruct.
-
-5. **Controllers Sin Anotaciones**: Los controllers son POJOs sin anotaciones HTTP. Representan la estructura pero no son funcionales sin un framework.
-
-6. **Operaciones Definidas por el PDF**: Solo se implementan las operaciones documentadas en el PDF. No se asumen ni inventan casos de uso adicionales.
-
----
+| datetime (YYYY-MM-DDThh:mm:ssZ) | LocalDateTime |
+| time (HH:mm) | LocalTime |
+| UUID | String |
+| array | List\<T\> |
 
 ## Estructura del Proyecto
 
-```
-src/main/java/pe/gob/reniec/agendamiento/msdatos/
-├── domain/
-│   ├── model/
-│   │   ├── Cita.java
-│   │   ├── Disponibilidad.java
-│   │   ├── ExcepcionHoraria.java
-│   │   ├── SedeServicio.java
-│   │   ├── Solicitud.java
-│   │   ├── Solicitante.java
-│   │   ├── Programacion.java
-│   │   ├── TecnicoAsignado.java
-│   │   ├── EstadoCita.java
-│   │   ├── HorarioServicio.java
-│   │   ├── HorarioEspecial.java
-│   │   └── ...
-│   └── ports/
-│       ├── in/
-│       │   ├── CrearCitaUseCase.java
-│       │   ├── ActualizarCitaUseCase.java
-│       │   ├── ConsultarCitaUseCase.java
-│       │   ├── ListarCitasUseCase.java
-│       │   ├── CancelarCitaUseCase.java
-│       │   ├── ConsultarDisponibilidadUseCase.java
-│       │   ├── ConfigurarDisponibilidadUseCase.java
-│       │   ├── ActualizarDisponibilidadUseCase.java
-│       │   └── RegistrarExcepcionHorariaUseCase.java
-│       └── out/
-│           ├── CitaRepositoryPort.java
-│           ├── DisponibilidadRepositoryPort.java
-│           └── ExcepcionHorariaRepositoryPort.java
-├── application/
-│   └── service/
-│       ├── CrearCitaService.java
-│       ├── ActualizarCitaService.java
-│       ├── ConsultarCitaService.java
-│       ├── ListarCitasService.java
-│       ├── CancelarCitaService.java
-│       ├── ConsultarDisponibilidadService.java
-│       ├── ConfigurarDisponibilidadService.java
-│       ├── ActualizarDisponibilidadService.java
-│       └── RegistrarExcepcionHorariaService.java
-└── infrastructure/
-    └── adapters/
-        ├── in/
-        │   └── rest/
-        │       ├── controller/
-        │       │   ├── CitaController.java
-        │       │   ├── DisponibilidadController.java
-        │       │   └── ExcepcionHorariaController.java
-        │       ├── dto/
-        │       │   ├── CrearCitaRequestDto.java
-        │       │   ├── CrearCitaResponseDto.java
-        │       │   ├── ActualizarCitaRequestDto.java
-        │       │   ├── ActualizarCitaResponseDto.java
-        │       │   └── ...
-        │       └── mapper/
-        │           ├── CitaDtoMapper.java
-        │           ├── DisponibilidadDtoMapper.java
-        │           └── ExcepcionHorariaDtoMapper.java
-        └── out/
-            └── persistence/
-                ├── entity/
-                │   ├── CitaEntity.java
-                │   ├── DisponibilidadEntity.java
-                │   └── ExcepcionHorariaEntity.java
-                ├── mapper/
-                │   ├── CitaPersistenceMapper.java
-                │   ├── DisponibilidadPersistenceMapper.java
-                │   └── ExcepcionHorariaPersistenceMapper.java
-                ├── CitaRepositoryAdapter.java
-                ├── DisponibilidadRepositoryAdapter.java
-                └── ExcepcionHorariaRepositoryAdapter.java
-```
+Como este es un microservicio de tipo **MsData**, la estructura incluye:
 
----
+- **domain/model**: Entidades del dominio (Cita, Disponibilidad, ExcepcionHoraria, HistorialCita) y Value Objects
+- **domain/ports/in**: Use Cases (interfaces) para cada operación de negocio
+- **domain/ports/out**: Repository Ports (interfaces) para acceso a datos
+- **application/service**: Servicios que implementan los Use Cases
+- **infrastructure/adapters/in/rest**: Controllers, DTOs (records) y Mappers REST
+- **infrastructure/adapters/out/persistence**: Entities, Mappers y Repository Adapters
+
+## Limitaciones
+
+- **Sin frameworks**: No se utilizan anotaciones ni dependencias de Spring, JPA, JAX-RS, MapStruct, etc.
+- **POJOs puros**: Todas las clases son Java estándar compilables sin dependencias externas
+- **Sin protocolo definido**: Los adaptadores no especifican la tecnología de conexión (HTTP, base de datos específica)
+- **Código stub**: Los métodos lanzan `UnsupportedOperationException` o tienen cuerpos mínimos para mantener la arquitectura clara
+
+## Notas de Implementación
+
+1. **Arquitectura Hexagonal Estricta**: Separación clara entre dominio, aplicación e infraestructura
+2. **Neutralidad Tecnológica**: El código es independiente de frameworks y tecnologías específicas
+3. **Trazabilidad**: Cada endpoint del PDF se mapea a un Use Case específico
+4. **Validation**: Las validaciones de negocio se documentan pero no se implementan para mantener el código simple
+5. **Error Handling**: Los códigos de error HTTP están documentados pero no implementados en el código
 
 ## Versión
 
-**Documento Versión**: 1.0  
-**Fecha de Generación del Documento**: 01/12/2025  
-**Fecha de Generación del Código**: 03/12/2025
+**Documento Versión:** 1.0  
+**Fecha de Generación:** 01/12/2025  
+**Arquitecto de Software:** RENIEC - Gestión de Seguridad Electrónica
