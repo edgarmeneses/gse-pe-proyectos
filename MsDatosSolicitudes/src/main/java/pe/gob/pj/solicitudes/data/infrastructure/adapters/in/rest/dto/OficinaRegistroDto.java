@@ -1,7 +1,14 @@
 package pe.gob.pj.solicitudes.data.infrastructure.adapters.in.rest.dto;
 
-public record OficinaRegistroDto(
-        String codigo,
-        String nombre
-) {
+public final class OficinaRegistroDto {
+    private final String codigo;
+    private final String nombre;
+
+    public OficinaRegistroDto(String codigo, String nombre) {
+        this.codigo = codigo;
+        this.nombre = nombre;
+    }
+
+    public String codigo() { return codigo; }
+    public String nombre() { return nombre; }
 }
