@@ -1,10 +1,12 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * DTO Response: Actualizar Carpeta
+ */
 public record ActualizarCarpetaResponseDto(
     String id,
-    LocalDateTime updateAt,
+    String updatedAt,
     List<String> camposActualizados
 ) {}

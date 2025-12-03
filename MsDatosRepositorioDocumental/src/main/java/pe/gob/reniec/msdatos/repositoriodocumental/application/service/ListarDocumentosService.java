@@ -1,11 +1,15 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.application.service;
 
-import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Documento;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.ListarDocumentosUseCase;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.DocumentoRepositoryPort;
-import java.util.List;
+import java.util.Map;
 
+/**
+ * Servicio de aplicación: Listar Documentos
+ * Implementa la lógica de negocio para listar documentos con filtros.
+ */
 public class ListarDocumentosService implements ListarDocumentosUseCase {
+
     private final DocumentoRepositoryPort documentoRepositoryPort;
 
     public ListarDocumentosService(DocumentoRepositoryPort documentoRepositoryPort) {
@@ -13,8 +17,7 @@ public class ListarDocumentosService implements ListarDocumentosUseCase {
     }
 
     @Override
-    public List<Documento> listar(String queryParam1, String queryParam2, String queryParam3, 
-                                 Integer page, Integer size) {
-        return documentoRepositoryPort.listar(queryParam1, queryParam2, queryParam3, page, size);
+    public pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto.ListarDocumentosResponseDto listar(Map<String, String> filtros, Integer page, Integer size) {
+        return documentoRepositoryPort.listar(filtros, page, size);
     }
 }

@@ -3,7 +3,12 @@ package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.out.
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * Entity de persistencia: Carpeta
+ * Representa la carpeta en la capa de persistencia sin anotaciones JPA.
+ */
 public class CarpetaEntity {
+
     private String id;
     private String nombre;
     private String parentId;
@@ -17,8 +22,9 @@ public class CarpetaEntity {
     public CarpetaEntity() {
     }
 
-    public CarpetaEntity(String id, String nombre, String parentId, String descripcion, String estadoCarpeta,
-                        String ruta, Map<String, Object> metadata, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public CarpetaEntity(String id, String nombre, String parentId, String descripcion, 
+                        String estadoCarpeta, String ruta, Map<String, Object> metadata, 
+                        LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nombre = nombre;
         this.parentId = parentId;

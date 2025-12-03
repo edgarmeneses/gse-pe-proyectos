@@ -2,7 +2,10 @@ package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.r
 
 import java.util.List;
 
+/**
+ * DTO Response: Listar Documentos
+ */
 public record ListarDocumentosResponseDto(
-    PageDto page,
-    List<DocumentoInfoDto> content
+    PaginaDto page,
+    List<DocumentoItemDto> content
 ) {}

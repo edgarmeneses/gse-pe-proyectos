@@ -3,7 +3,12 @@ package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.out.
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * Entity de persistencia: Documento
+ * Representa el documento en la capa de persistencia sin anotaciones JPA.
+ */
 public class DocumentoEntity {
+
     private String id;
     private String archivoBase64;
     private String carpetaId;
@@ -15,7 +20,7 @@ public class DocumentoEntity {
     public DocumentoEntity() {
     }
 
-    public DocumentoEntity(String id, String archivoBase64, String carpetaId, Map<String, Object> metadata,
+    public DocumentoEntity(String id, String archivoBase64, String carpetaId, Map<String, Object> metadata, 
                           String estadoDocumento, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.archivoBase64 = archivoBase64;

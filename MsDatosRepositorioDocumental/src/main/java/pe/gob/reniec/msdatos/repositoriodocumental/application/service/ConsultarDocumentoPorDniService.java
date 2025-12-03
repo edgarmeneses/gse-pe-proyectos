@@ -1,11 +1,15 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.application.service;
 
-import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Documento;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.ConsultarDocumentoPorDniUseCase;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.DocumentoRepositoryPort;
-import java.util.List;
+import java.util.Map;
 
+/**
+ * Servicio de aplicación: Consultar Documento Por DNI
+ * Implementa la lógica de negocio para consultar documentos de un ciudadano.
+ */
 public class ConsultarDocumentoPorDniService implements ConsultarDocumentoPorDniUseCase {
+
     private final DocumentoRepositoryPort documentoRepositoryPort;
 
     public ConsultarDocumentoPorDniService(DocumentoRepositoryPort documentoRepositoryPort) {
@@ -13,10 +17,8 @@ public class ConsultarDocumentoPorDniService implements ConsultarDocumentoPorDni
     }
 
     @Override
-    public List<Documento> consultarPorDni(String dni, String tipoDocumento, String fechaDesde, 
-                                          String fechaHasta, String estadoDocumento, 
-                                          Integer page, Integer size) {
-        return documentoRepositoryPort.buscarPorDni(dni, tipoDocumento, fechaDesde, 
-                                                    fechaHasta, estadoDocumento, page, size);
+    public pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto.ConsultarDocumentoPorDniResponseDto consultarPorDni(String dni, Map<String, String> filtros, Integer page, Integer size) {
+        // Aquí iría validación del formato DNI (8 dígitos)
+        return documentoRepositoryPort.buscarPorDni(dni, filtros, page, size);
     }
 }

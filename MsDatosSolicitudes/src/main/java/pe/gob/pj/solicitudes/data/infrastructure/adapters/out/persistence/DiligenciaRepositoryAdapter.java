@@ -2,17 +2,18 @@ package pe.gob.pj.solicitudes.data.infrastructure.adapters.out.persistence;
 
 import pe.gob.pj.solicitudes.data.domain.model.Diligencia;
 import pe.gob.pj.solicitudes.data.domain.ports.out.DiligenciaRepositoryPort;
-import java.util.List;
 
 public class DiligenciaRepositoryAdapter implements DiligenciaRepositoryPort {
-    
+
     @Override
     public Diligencia guardar(Diligencia diligencia) {
-        throw new UnsupportedOperationException("Implementación pendiente según tecnología de persistencia");
+        // Aquí iría la lógica de persistencia real (sin tecnología específica)
+        throw new UnsupportedOperationException("Método no implementado - requiere tecnología de persistencia");
     }
-    
+
     @Override
-    public List<Diligencia> listarPorSolicitud(Long solicitudId) {
-        throw new UnsupportedOperationException("Implementación pendiente según tecnología de persistencia");
+    public Diligencia buscarPorId(String diligenciaId) {
+        // Aquí iría la lógica de búsqueda real (sin tecnología específica)
+        throw new UnsupportedOperationException("Método no implementado - requiere tecnología de persistencia");
     }
 }

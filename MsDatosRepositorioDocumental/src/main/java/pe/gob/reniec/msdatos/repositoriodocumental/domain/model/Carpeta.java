@@ -3,7 +3,12 @@ package pe.gob.reniec.msdatos.repositoriodocumental.domain.model;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * Aggregate Root: Carpeta
+ * Representa una carpeta en el sistema de gestión documental.
+ */
 public class Carpeta {
+
     private String id;
     private String nombre;
     private String parentId;
@@ -17,8 +22,9 @@ public class Carpeta {
     public Carpeta() {
     }
 
-    public Carpeta(String id, String nombre, String parentId, String descripcion, String estadoCarpeta, 
-                   String ruta, Map<String, Object> metadata, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Carpeta(String id, String nombre, String parentId, String descripcion, 
+                   String estadoCarpeta, String ruta, Map<String, Object> metadata, 
+                   LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nombre = nombre;
         this.parentId = parentId;

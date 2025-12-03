@@ -4,7 +4,12 @@ import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Carpeta;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.CrearCarpetaUseCase;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.CarpetaRepositoryPort;
 
+/**
+ * Servicio de aplicación: Crear Carpeta
+ * Implementa la lógica de negocio para crear carpetas.
+ */
 public class CrearCarpetaService implements CrearCarpetaUseCase {
+
     private final CarpetaRepositoryPort carpetaRepositoryPort;
 
     public CrearCarpetaService(CarpetaRepositoryPort carpetaRepositoryPort) {
@@ -12,11 +17,8 @@ public class CrearCarpetaService implements CrearCarpetaUseCase {
     }
 
     @Override
-    public Carpeta crear(String nombre, String parentId, String descripcion) {
-        Carpeta carpeta = new Carpeta();
-        carpeta.setNombre(nombre);
-        carpeta.setParentId(parentId);
-        carpeta.setDescripcion(descripcion);
+    public Carpeta crear(Carpeta carpeta) {
+        // Aquí iría la lógica de validación de negocio antes de persistir
         return carpetaRepositoryPort.guardar(carpeta);
     }
 }
