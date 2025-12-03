@@ -4,15 +4,15 @@ import pe.gob.reniec.msdatosciudadano.domain.model.*;
 import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.dto.*;
 import java.util.stream.Collectors;
 
-public class CotejoMasivoDtoMapper {
+public class ConsultaMasivaDtoMapper {
 
-    public static CotejoMasivo toDomain(ConsultaMasivaRequestDto dto) {
+    public static ConsultaMasiva toDomain(ConsultaMasivaRequestDto dto) {
         if (dto == null) {
             return null;
         }
         
-        CotejoMasivo cotejo = new CotejoMasivo();
-        cotejo.setSolicitudId(dto.solicitudId());
+        ConsultaMasiva consulta = new ConsultaMasiva();
+        consulta.setSolicitudId(dto.solicitudId());
         
         if (dto.entidadSolicitante() != null) {
             EntidadSolicitante entidad = new EntidadSolicitante(
@@ -20,7 +20,7 @@ public class CotejoMasivoDtoMapper {
                 dto.entidadSolicitante().razonSocial(),
                 dto.entidadSolicitante().tipoEntidad()
             );
-            cotejo.setEntidadSolicitante(entidad);
+            consulta.setEntidadSolicitante(entidad);
         }
         
         if (dto.configuracionCotejo() != null) {
@@ -29,18 +29,18 @@ public class CotejoMasivoDtoMapper {
                 dto.configuracionCotejo().toleranciaCoincidencia(),
                 dto.configuracionCotejo().generarReporteDetallado()
             );
-            cotejo.setConfiguracionCotejo(config);
+            consulta.setConfiguracionCotejo(config);
         }
         
         if (dto.registros() != null) {
-            cotejo.setRegistros(
+            consulta.setRegistros(
                 dto.registros().stream()
-                    .map(CotejoMasivoDtoMapper::toRegistroCotejo)
+                    .map(ConsultaMasivaDtoMapper::toRegistroCotejo)
                     .collect(Collectors.toList())
             );
         }
         
-        return cotejo;
+        return consulta;
     }
 
     private static RegistroCotejo toRegistroCotejo(RegistroCotejoDto dto) {

@@ -3,7 +3,7 @@ package pe.gob.reniec.msdatosciudadano.domain.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CotejoMasivo {
+public class ConsultaMasiva {
     private String solicitudId;
     private String codigoCotejo;
     private EntidadSolicitante entidadSolicitante;
@@ -12,7 +12,7 @@ public class CotejoMasivo {
     private LocalDateTime fechaProcesamiento;
     private String estadoProceso;
 
-    public CotejoMasivo() {
+    public ConsultaMasiva() {
     }
 
     public String getSolicitudId() {

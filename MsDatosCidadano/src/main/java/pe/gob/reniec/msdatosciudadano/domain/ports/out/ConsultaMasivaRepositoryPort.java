@@ -1,7 +1,7 @@
-package pe.gob.reniec.msdatosciudadano.domain.ports.in;
+package pe.gob.reniec.msdatosciudadano.domain.ports.out;
 
 import pe.gob.reniec.msdatosciudadano.domain.model.ConsultaMasiva;
 
-public interface ConsultaMasivaUseCase {
+public interface ConsultaMasivaRepositoryPort {
     ConsultaMasiva procesar(ConsultaMasiva consultaMasiva);
 }

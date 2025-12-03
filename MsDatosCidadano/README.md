@@ -37,7 +37,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
 │   │   ├── FirmaDigital.java
 │   │   ├── Alerta.java
 │   │   ├── InformePericial.java
-│   │   ├── CotejoMasivo.java
+│   │   ├── ConsultaMasiva.java         # Consulta masiva de información (no cotejo)
 │   │   ├── RegistroCotejo.java
 │   │   ├── ConfiguracionCotejo.java
 │   │   ├── EntidadSolicitante.java
@@ -58,7 +58,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
 │           ├── CiudadanoRepositoryPort.java
 │           ├── AlertaRepositoryPort.java
 │           ├── InformePericialRepositoryPort.java
-│           ├── CotejoMasivoRepositoryPort.java
+│           ├── ConsultaMasivaRepositoryPort.java
 │           └── CambioDomicilioRepositoryPort.java
 ├── application/
 │   └── service/                        # Servicios de aplicación
@@ -77,9 +77,9 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
         ├── in/
         │   └── rest/
         │       ├── controller/         # Controladores REST (POJOs)
-        │       │   ├── CiudadanoController.java
-        │       │   ├── AlertaController.java
-        │       │   └── ConsultasController.java
+        │       │   ├── CiudadanoController.java    # Agregado Ciudadano + ConsultaMasiva
+        │       │   ├── AlertaController.java       # Agregado Alerta
+        │       │   └── DomicilioController.java    # Agregado Domicilio/Circunscripción
         │       ├── dto/                # DTOs (Records de Java)
         │       │   ├── CrearCiudadanoRequestDto.java
         │       │   ├── CiudadanoResponseDto.java
@@ -102,7 +102,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
         │       └── mapper/              # Mappers DTO-Domain
         │           ├── CiudadanoDtoMapper.java
         │           ├── AlertaDtoMapper.java
-        │           └── CotejoMasivoDtoMapper.java
+        │           └── ConsultaMasivaDtoMapper.java
         └── out/
             └── persistence/
                 ├── entity/             # Entidades de persistencia (POJOs)
@@ -114,9 +114,30 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
                 ├── CiudadanoRepositoryAdapter.java
                 ├── AlertaRepositoryAdapter.java
                 ├── InformePericialRepositoryAdapter.java
-                ├── CotejoMasivoRepositoryAdapter.java
+                ├── ConsultaMasivaRepositoryAdapter.java
                 └── CambioDomicilioRepositoryAdapter.java
 ```
+
+## Controladores y Responsabilidades
+
+### CiudadanoController
+Gestiona el agregado **Ciudadano** y operaciones de consulta masiva de información de ciudadanos:
+- Crear Ciudadano
+- Actualizar Ciudadano  
+- Consultar Ciudadano (individual)
+- Listar Ciudadanos (paginado)
+- Consultar Informe Pericial
+- **Consulta Masiva** (recupera información de ciudadanos sin cotejo)
+
+### AlertaController
+Gestiona el agregado **Alerta**:
+- Crear Alerta
+- Listar Alertas
+- Consultar Alerta
+
+### DomicilioController
+Gestiona cambios de domicilio por circunscripciones (agregado independiente):
+- Consultar Cambios de Domicilio (por fecha y circunscripción)
 
 ## Endpoints
 
@@ -131,6 +152,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
 - **Request Body:** JSON con datos completos del ciudadano (ver estructura en PDF)
 - **Response (201):** `{ "id": "string", "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm" }`
 - **Errores:** 400, 401, 403, 408, 413, 422, 429
+- **Controller:** `CiudadanoController`
 
 ### 2. Actualizar Ciudadano
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/{id}`
@@ -139,6 +161,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
 - **Request Body:** JSON con datos del ciudadano a actualizar
 - **Response (200):** `{ "id": "string", "fechaCreacion": "...", "fechaActualizacion": "...", "datosActualizados": [...] }`
 - **Errores:** 400, 401, 403, 408, 413, 422, 429
+- **Controller:** `CiudadanoController`
 
 ### 3. Obtener Ciudadano
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/documento`
@@ -148,6 +171,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
   - `numeroDocumento` (string, requerido)
 - **Response (200):** Datos completos del ciudadano
 - **Errores:** 401, 403, 404, 408, 429
+- **Controller:** `CiudadanoController`
 
 ### 4. Listar Ciudadanos
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/ciudadano`
@@ -159,6 +183,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
   - `fields` (array string, opcional)
 - **Response (200):** Paginación con lista de ciudadanos
 - **Errores:** 401, 403, 404, 408, 429
+- **Controller:** `CiudadanoController`
 
 ### 5. Consultar Informe Pericial
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/informes-periciales`
@@ -168,6 +193,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
   - `numeroDocumento` (string, requerido)
 - **Response (200):** Lista de informes periciales
 - **Errores:** 204, 401, 403, 404
+- **Controller:** `CiudadanoController`
 
 ### 6. Crear Alerta
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`
@@ -175,6 +201,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
 - **Request Body:** Datos de la alerta (situación, ciudadanoId, motivo, etc.)
 - **Response (201):** `{ "id": "string", "fechaCreacion": "...", "estado": "string" }`
 - **Errores:** 401, 403, 404, 409
+- **Controller:** `AlertaController`
 
 ### 7. Listar Alertas
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`
@@ -182,6 +209,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
 - **Query Params:** Similar a Listar Ciudadanos
 - **Response (200):** Paginación con lista de alertas
 - **Errores:** 401, 403, 404, 408, 429
+- **Controller:** `AlertaController`
 
 ### 8. Consultar Alerta
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`
@@ -190,6 +218,7 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
   - `alertaId` (string, requerido)
 - **Response (200):** Detalle completo de la alerta
 - **Errores:** 400, 401, 403, 404, 408, 429, 500, 502, 503
+- **Controller:** `AlertaController`
 
 ### 9. Consultar Cambios Domicilio
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/cambio-domicilio`
@@ -201,13 +230,16 @@ src/main/java/pe/gob/reniec/msdatosciudadano/
   - `queryParam1`, `queryParam2`, `queryParam3` (string, opcional)
 - **Response (200):** Lista de cambios de domicilio
 - **Errores:** 204, 400, 401, 403, 404, 408, 429, 500
+- **Controller:** `DomicilioController`
 
 ### 10. Consulta Masiva
 - **Path:** `/api/v1/ciudadano/MsDatosCiudadano/consulta-masiva`
 - **Método:** POST
-- **Request Body:** Solicitud con entidad solicitante, configuración de cotejo y registros (máx 500)
-- **Response (200/202):** Resultado del cotejo masivo con estadísticas
+- **Request Body:** Solicitud con entidad solicitante, configuración y registros (máx 500)
+- **Response (200/202):** Resultado de la consulta masiva con estadísticas de ciudadanos recuperados
 - **Errores:** 400, 401, 403, 408, 413, 422, 429, 500, 502, 503
+- **Controller:** `CiudadanoController`
+- **Nota:** Esta operación únicamente recupera información oficial registrada. No realiza cotejo, comparaciones ni validaciones campo por campo.
 
 ## Entidades del Dominio
 
@@ -272,17 +304,19 @@ Representa un informe pericial biométrico de un ciudadano.
 - `rostroCoincide: Boolean`
 - `urlPdf: String`
 
-### CotejoMasivo
-Representa una solicitud de verificación masiva de datos.
+### ConsultaMasiva
+Representa una solicitud de consulta masiva de información de ciudadanos (no realiza cotejo).
 
 **Atributos:**
 - `solicitudId: String`
-- `codigoCotejo: String`
+- `codigoCotejo: String` (legacy, mantiene compatibilidad con configuración)
 - `entidadSolicitante: EntidadSolicitante`
-- `configuracionCotejo: ConfiguracionCotejo`
+- `configuracionCotejo: ConfiguracionCotejo` (legacy, define campos a recuperar)
 - `registros: List<RegistroCotejo>` (máx 500)
 - `fechaProcesamiento: LocalDateTime`
 - `estadoProceso: String`
+
+**Nota:** A pesar del nombre "cotejo" en algunos atributos legacy, esta operación únicamente recupera información registrada sin realizar comparaciones ni validaciones campo por campo.
 
 ### CambioDomicilio
 Representa un cambio de domicilio de un ciudadano.

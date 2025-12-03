@@ -1,9 +1,11 @@
 package pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.controller;
 
 import pe.gob.reniec.msdatosciudadano.domain.model.Ciudadano;
+import pe.gob.reniec.msdatosciudadano.domain.model.ConsultaMasiva;
 import pe.gob.reniec.msdatosciudadano.domain.ports.in.*;
 import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.dto.*;
 import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.mapper.CiudadanoDtoMapper;
+import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.mapper.ConsultaMasivaDtoMapper;
 import java.util.List;
 
 public class CiudadanoController {
@@ -12,17 +14,20 @@ public class CiudadanoController {
     private final ConsultarCiudadanoUseCase consultarCiudadanoUseCase;
     private final ListarCiudadanosUseCase listarCiudadanosUseCase;
     private final ConsultarInformePericialUseCase consultarInformePericialUseCase;
+    private final ConsultaMasivaUseCase consultaMasivaUseCase;
 
     public CiudadanoController(CrearCiudadanoUseCase crearCiudadanoUseCase,
                               ActualizarCiudadanoUseCase actualizarCiudadanoUseCase,
                               ConsultarCiudadanoUseCase consultarCiudadanoUseCase,
                               ListarCiudadanosUseCase listarCiudadanosUseCase,
-                              ConsultarInformePericialUseCase consultarInformePericialUseCase) {
+                              ConsultarInformePericialUseCase consultarInformePericialUseCase,
+                              ConsultaMasivaUseCase consultaMasivaUseCase) {
         this.crearCiudadanoUseCase = crearCiudadanoUseCase;
         this.actualizarCiudadanoUseCase = actualizarCiudadanoUseCase;
         this.consultarCiudadanoUseCase = consultarCiudadanoUseCase;
         this.listarCiudadanosUseCase = listarCiudadanosUseCase;
         this.consultarInformePericialUseCase = consultarInformePericialUseCase;
+        this.consultaMasivaUseCase = consultaMasivaUseCase;
     }
 
     public CiudadanoResponseDto crear(CrearCiudadanoRequestDto request) {
@@ -48,5 +53,10 @@ public class CiudadanoController {
 
     public Object consultarInformesPericial(String tipoDocumento, String numeroDocumento) {
         return consultarInformePericialUseCase.consultar(tipoDocumento, numeroDocumento);
+    }
+
+    public ConsultaMasiva consultaMasiva(ConsultaMasivaRequestDto request) {
+        ConsultaMasiva consulta = ConsultaMasivaDtoMapper.toDomain(request);
+        return consultaMasivaUseCase.procesar(consulta);
     }
 }
