@@ -1,13 +1,20 @@
 package pe.gob.reniec.siirc.msdatosgrafos.infrastructure.adapters.in.rest.dto;
 
-import java.util.List;
+public class ErrorResponseDto {
+    private ErrorDto error;
 
-/**
- * DTO Record para respuesta de error
- */
-public record ErrorResponseDto(
-    String tipo,
-    String titulo,
-    Integer estado,
-    List<DetalleErrorDto> errores
-) {}
+    public ErrorResponseDto() {
+    }
+
+    public ErrorResponseDto(ErrorDto error) {
+        this.error = error;
+    }
+
+    public ErrorDto getError() {
+        return error;
+    }
+
+    public void setError(ErrorDto error) {
+        this.error = error;
+    }
+}

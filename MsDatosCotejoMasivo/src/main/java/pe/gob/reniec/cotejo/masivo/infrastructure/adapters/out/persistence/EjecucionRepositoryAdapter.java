@@ -1,33 +1,36 @@
 package pe.gob.reniec.cotejo.masivo.infrastructure.adapters.out.persistence;
 
 import pe.gob.reniec.cotejo.masivo.domain.model.Ejecucion;
+import pe.gob.reniec.cotejo.masivo.domain.ports.in.ListarEjecucionesUseCase.FiltrosEjecucion;
+import pe.gob.reniec.cotejo.masivo.domain.ports.in.ListarEjecucionesUseCase.Paginacion;
+import pe.gob.reniec.cotejo.masivo.domain.ports.in.ListarEjecucionesUseCase.ResultadoPaginado;
 import pe.gob.reniec.cotejo.masivo.domain.ports.out.EjecucionRepositoryPort;
 import pe.gob.reniec.cotejo.masivo.infrastructure.adapters.out.persistence.mapper.EjecucionPersistenceMapper;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 public class EjecucionRepositoryAdapter implements EjecucionRepositoryPort {
+    private final EjecucionPersistenceMapper mapper;
 
-    @Override
-    public Ejecucion guardar(Ejecucion ejecucion) {
-        throw new UnsupportedOperationException("Operación de persistencia no implementada");
+    public EjecucionRepositoryAdapter(EjecucionPersistenceMapper mapper) {
+        this.mapper = mapper;
     }
 
     @Override
-    public Ejecucion buscarPorId(UUID ejecucionId) {
-        throw new UnsupportedOperationException("Operación de persistencia no implementada");
+    public Ejecucion crear(Ejecucion ejecucion) {
+        throw new UnsupportedOperationException("Implementación pendiente - requiere tecnología de persistencia");
     }
 
     @Override
-    public List<Ejecucion> listar(UUID solicitudId, String codigoOrganizacion, String codigoEnvio, 
-                                  String codigoEstado, LocalDateTime fechaDesde, LocalDateTime fechaHasta, 
-                                  Integer page, Integer size, String sort, String direction) {
-        throw new UnsupportedOperationException("Operación de persistencia no implementada");
+    public Ejecucion consultarPorId(String ejecucionId) {
+        throw new UnsupportedOperationException("Implementación pendiente - requiere tecnología de persistencia");
     }
 
     @Override
-    public Ejecucion actualizar(Ejecucion ejecucion) {
-        throw new UnsupportedOperationException("Operación de persistencia no implementada");
+    public ResultadoPaginado listar(FiltrosEjecucion filtros, Paginacion paginacion) {
+        throw new UnsupportedOperationException("Implementación pendiente - requiere tecnología de persistencia");
+    }
+
+    @Override
+    public void actualizar(Ejecucion ejecucion) {
+        throw new UnsupportedOperationException("Implementación pendiente - requiere tecnología de persistencia");
     }
 }

@@ -1,15 +1,17 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * DTO Request: Crear Documento
  */
 public class CrearDocumentoRequestDto {
-    private final String archivoBase64;
-    private final String carpetaId;
-    private final Map<String, Object> metadata;
+    private String archivoBase64;
+    private String carpetaId;
+    private Map<String, Object> metadata;
+
+    public CrearDocumentoRequestDto() {
+    }
 
     public CrearDocumentoRequestDto(String archivoBase64, String carpetaId, Map<String, Object> metadata) {
         this.archivoBase64 = archivoBase64;
@@ -17,29 +19,27 @@ public class CrearDocumentoRequestDto {
         this.metadata = metadata;
     }
 
-    public String archivoBase64() { return archivoBase64; }
-    public String carpetaId() { return carpetaId; }
-    public Map<String, Object> metadata() { return metadata; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CrearDocumentoRequestDto that = (CrearDocumentoRequestDto) o;
-        return Objects.equals(archivoBase64, that.archivoBase64) && Objects.equals(carpetaId, that.carpetaId) && Objects.equals(metadata, that.metadata);
+    public String getArchivoBase64() {
+        return archivoBase64;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(archivoBase64, carpetaId, metadata);
+    public void setArchivoBase64(String archivoBase64) {
+        this.archivoBase64 = archivoBase64;
     }
 
-    @Override
-    public String toString() {
-        return "CrearDocumentoRequestDto{" +
-                "archivoBase64='" + archivoBase64 + '\'' +
-                ", carpetaId='" + carpetaId + '\'' +
-                ", metadata=" + metadata +
-                '}';
+    public String getCarpetaId() {
+        return carpetaId;
+    }
+
+    public void setCarpetaId(String carpetaId) {
+        this.carpetaId = carpetaId;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 }

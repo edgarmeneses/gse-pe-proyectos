@@ -1,21 +1,20 @@
 package pe.gob.reniec.cotejo.masivo.infrastructure.adapters.out.persistence.entity;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class EjecucionEntity {
-    private UUID ejecucionId;
-    private UUID solicitudId;
+    private String ejecucionId;
+    private String solicitudId;
     private String codigoOrganizacion;
     private String nombreOrganizacion;
     private String codigoEnvio;
     private String numeroLote;
     private String codigoEstado;
     private String descripcionEstado;
-    private Integer totalRegistrosEntrada;
-    private Integer totalRegistrosProcesados;
-    private Integer totalRegistrosCorrectos;
-    private Integer totalRegistrosIncorrectos;
+    private Long totalRegistrosEntrada;
+    private Long totalRegistrosProcesados;
+    private Long totalRegistrosCorrectos;
+    private Long totalRegistrosIncorrectos;
     private LocalDateTime fechaInicioProceso;
     private LocalDateTime fechaFinProceso;
     private String documentoSustento;
@@ -23,13 +22,6 @@ public class EjecucionEntity {
     private String urlReporteGenerado;
     private String indicadorDomicilio;
     private String codigoPrograma;
-    private Integer totalCorrectos;
-    private Integer totalIncorrectos;
-    private Integer totalNoEncontrados;
-    private Integer totalFallecidos;
-    private Integer totalRestringidos;
-    private Integer totalCaducados;
-    private Integer totalErrores;
     private LocalDateTime fechaCreacion;
     private String usuarioCreacion;
     private LocalDateTime fechaModificacion;
@@ -38,19 +30,19 @@ public class EjecucionEntity {
     public EjecucionEntity() {
     }
 
-    public UUID getEjecucionId() {
+    public String getEjecucionId() {
         return ejecucionId;
     }
 
-    public void setEjecucionId(UUID ejecucionId) {
+    public void setEjecucionId(String ejecucionId) {
         this.ejecucionId = ejecucionId;
     }
 
-    public UUID getSolicitudId() {
+    public String getSolicitudId() {
         return solicitudId;
     }
 
-    public void setSolicitudId(UUID solicitudId) {
+    public void setSolicitudId(String solicitudId) {
         this.solicitudId = solicitudId;
     }
 
@@ -102,35 +94,35 @@ public class EjecucionEntity {
         this.descripcionEstado = descripcionEstado;
     }
 
-    public Integer getTotalRegistrosEntrada() {
+    public Long getTotalRegistrosEntrada() {
         return totalRegistrosEntrada;
     }
 
-    public void setTotalRegistrosEntrada(Integer totalRegistrosEntrada) {
+    public void setTotalRegistrosEntrada(Long totalRegistrosEntrada) {
         this.totalRegistrosEntrada = totalRegistrosEntrada;
     }
 
-    public Integer getTotalRegistrosProcesados() {
+    public Long getTotalRegistrosProcesados() {
         return totalRegistrosProcesados;
     }
 
-    public void setTotalRegistrosProcesados(Integer totalRegistrosProcesados) {
+    public void setTotalRegistrosProcesados(Long totalRegistrosProcesados) {
         this.totalRegistrosProcesados = totalRegistrosProcesados;
     }
 
-    public Integer getTotalRegistrosCorrectos() {
+    public Long getTotalRegistrosCorrectos() {
         return totalRegistrosCorrectos;
     }
 
-    public void setTotalRegistrosCorrectos(Integer totalRegistrosCorrectos) {
+    public void setTotalRegistrosCorrectos(Long totalRegistrosCorrectos) {
         this.totalRegistrosCorrectos = totalRegistrosCorrectos;
     }
 
-    public Integer getTotalRegistrosIncorrectos() {
+    public Long getTotalRegistrosIncorrectos() {
         return totalRegistrosIncorrectos;
     }
 
-    public void setTotalRegistrosIncorrectos(Integer totalRegistrosIncorrectos) {
+    public void setTotalRegistrosIncorrectos(Long totalRegistrosIncorrectos) {
         this.totalRegistrosIncorrectos = totalRegistrosIncorrectos;
     }
 
@@ -188,62 +180,6 @@ public class EjecucionEntity {
 
     public void setCodigoPrograma(String codigoPrograma) {
         this.codigoPrograma = codigoPrograma;
-    }
-
-    public Integer getTotalCorrectos() {
-        return totalCorrectos;
-    }
-
-    public void setTotalCorrectos(Integer totalCorrectos) {
-        this.totalCorrectos = totalCorrectos;
-    }
-
-    public Integer getTotalIncorrectos() {
-        return totalIncorrectos;
-    }
-
-    public void setTotalIncorrectos(Integer totalIncorrectos) {
-        this.totalIncorrectos = totalIncorrectos;
-    }
-
-    public Integer getTotalNoEncontrados() {
-        return totalNoEncontrados;
-    }
-
-    public void setTotalNoEncontrados(Integer totalNoEncontrados) {
-        this.totalNoEncontrados = totalNoEncontrados;
-    }
-
-    public Integer getTotalFallecidos() {
-        return totalFallecidos;
-    }
-
-    public void setTotalFallecidos(Integer totalFallecidos) {
-        this.totalFallecidos = totalFallecidos;
-    }
-
-    public Integer getTotalRestringidos() {
-        return totalRestringidos;
-    }
-
-    public void setTotalRestringidos(Integer totalRestringidos) {
-        this.totalRestringidos = totalRestringidos;
-    }
-
-    public Integer getTotalCaducados() {
-        return totalCaducados;
-    }
-
-    public void setTotalCaducados(Integer totalCaducados) {
-        this.totalCaducados = totalCaducados;
-    }
-
-    public Integer getTotalErrores() {
-        return totalErrores;
-    }
-
-    public void setTotalErrores(Integer totalErrores) {
-        this.totalErrores = totalErrores;
     }
 
     public LocalDateTime getFechaCreacion() {

@@ -1,20 +1,16 @@
 package pe.gob.reniec.siirc.msdatosgrafos.infrastructure.adapters.out.persistence.entity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-/**
- * Entity para persistencia de Ciudadano
- * POJO sin anotaciones de framework
- */
 public class CiudadanoEntity {
     private String idCiudadano;
     private String nombre;
-    private LocalDate fechaNacimiento;
+    private LocalDateTime fechaNacimiento;
 
     public CiudadanoEntity() {
     }
 
-    public CiudadanoEntity(String idCiudadano, String nombre, LocalDate fechaNacimiento) {
+    public CiudadanoEntity(String idCiudadano, String nombre, LocalDateTime fechaNacimiento) {
         this.idCiudadano = idCiudadano;
         this.nombre = nombre;
         this.fechaNacimiento = fechaNacimiento;
@@ -36,11 +32,11 @@ public class CiudadanoEntity {
         this.nombre = nombre;
     }
 
-    public LocalDate getFechaNacimiento() {
+    public LocalDateTime getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+    public void setFechaNacimiento(LocalDateTime fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 }

@@ -1,15 +1,16 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
-import java.util.Objects;
-
 /**
  * DTO Request: Actualizar Carpeta
  */
 public class ActualizarCarpetaRequestDto {
-    private final String nombre;
-    private final String estadoCarpeta;
-    private final String parentId;
-    private final String descripcion;
+    private String nombre;
+    private String estadoCarpeta;
+    private String parentId;
+    private String descripcion;
+
+    public ActualizarCarpetaRequestDto() {
+    }
 
     public ActualizarCarpetaRequestDto(String nombre, String estadoCarpeta, String parentId, String descripcion) {
         this.nombre = nombre;
@@ -18,31 +19,35 @@ public class ActualizarCarpetaRequestDto {
         this.descripcion = descripcion;
     }
 
-    public String nombre() { return nombre; }
-    public String estadoCarpeta() { return estadoCarpeta; }
-    public String parentId() { return parentId; }
-    public String descripcion() { return descripcion; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ActualizarCarpetaRequestDto that = (ActualizarCarpetaRequestDto) o;
-        return Objects.equals(nombre, that.nombre) && Objects.equals(estadoCarpeta, that.estadoCarpeta) && Objects.equals(parentId, that.parentId) && Objects.equals(descripcion, that.descripcion);
+    public String getNombre() {
+        return nombre;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(nombre, estadoCarpeta, parentId, descripcion);
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
-    @Override
-    public String toString() {
-        return "ActualizarCarpetaRequestDto{" +
-                "nombre='" + nombre + '\'' +
-                ", estadoCarpeta='" + estadoCarpeta + '\'' +
-                ", parentId='" + parentId + '\'' +
-                ", descripcion='" + descripcion + '\'' +
-                '}';
+    public String getEstadoCarpeta() {
+        return estadoCarpeta;
+    }
+
+    public void setEstadoCarpeta(String estadoCarpeta) {
+        this.estadoCarpeta = estadoCarpeta;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 }

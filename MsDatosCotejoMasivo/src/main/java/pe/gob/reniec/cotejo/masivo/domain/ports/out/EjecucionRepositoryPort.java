@@ -1,15 +1,13 @@
 package pe.gob.reniec.cotejo.masivo.domain.ports.out;
 
 import pe.gob.reniec.cotejo.masivo.domain.model.Ejecucion;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import pe.gob.reniec.cotejo.masivo.domain.ports.in.ListarEjecucionesUseCase.FiltrosEjecucion;
+import pe.gob.reniec.cotejo.masivo.domain.ports.in.ListarEjecucionesUseCase.Paginacion;
+import pe.gob.reniec.cotejo.masivo.domain.ports.in.ListarEjecucionesUseCase.ResultadoPaginado;
 
 public interface EjecucionRepositoryPort {
-    Ejecucion guardar(Ejecucion ejecucion);
-    Ejecucion buscarPorId(UUID ejecucionId);
-    List<Ejecucion> listar(UUID solicitudId, String codigoOrganizacion, String codigoEnvio, 
-                           String codigoEstado, LocalDateTime fechaDesde, LocalDateTime fechaHasta, 
-                           Integer page, Integer size, String sort, String direction);
-    Ejecucion actualizar(Ejecucion ejecucion);
+    Ejecucion crear(Ejecucion ejecucion);
+    Ejecucion consultarPorId(String ejecucionId);
+    ResultadoPaginado listar(FiltrosEjecucion filtros, Paginacion paginacion);
+    void actualizar(Ejecucion ejecucion);
 }

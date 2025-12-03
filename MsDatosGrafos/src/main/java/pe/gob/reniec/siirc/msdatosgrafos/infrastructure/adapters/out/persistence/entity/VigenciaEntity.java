@@ -1,38 +1,34 @@
 package pe.gob.reniec.siirc.msdatosgrafos.infrastructure.adapters.out.persistence.entity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-/**
- * Entity para persistencia de Vigencia
- * POJO sin anotaciones de framework
- */
 public class VigenciaEntity {
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
+    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaFin;
     private Boolean esVigente;
 
     public VigenciaEntity() {
     }
 
-    public VigenciaEntity(LocalDate fechaInicio, LocalDate fechaFin, Boolean esVigente) {
+    public VigenciaEntity(LocalDateTime fechaInicio, LocalDateTime fechaFin, Boolean esVigente) {
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
         this.esVigente = esVigente;
     }
 
-    public LocalDate getFechaInicio() {
+    public LocalDateTime getFechaInicio() {
         return fechaInicio;
     }
 
-    public void setFechaInicio(LocalDate fechaInicio) {
+    public void setFechaInicio(LocalDateTime fechaInicio) {
         this.fechaInicio = fechaInicio;
     }
 
-    public LocalDate getFechaFin() {
+    public LocalDateTime getFechaFin() {
         return fechaFin;
     }
 
-    public void setFechaFin(LocalDate fechaFin) {
+    public void setFechaFin(LocalDateTime fechaFin) {
         this.fechaFin = fechaFin;
     }
 

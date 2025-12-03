@@ -1,14 +1,9 @@
 package pe.gob.reniec.siirc.msdatosgrafos.infrastructure.adapters.out.persistence.entity;
 
-/**
- * Entity para persistencia de Vínculo de Parentesco
- * POJO sin anotaciones de framework
- * Representa un registro en la tabla GRF_PARENTESCO de la base de datos de grafos
- */
 public class VinculoParentescoEntity {
     private Long idRelacion;
     private TipoParentescoEntity tipoParentesco;
-    private Long gradoParentesco;
+    private Integer gradoParentesco;
     private String categoriaParentesco;
     private CiudadanoEntity ciudadanoRelacionado;
     private VigenciaEntity vigencia;
@@ -18,10 +13,10 @@ public class VinculoParentescoEntity {
     public VinculoParentescoEntity() {
     }
 
-    public VinculoParentescoEntity(Long idRelacion, TipoParentescoEntity tipoParentesco, 
-                                   Long gradoParentesco, String categoriaParentesco,
-                                   CiudadanoEntity ciudadanoRelacionado, VigenciaEntity vigencia, 
-                                   SustentoEntity sustento, String observacion) {
+    public VinculoParentescoEntity(Long idRelacion, TipoParentescoEntity tipoParentesco,
+                                  Integer gradoParentesco, String categoriaParentesco,
+                                  CiudadanoEntity ciudadanoRelacionado, VigenciaEntity vigencia,
+                                  SustentoEntity sustento, String observacion) {
         this.idRelacion = idRelacion;
         this.tipoParentesco = tipoParentesco;
         this.gradoParentesco = gradoParentesco;
@@ -48,11 +43,11 @@ public class VinculoParentescoEntity {
         this.tipoParentesco = tipoParentesco;
     }
 
-    public Long getGradoParentesco() {
+    public Integer getGradoParentesco() {
         return gradoParentesco;
     }
 
-    public void setGradoParentesco(Long gradoParentesco) {
+    public void setGradoParentesco(Integer gradoParentesco) {
         this.gradoParentesco = gradoParentesco;
     }
 

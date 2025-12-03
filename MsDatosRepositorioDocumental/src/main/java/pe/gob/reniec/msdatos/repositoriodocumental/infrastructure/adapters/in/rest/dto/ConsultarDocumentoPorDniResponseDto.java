@@ -1,15 +1,17 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * DTO Response: Consultar Documentos Por DNI
  */
 public class ConsultarDocumentoPorDniResponseDto {
-    private final CiudadanoDto ciudadano;
-    private final PaginaDto page;
-    private final List<DocumentoDetalleDto> content;
+    private CiudadanoDto ciudadano;
+    private PaginaDto page;
+    private List<DocumentoDetalleDto> content;
+
+    public ConsultarDocumentoPorDniResponseDto() {
+    }
 
     public ConsultarDocumentoPorDniResponseDto(CiudadanoDto ciudadano, PaginaDto page, List<DocumentoDetalleDto> content) {
         this.ciudadano = ciudadano;
@@ -17,29 +19,27 @@ public class ConsultarDocumentoPorDniResponseDto {
         this.content = content;
     }
 
-    public CiudadanoDto ciudadano() { return ciudadano; }
-    public PaginaDto page() { return page; }
-    public List<DocumentoDetalleDto> content() { return content; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ConsultarDocumentoPorDniResponseDto that = (ConsultarDocumentoPorDniResponseDto) o;
-        return Objects.equals(ciudadano, that.ciudadano) && Objects.equals(page, that.page) && Objects.equals(content, that.content);
+    public CiudadanoDto getCiudadano() {
+        return ciudadano;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(ciudadano, page, content);
+    public void setCiudadano(CiudadanoDto ciudadano) {
+        this.ciudadano = ciudadano;
     }
 
-    @Override
-    public String toString() {
-        return "ConsultarDocumentoPorDniResponseDto{" +
-                "ciudadano=" + ciudadano +
-                ", page=" + page +
-                ", content=" + content +
-                '}';
+    public PaginaDto getPage() {
+        return page;
+    }
+
+    public void setPage(PaginaDto page) {
+        this.page = page;
+    }
+
+    public List<DocumentoDetalleDto> getContent() {
+        return content;
+    }
+
+    public void setContent(List<DocumentoDetalleDto> content) {
+        this.content = content;
     }
 }

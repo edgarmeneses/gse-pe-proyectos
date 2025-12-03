@@ -1,17 +1,16 @@
 package pe.gob.reniec.cotejo.masivo.domain.model;
 
-import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 public class RegistroEntrada {
-    private UUID registroEntradaId;
-    private UUID ejecucionId;
-    private Integer numeroSecuencia;
+    private String registroEntradaId;
+    private String ejecucionId;
+    private Long numeroSecuencia;
     private String numeroDni;
     private String apellidoPaterno;
     private String apellidoMaterno;
     private String nombres;
-    private LocalDate fechaNacimiento;
+    private LocalDateTime fechaNacimiento;
     private String indicadorSexo;
     private String identificadorInstitucion;
     private String datosAdicionales;
@@ -19,27 +18,44 @@ public class RegistroEntrada {
     public RegistroEntrada() {
     }
 
-    public UUID getRegistroEntradaId() {
+    public RegistroEntrada(String registroEntradaId, String ejecucionId, Long numeroSecuencia,
+                           String numeroDni, String apellidoPaterno, String apellidoMaterno,
+                           String nombres, LocalDateTime fechaNacimiento, String indicadorSexo,
+                           String identificadorInstitucion, String datosAdicionales) {
+        this.registroEntradaId = registroEntradaId;
+        this.ejecucionId = ejecucionId;
+        this.numeroSecuencia = numeroSecuencia;
+        this.numeroDni = numeroDni;
+        this.apellidoPaterno = apellidoPaterno;
+        this.apellidoMaterno = apellidoMaterno;
+        this.nombres = nombres;
+        this.fechaNacimiento = fechaNacimiento;
+        this.indicadorSexo = indicadorSexo;
+        this.identificadorInstitucion = identificadorInstitucion;
+        this.datosAdicionales = datosAdicionales;
+    }
+
+    public String getRegistroEntradaId() {
         return registroEntradaId;
     }
 
-    public void setRegistroEntradaId(UUID registroEntradaId) {
+    public void setRegistroEntradaId(String registroEntradaId) {
         this.registroEntradaId = registroEntradaId;
     }
 
-    public UUID getEjecucionId() {
+    public String getEjecucionId() {
         return ejecucionId;
     }
 
-    public void setEjecucionId(UUID ejecucionId) {
+    public void setEjecucionId(String ejecucionId) {
         this.ejecucionId = ejecucionId;
     }
 
-    public Integer getNumeroSecuencia() {
+    public Long getNumeroSecuencia() {
         return numeroSecuencia;
     }
 
-    public void setNumeroSecuencia(Integer numeroSecuencia) {
+    public void setNumeroSecuencia(Long numeroSecuencia) {
         this.numeroSecuencia = numeroSecuencia;
     }
 
@@ -75,11 +91,11 @@ public class RegistroEntrada {
         this.nombres = nombres;
     }
 
-    public LocalDate getFechaNacimiento() {
+    public LocalDateTime getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+    public void setFechaNacimiento(LocalDateTime fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 

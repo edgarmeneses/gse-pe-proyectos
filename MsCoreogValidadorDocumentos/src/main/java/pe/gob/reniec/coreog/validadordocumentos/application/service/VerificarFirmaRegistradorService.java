@@ -1,25 +1,49 @@
 package pe.gob.reniec.coreog.validadordocumentos.application.service;
 
-import pe.gob.reniec.coreog.validadordocumentos.domain.model.SolicitudVerificacionFirma;
-import pe.gob.reniec.coreog.validadordocumentos.domain.model.VerificacionFirma;
+import pe.gob.reniec.coreog.validadordocumentos.domain.model.Verificacion;
 import pe.gob.reniec.coreog.validadordocumentos.domain.ports.in.VerificarFirmaRegistradorUseCase;
-import pe.gob.reniec.coreog.validadordocumentos.domain.ports.out.VerificacionFirmaDataPort;
+import pe.gob.reniec.coreog.validadordocumentos.domain.ports.out.VerificacionDataPort;
+import pe.gob.reniec.coreog.validadordocumentos.domain.ports.out.RegistradorDataPort;
+import pe.gob.reniec.coreog.validadordocumentos.domain.ports.out.GestorDocumentalPort;
+import pe.gob.reniec.coreog.validadordocumentos.domain.ports.out.ServicioIAPort;
 
 /**
- * Servicio de aplicación que implementa el caso de uso de verificar firma del registrador
+ * Servicio de aplicación: Verificar Firma del Registrador
+ * Implementa el caso de uso de verificación de firma y sello del registrador civil
  */
 public class VerificarFirmaRegistradorService implements VerificarFirmaRegistradorUseCase {
     
-    private final VerificacionFirmaDataPort verificacionFirmaDataPort;
+    private final VerificacionDataPort verificacionDataPort;
+    private final RegistradorDataPort registradorDataPort;
+    private final GestorDocumentalPort gestorDocumentalPort;
+    private final ServicioIAPort servicioIAPort;
     
-    public VerificarFirmaRegistradorService(VerificacionFirmaDataPort verificacionFirmaDataPort) {
-        this.verificacionFirmaDataPort = verificacionFirmaDataPort;
+    public VerificarFirmaRegistradorService(VerificacionDataPort verificacionDataPort,
+                                            RegistradorDataPort registradorDataPort,
+                                            GestorDocumentalPort gestorDocumentalPort,
+                                            ServicioIAPort servicioIAPort) {
+        this.verificacionDataPort = verificacionDataPort;
+        this.registradorDataPort = registradorDataPort;
+        this.gestorDocumentalPort = gestorDocumentalPort;
+        this.servicioIAPort = servicioIAPort;
     }
     
     @Override
-    public VerificacionFirma verificar(SolicitudVerificacionFirma solicitudVerificacion) {
-        // Lógica de negocio para validar la solicitud y preparar la verificación
-        // Por ahora, se delega directamente al puerto de salida
-        return verificacionFirmaDataPort.procesarVerificacion(solicitudVerificacion);
+    public Verificacion ejecutar(VerificarFirmaRegistradorCommand comando) {
+        // TODO: Implementar lógica de negocio
+        // 1. Validar entrada
+        // 2. Obtener documento del gestor documental
+        // 3. Verificar integridad (hash SHA256)
+        // 4. Consultar datos del registrador en MsDataRegistradores
+        // 5. Obtener firma y sello de referencia
+        // 6. Extraer firma y sello del documento con IA
+        // 7. Comparar firma extraída con firma de referencia
+        // 8. Comparar sello extraído con sello de referencia
+        // 9. Verificar período de habilitación del registrador
+        // 10. Consolidar resultados
+        // 11. Guardar verificación en MsData
+        // 12. Retornar verificación
+        
+        throw new UnsupportedOperationException("Implementación pendiente");
     }
 }

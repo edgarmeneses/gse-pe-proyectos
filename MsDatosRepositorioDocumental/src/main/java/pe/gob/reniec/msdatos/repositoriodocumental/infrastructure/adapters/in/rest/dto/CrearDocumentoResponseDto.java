@@ -1,15 +1,16 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
-import java.util.Objects;
-
 /**
  * DTO Response: Crear Documento
  */
 public class CrearDocumentoResponseDto {
-    private final String id;
-    private final Object metadata;
-    private final String createdAt;
-    private final String estadoDocumento;
+    private String id;
+    private Object metadata;
+    private String createdAt;
+    private String estadoDocumento;
+
+    public CrearDocumentoResponseDto() {
+    }
 
     public CrearDocumentoResponseDto(String id, Object metadata, String createdAt, String estadoDocumento) {
         this.id = id;
@@ -18,31 +19,35 @@ public class CrearDocumentoResponseDto {
         this.estadoDocumento = estadoDocumento;
     }
 
-    public String id() { return id; }
-    public Object metadata() { return metadata; }
-    public String createdAt() { return createdAt; }
-    public String estadoDocumento() { return estadoDocumento; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CrearDocumentoResponseDto that = (CrearDocumentoResponseDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(metadata, that.metadata) && Objects.equals(createdAt, that.createdAt) && Objects.equals(estadoDocumento, that.estadoDocumento);
+    public String getId() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, metadata, createdAt, estadoDocumento);
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "CrearDocumentoResponseDto{" +
-                "id='" + id + '\'' +
-                ", metadata=" + metadata +
-                ", createdAt='" + createdAt + '\'' +
-                ", estadoDocumento='" + estadoDocumento + '\'' +
-                '}';
+    public Object getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Object metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getEstadoDocumento() {
+        return estadoDocumento;
+    }
+
+    public void setEstadoDocumento(String estadoDocumento) {
+        this.estadoDocumento = estadoDocumento;
     }
 }

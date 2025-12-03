@@ -1,16 +1,18 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * DTO: Respuesta de error estándar
  */
 public class ErrorDto {
-    private final String tipo;
-    private final String titulo;
-    private final Integer estado;
-    private final List<ErrorDetalleDto> errores;
+    private String tipo;
+    private String titulo;
+    private Integer estado;
+    private List<ErrorDetalleDto> errores;
+
+    public ErrorDto() {
+    }
 
     public ErrorDto(String tipo, String titulo, Integer estado, List<ErrorDetalleDto> errores) {
         this.tipo = tipo;
@@ -19,31 +21,35 @@ public class ErrorDto {
         this.errores = errores;
     }
 
-    public String tipo() { return tipo; }
-    public String titulo() { return titulo; }
-    public Integer estado() { return estado; }
-    public List<ErrorDetalleDto> errores() { return errores; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ErrorDto errorDto = (ErrorDto) o;
-        return Objects.equals(tipo, errorDto.tipo) && Objects.equals(titulo, errorDto.titulo) && Objects.equals(estado, errorDto.estado) && Objects.equals(errores, errorDto.errores);
+    public String getTipo() {
+        return tipo;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(tipo, titulo, estado, errores);
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
-    @Override
-    public String toString() {
-        return "ErrorDto{" +
-                "tipo='" + tipo + '\'' +
-                ", titulo='" + titulo + '\'' +
-                ", estado=" + estado +
-                ", errores=" + errores +
-                '}';
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public Integer getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Integer estado) {
+        this.estado = estado;
+    }
+
+    public List<ErrorDetalleDto> getErrores() {
+        return errores;
+    }
+
+    public void setErrores(List<ErrorDetalleDto> errores) {
+        this.errores = errores;
     }
 }

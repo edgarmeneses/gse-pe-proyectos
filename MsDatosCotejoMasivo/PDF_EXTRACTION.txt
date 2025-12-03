@@ -1,0 +1,972 @@
+   
+ 
+  
+ 
+Microservicio Ms DatosCotejoMasivo  
+Documento Versión: 1.0  
+Gestión de Seguridad Electrónica  
+  Fecha generación:  01/12/2025 
+    
+ 
+  
+
+ 
+ 
+Microservicio MsDatosCotejoMasivo  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 24/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+    
+    
+    
+    
+ 
+ 
+Microservicio MsDatosCotejoMasivo  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ................................ ................................ ..... 4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ................................ ..........................  4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ ................................ ..........  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................................ ..........................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ ................................ ...............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ................................ ...............  5 
+3.1 Microservicio MsDatosCotejoMasivo  ................................ ................................ ................................ ................................ ..... 5 
+3.1.1 Endpoint: Crear Nueva Ejecución de Cotejo  ................................ ................................ ................................ ..........  5 
+3.1.2 Endpoint: Registrar Registros de Entrada (Batch)  ................................ ................................ ..............................  8 
+3.1.3 Endpoint: Registrar Resultados de Cotejo (Batch)  ................................ ................................ ........................... 11 
+3.1.4 Endpoint: Listar Ejecuciones de Cotejo  ................................ ................................ ................................ ................... 15 
+3.1.5 Endpoint: Consultar Ejecución Específica  ................................ ................................ ................................ ............. 18 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio MsDatosCotejoMasivo  
+El microservicio MsDatosCotejoMasivo  es el componente de persistencia exclusivo para la gestión de 
+datos del proceso de Cotejo Masivo. Actúa como el único intermediario autorizado para acceder a la 
+Base de Datos de Cotejo Masivo (esquema COTEJO_MASIVO_CTJ), garantizando la integridad, 
+trazab ilidad y seguridad de los registros.  
+3.1.1  Endpoint: Crear Nueva Ejecución de Cotejo  
+Endpoint que permite crear una nueva ejecución de cotejo masivo en el sistema.   
+ 
+Atributo  Valor  
+Path  /api/v1/ ciudadano /MsDatosCotejoMasivo/ejecuciones  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación para trazabilidad end -
+to-end) 
+X-Office -Code String (Código de oficina desde donde se realiza la operación)  
+X-User -Role String (Rol del usuario que realiza la operación)  
+X-Idempotency -Key UUID (Clave para evitar creaciones duplicadas)  
+Entrada  { 
+  "solicitudId": " string ", 
+  "codigoOrganizacion": "string",  
+  "nombreOrganizacion": "string",  
+  "codigoEnvio": "string",  
+  "numeroLote": "string",  
+  "totalRegistrosEntrada": "integer",  
+  "documentoSustento": "string",  
+  "observaciones": "string",  
+  "indicadorDomicilio": "string",  
+  "codigoPrograma": "string"  
+} 
+Respuesta  { 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  6 
+  "success": "boolean",  
+  "data": {  
+    "ejecucionId": " string ", 
+    "solicitudId": " string ", 
+    "codigoOrganizacion": "string",  
+    "nombreOrganizacion": "string",  
+    "codigoEnvio": "string",  
+    "numeroLote": "string",  
+    "codigoEstado": "string",  
+    "descripcionEstado": "string",  
+    "totalRegistrosEntrada": "integer",  
+    "fechaCreacion": " YYYY -MM-DDThh:mm:ssZ ", 
+    "usuarioCreacion": "string",  
+    "_links": {  
+      "self": "string",  
+      "registros": "string",  
+      "resultados": "string",  
+      "actualizarEstado": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.1.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+ID Solicitud  solicitudId  String  Sí 36 36 
+Código 
+Organización  codigoOrganizacion  String  Sí 4 4 
+Nombre 
+Organización  nombreOrganizacion  String  Sí 1 200 
+Código Envío  codigoEnvio  String  Sí 4 4 
+Número de Lote  numeroLote  String  No 1 20 
+Total Registros 
+Entrada  totalRegistrosEntrada  Integer  Sí NA NA 
+Documento 
+Sustento  documentoSustento  String  No 1 50 
+Observaciones  observaciones  String  No 0 500 
+Indicador 
+Domicilio  indicadorDomicilio  String  No 1 1 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  7 
+Código Programa  codigoPrograma  String  No 1 6 
+ 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa.  
+data Object  Sí Contiene la información principal de 
+la ejecución consultada.  
+data.ejecucionId  String  Sí Identificador único de la ejecución del 
+proceso.  
+data.solicitudId  String  Sí Identificador de la solicitud asociada.  
+data.codigoOrganizacion  String  Sí Código de la organización que envía 
+o procesa el lote.  
+data.nombreOrganizacion  String  Sí Nombre de la organización 
+relacionada con la ejecución.  
+data.codigoEnvio  String  Sí Código asignado al envío procesado.  
+data.numeroLote  String  Sí Número del lote procesado.  
+data.codigoEstado  String  Sí Código del estado actual del proceso.  
+data.descripcionEstado  String  Sí Descripción del estado actual del 
+proceso.  
+data.totalRegistrosEntrada  Integer  Sí Cantidad total de registros recibidos 
+en el lote.  
+data.fechaCreacion  String (ISO 8601)  Sí Fecha y hora de creación del registro.  
+data.usuarioCreacion  String  Sí Usuario responsable de la creación 
+del registro.  
+data._links  Object  Sí Conjunto de enlaces relacionados 
+con la ejecución.  
+data._links.self  String  Sí URL del recurso actual 
+(autorreferencia).  
+data._links.registros  String  Sí URL para consultar los registros 
+asociados al lote.  
+data._links.resultados  String  Sí URL para consultar los resultados del 
+procesamiento.  
+data._links.actualizarEstado  String  Sí URL para actualizar el estado del 
+proceso.  
+metadata  Object  Sí Contiene metadatos de la respuesta.  
+metadata.timestamp  String  Sí Fecha y hora de generación de la 
+respuesta.  
+metadata.correlationId  String  Sí Identificador de correlación para 
+trazabilidad.  
+metadata.version  String  Sí Versión del servicio que respondió.  
+error  Object  No Objeto que especifica algún error 
+existente  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  8 
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título del error  
+error.estado  Integer  No Código del estado de error  
+error.errores  Array  No Listado de errores  
+error.errores[].detalleError  String  No Detalle del error generado  
+ 
+3.1.1.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201 Created  Ejecución creada exitosamente  
+400 Bad Request  Datos inválidos o campos obligatorios faltantes  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para crear ejecuciones  
+404 Not Found  Solicitud asociada no encontrada  
+409 Conflict  Ya existe una ejecución activa para esta solicitud  
+422 Unprocessable Entity  Datos válidos pero lógica de negocio no permite procesarlos  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+503 Service Unavailable  Servicio temporalmente no disponible  
+ 
+3.1.2  Endpoint: Registrar Registros de Entrada (Batch)  
+Endpoint que permite registrar un lote de registros de entrada para una ejecución de cotejo masivo.  
+Atributo  Valor  
+Path  /api/v1/ ciudadano /MsDatosCotejoMasivo/ejecuciones/{ejecucionId}/registros  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID  
+X-Batch -Size Integer (Número de registros en el lote)  
+Entrada  { 
+  "registros": [  
+    { 
+      "numeroSecuencia ": "integer",  
+      "numeroDni": "string",  
+      "apellidoPaterno": "string",  
+      "apellidoMaterno": "string",  
+      "nombres": "string",  
+      "fechaNacimiento": " YYYY -MM-DDTHH:MM:SSZ ", 
+      "indicadorSexo": "string",  
+      "identificadorInstitucion": "string",  
+      "datosAdicionales": {}  
+    } 
+  ] 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  9 
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "ejecucionId": " string ", 
+    "totalRegistrosRecibidos": "integer",  
+    "totalRegistrosInsertados": "integer",  
+    "totalRegistrosRechazados": "integer",  
+    "registrosInsertados": [  
+      { 
+        "registroEntradaId": " string ", 
+        "numeroSecuencia": "integer",  
+        "numeroDni": "string"  
+      } 
+    ], 
+    "registrosRechazados": [  
+      { 
+        "numeroSecuencia": "integer",  
+        "numeroDni": "string",  
+        "motivoRechazo": "string"  
+      } 
+    ] 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string",  
+    "tiempoProcesamiento": "string"  
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.2.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+Registros  registros  Array  Sí 1 10000  
+Número 
+Secuencia  registros[].numeroSecuencia  Integer  Sí NA NA 
+Número DNI  registros[].numeroDni  String  Sí 8 8 
+Apellido 
+Paterno  registros[].apellidoPaterno  String  No 1 128 
+Apellido 
+Materno  registros[].apellidoMaterno  String  No 1 128 
+Nombres  registros[].nombres  String  No 1 160 
+Fecha 
+Nacimiento  registros[].fechaNacimiento  String 
+(Date)  No NA NA 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  10 
+Indicador Sexo  registros[].indicadorSexo  String  No 1 1 
+ID Institución  registros[].identificadorInstitucion  String  No 1 15 
+Datos 
+Adicionales  registros[].datosAdicionales  Object  No NA NA 
+ 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Cuerpo principal de la respuesta  
+data.ejecucionId  String  Sí Identificador único de la ejecución  
+data.totalRegistrosRecibidos  Integer  Sí Total de registros recibidos en la 
+carga  
+data.totalRegistrosInsertados  Integer  Sí Total de registros insertados 
+correctamente  
+data.totalRegistrosRechazados  Integer  Sí Total de registros rechazados  
+data.registrosInsertados  Array  Sí Listado de registros insertados  
+data.registrosInsertados[].regis
+troEntradaId  String  Sí Identificador del registro de 
+entrada  
+data.registrosInsertados[].num
+eroSecuencia  Integer  Sí Número de secuencia procesado  
+data.registrosInsertados[].num
+eroDni  String  Sí DNI del registro insertado  
+data.registrosRechazados  Array  Sí Listado de registros rechazados  
+data.registrosRechazados[].nu
+meroSecuencia  Integer  Sí Número de secuencia rechazado  
+data.registrosRechazados[].nu
+meroDni  String  Sí DNI del registro rechazado  
+data.registrosRechazados[].mo
+tivoRechazo  String  Sí Motivo del rechazo del registro  
+metadata  Object  Sí Metadatos de la operación  
+metadata.timestamp  String  Sí Marca de tiempo del 
+procesamiento (ISO 8601 
+recomendado)  
+metadata.correlationId  String  Sí Identificador de correlación de la 
+operación  
+metadata.version  String  Sí Versión del servicio o contrato  
+metadata.tiempoProcesamiento  String  Sí Tiempo total de procesamiento  
+error  Object  No Objeto de error si aplica  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o resumen del error  
+error.estado  Integer  No Código de estado del error  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  11 
+error.errores  Array  No Listado de errores detallados  
+error.errores[].detalleError  String  No Descripción del error específico  
+ 
+3.1.2.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201 Created  Registros realizados  exitosamente  
+207 Multi -Status  Algunos registros fueron insertados, otros rechazados  
+400 Bad Request  Datos inválidos en el request  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos  
+404 Not Found  Ejecución no encontrada  
+409 Conflict  Números de secuencia duplicados  
+413 Payload Too Large  Lote excede el tamaño máximo permitido  
+422 Unprocessable Entity  Estado de la ejecución no permite insertar registros  
+500 Internal Server Error  Error interno del servidor  
+3.1.3  Endpoint: Registrar Resultados de Cotejo (Batch)  
+Endpoint que permite registrar un lote de resultados de cotejo para una ejecución.  
+Atributo  Valor  
+Path  /api/v1/ ciudadano /MsDatosCotejoMasivo/ejecuciones/{ejecucionId}/resultados  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID  
+X-Batch -Size Integer  
+Entrada  { 
+  "resultados": [  
+    { 
+      "registroEntradaId": " string ", 
+      "codigoResultado": "string",  
+      "numeroDniEncontrado": "string",  
+      "apellidoPaternoEncontrado": "string",  
+      "apellidoMaternoEncontrado": "string",  
+      "nombresEncontrado": "string",  
+      "fechaNacimientoEncontrada": " YYYY -MM-DDTHH:MM:SSZ ", 
+      "indicadorSexoEncontrado": "string",  
+      "codigoUbigeoDomicilio": "string",  
+      "descripcionDomicilio": "string",  
+      "estadoCivil": "string",  
+      "condicionCiudadano": "string",  
+      "fechaCaducidadDni": " YYYY -MM-DDTHH:MM:SSZ ", 
+      "indicadorRestriccion": "string",  
+      "fechaRestriccion": " YYYY -MM-DDTHH:MM:SSZ ", 
+      "coincideDni": "string",  
+      "coincideApellidoPaterno": "string",  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  12 
+      "coincideApellidoMaterno": "string",  
+      "coincideNombres": "string",  
+      "coincideFechaNacimiento": "string",  
+      "coincideSexo": "string",  
+      "mensajeObservacion": "string"  
+    } 
+  ] 
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "ejecucionId": " string ", 
+    "totalResultadosRecibidos": "integer",  
+    "totalResultadosInsertados": "integer",  
+    "totalResultadosRechazados": "integer",  
+    "resumenResultados": {  
+      "totalCorrectos": "integer",  
+      "totalIncorrectos": "integer",  
+      "totalNoEncontrados": "integer",  
+      "totalFallecidos": "integer",  
+      "totalRestringidos": "integer",  
+      "totalErrores": "integer"  
+    }, 
+    "resultadosRechazados": [  
+      { 
+        "registroEntradaId": " string ", 
+        "motivoRechazo": "string"  
+      } 
+    ] 
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string",  
+    "tiempoProcesamiento": "string"  
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.3.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+Resultados  resultados  Array  Sí 1 10000  
+ID Registro 
+Entrada  resultados[].registroEntradaI
+d String  Sí 36 36 
+Código 
+Resultado  resultados[].codigoResultado  String  Sí 1 10 
+DNI Encontrado  resultados[]. numeroDniEnco
+ntrado  String  No 8 8 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  13 
+Apellido Paterno 
+Encontrado  resultados[].apellidoPaternoE
+ncontrado  String  No 1 128 
+Apellido 
+Materno 
+Encontrado  resultados[].apellidoMaterno
+Encontrado  String  No 1 128 
+Nombres 
+Encontrado  resultados[]. nombresEncontr
+ado String  No 1 160 
+Fecha 
+Nacimiento 
+Encontrada  resultados[].fechaNacimiento
+Encontrada  String 
+(Date)  No NA NA 
+Indicador Sexo 
+Encontrado  resultados[].indicadorSexoEn
+contrado  String  No 1 1 
+Código Ubigeo 
+Domicilio  resultados[]. codigoUbigeoDo
+micilio  String  No 6 6 
+Descripción 
+Domicilio  resultados[].descripcionDomi
+cilio String  No 1 200 
+Estado Civil  resultados[].estadoCivil  String  No 1 20 
+Condición 
+Ciudadano  resultados[].condicionCiudad
+ano String  No 1 20 
+Fecha 
+Caducidad DNI  resultados[].fechaCaducidad
+Dni String 
+(Date)  No NA NA 
+Indicador 
+Restricción  resultados[].indicadorRestric
+cion String  No 1 2 
+Fecha 
+Restricción  resultados[].fechaRestriccion  String 
+(Date)  No NA NA 
+Coincide DNI  resultados[].coincideDni  String  No 1 1 
+Coincide 
+Apellido Paterno  resultados[].coincideApellido
+Paterno  String  No 1 1 
+Coincide 
+Apellido 
+Materno  resultados[].coincideApellido
+Materno  String  No 1 1 
+Coincide 
+Nombres  resultados[].coincideNombre
+s String  No 1 1 
+Coincide Fecha 
+Nacimiento  resultados[].coincideFechaN
+acimiento  String  No 1 1 
+Coincide Sexo  resultados[].coincideSexo  String  No 1 1 
+Mensaje 
+Observación  resultados[].mensajeObserva
+cion String  No 0 500 
+ 
+3.1.3.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  boolean  Sí Indica si la operación 
+finalizó correctamente.  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  14 
+data Object  Sí Contiene el detalle de los 
+resultados procesados.  
+data.ejecucionId  string  Sí Identificador único de la 
+ejecución del proceso.  
+data.totalResultadosRecibidos  integer  Sí Cantidad total de 
+registros recibidos para 
+procesar.  
+data.totalResultadosInsertados  integer  Sí Cantidad de registros 
+insertados exitosamente.  
+data.totalResultadosRechazados  integer  Sí Cantidad de registros que 
+fueron rechazados.  
+data.resumenResultados  Object  Sí Agrupa los totales por 
+tipo de resultado.  
+data.resumenResultados.totalCorrectos  integer  Sí Total de registros 
+procesados 
+correctamente.  
+data.resumenResultados.totalIncorrectos  integer  Sí Total de registros 
+inválidos o con 
+inconsistencias.  
+data.resumenResultados.totalNoEncontrados  integer  Sí Total de registros cuyo 
+ciudadano no fue 
+encontrado.  
+data.resumenResultados.totalFallecidos  integer  Sí Total de ciudadanos 
+fallecidos en los registros 
+procesados.  
+data.resumenResultados.totalRestringidos  integer  Sí Total de registros con 
+restricciones de acceso o 
+consulta.  
+data.resumenResultados.totalErrores  integer  Sí Total de registros con 
+error al procesar.  
+data.resultadosRechazados  Array  No Lista de registros 
+rechazados y su motivo.  
+data.resultadosRechazados[].registroEntradaId  string  Sí Identificador del registro 
+de entrada rechazado.  
+data.resultadosRechazados[].motivoRechazo  string  Sí Descripción del motivo 
+por el cual fue rechazado.  
+metadata  Object  Sí Metadatos generales del 
+procesamiento.  
+metadata.timestamp  string  Sí Fecha y hora de 
+procesamiento en 
+formato ISO 8601.  
+metadata.correlationId  string  Sí Identificador para 
+trazabilidad de la 
+petición.  
+metadata.version  string  Sí Versión del servicio que 
+generó la respuesta.  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  15 
+metadata.tiempoProcesamiento  string  Sí Tiempo total de 
+procesamiento del 
+servicio.  
+error  Object  No Objeto que especifica 
+algún error existente  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título del error  
+error.estado  Integer  No Código del estado de 
+error  
+error.errores  Array  No Listado de errores  
+error.errores[].detalleError  String  No Detalle del error 
+generado  
+ 
+3.1.3.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+201 Created  Resultados insertados exitosamente  
+207 Multi -Status  Algunos resultados insertados, otros rechazados  
+400 Bad Request  Datos inválidos en el request  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos  
+404 Not Found  Ejecución o registro de entrada no encontrado  
+409 Conflict  Ya existe resultado para el registro de entrada  
+422 Unprocessable Entity  Estado de la ejecución no permite insertar resultados  
+500 Internal Server Error  Error interno del servidor  
+ 
+3.1.4  Endpoint: Listar Ejecuciones de Cotejo  
+Endpoint que permite listar ejecuciones de cotejo con filtros y paginación.  
+Atributo  Valor  
+Path  /api/v1/c iudadano /MsDatosCotejoMasivo/ejecuciones  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT)  
+X-Correlation -ID UUID  
+X-Office -Code String  
+X-User -Role String  
+Parámetros  • solicitudId (string):  Identificador de la solicitud utilizada como filtro.  
+• codigoOrganizacion (string):  Código de la organización asociada a la 
+consulta.  
+• codigoEnvio (string):  Código del envío aplicado al filtro.  
+• codigoEstado (string):  Estado utilizado como criterio de filtrado.  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  16 
+• fechaDesde (string):  Fecha y hora inicial del rango de consulta.  
+• fechaHasta (string):  Fecha y hora final del rango de consulta.  
+• page (integer):  Número de página para la paginación.  
+• size (integer):  Cantidad de registros por página.  
+• sort (string):  Campo por el cual se ordenarán los resultados.  
+• direction (string):  Dirección del ordenamiento aplicada a los resultados.  
+Respuesta  { 
+  "success": "boolean",  
+  "data": [  
+    { 
+      "ejecucionId": " string ", 
+      "solicitudId": " string ", 
+      "codigoOrganizacion": "string",  
+      "nombreOrganizacion": "string",  
+      "codigoEnvio": "string",  
+      "numeroLote": "string",  
+      "codigoEstado": "string",  
+      "descripcionEstado": "string",  
+      "totalRegistrosEntrada": "integer",  
+      "totalRegistrosProcesados": "integer",  
+      "totalRegistrosCorrectos": "integer",  
+      "totalRegistrosIncorrectos": "integer",  
+      "fechaInicioProceso": " YYYY -MM-DDThh:mm:ssZ ", 
+      "fechaFinProceso": " YYYY -MM-DDThh:mm:ssZ ", 
+      "fechaCreacion": " YYYY -MM-DDThh:mm:ssZ ", 
+      "usuarioCreacion": "string"  
+    } 
+  ], 
+  "pagination": {  
+    "page": "integer",  
+    "size": "integer",  
+    "totalElements": "integer",  
+    "totalPages": "integer",  
+    "first": "boolean",  
+    "last": "boolean"  
+  }, 
+  "metadata": {  
+    "timestamp": "string",  
+    "correlationId": "string",  
+    "version": "string"  
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.4.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+ID Solicitud  solicitudId  String  No 36 36 
+Código Organización  codigoOrganizacion  String  No 1 4 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  17 
+Código Envío  codigoEnvio  String  No 1 4 
+Código Estado  codigoEstado  String  No 1 10 
+Fecha Desde  fechaDesde  String (ISO 
+8601)  No NA NA 
+Fecha Hasta  fechaHasta  String (ISO 
+8601)  No NA NA 
+Página  page  Integer  No 0 NA 
+Tamaño  size Integer  No 1 100 
+Ordenar por  sort String  No 1 50 
+Dirección  direction  String  No 3 4 
+ 
+3.1.4.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Array  Sí Listado de ejecuciones encontradas  
+data[].ejecucionId  String  Sí Identificador único de la ejecución  
+data[].solicitudId  String  Sí Identificador de la solicitud asociada  
+data[].codigoOrganizacion  String  Sí Código de la organización  
+data[].nombreOrganizacion  String  Sí Nombre de la organización  
+data[].codigoEnvio  String  Sí Código del envío  
+data[].numeroLote  String  No Número de lote asignado  
+data[].codigoEstado  String  Sí Código del estado actual  
+data[].descripcionEstado  String  Sí Descripción del estado actual  
+data[].totalRegistrosEntrada  Integer  Sí Total de registros esperados  
+data[]. totalRegistrosProcesados  Integer  No Total de registros procesados  
+data[].totalRegistrosCorrectos  Integer  No Total de registros procesados 
+correctamente  
+data[].totalRegistrosIncorrectos  Integer  No Total de registros con error  
+data[]. fechaInicioProceso  String (ISO 
+8601)  No Fecha/hora de inicio del 
+procesamiento  
+data[].fechaFinProceso  String (ISO 
+8601)  No Fecha/hora de fin del procesamiento  
+data[].fechaCreacion  String (ISO 
+8601)  Sí Fecha/hora de creación del registro  
+data[].usuarioCreacion  String  Sí Usuario que creó el registro  
+pagination  Object  Sí Información de paginación  
+pagination.page  Integer  Sí Número de página actual  
+pagination.size  Integer  Sí Tamaño de página configurado  
+pagination.totalElements  Integer  Sí Total de elementos encontrados  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  18 
+pagination.totalPages  Integer  Sí Total de páginas calculadas  
+pagination.first  Boolean  Sí Indica si es la primera página  
+pagination.last  Boolean  Sí Indica si es la última página  
+metadata  Object  Sí Metadatos de la operación  
+metadata.timestamp  String (ISO 
+8601)  Sí Marca de tiempo de la respuesta  
+metadata.correlationId  String  Sí Identificador de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto de error si aplica  
+error.tipo  String  No Tipo de error presentado  
+error.titulo  String  No Título o descripción corta del error  
+error.estado  Integer  No Código de estado del error  
+error.errores  Array  No Listado de errores detallados  
+error.errores[].detalleError  String  No Descripción detallada del error 
+específico  
+ 
+3.1.4.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Lista de ejecuciones consultada  exitosamente  
+400 Bad Request  Parámetros de consulta inválidos  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para consultar  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+ 
+3.1.5  Endpoint: Consultar Ejecución Específica  
+Endpoint que permite consultar el detalle de una ejecución de cotejo específica.  
+Atributo  Valor  
+Path  /api/v1/c iudadano /MsDatosCotejoMasivo/ejecuciones/  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT)  
+X-Correlation -ID UUID  
+Parámetros  • ejecucionId (string):  Identificador de la ejecución a consultar.  
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "ejecucionId": " string ", 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  19 
+    "solicitudId": " string ", 
+    "codigoOrganizacion": "string",  
+    "nombreOrganizacion": "string",  
+    "codigoEnvio": "string",  
+    "numeroLote": "string",  
+    "codigoEstado": "string",  
+    "descripcionEstado ": "string",  
+    "totalRegistrosEntrada": "integer",  
+    "totalRegistrosProcesados": "integer",  
+    "totalRegistrosCorrectos": "integer",  
+    "totalRegistrosIncorrectos": "integer",  
+    "fechaInicioProceso": "string (ISO 8601)",  
+    "fechaFinProceso": "string (ISO 8601)",  
+    "documentoSustento": "string",  
+    "observaciones": "string",  
+    "urlReporteGenerado": "string (URL)",  
+    "indicadorDomicilio": "string",  
+    "codigoPrograma": "string",  
+    "resumenResultados": {  
+      "totalCorrectos": "integer",  
+      "totalIncorrectos": "integer",  
+      "totalNoEncontrados": "integer",  
+      "totalFallecidos": "integer",  
+      "totalRestringidos": "integer",  
+      "totalCaducados": "integer",  
+      "totalErrores": "integer"  
+    }, 
+    "fechaCreacion": "string (ISO 8601)",  
+    "usuarioCreacion": "string",  
+    "fechaModificacion": "string (ISO 8601)",  
+    "usuarioModificacion": "string",  
+    "_links": {  
+      "self": "string",  
+      "registros": "string",  
+      "resultados": "string",  
+      "actualizarEstado": "string",  
+      "solicitud": "string"  
+    } 
+  }, 
+  "metadata": {  
+    "timestamp": " YYYY -MM-DDThh:mm:ssZ )", 
+    "correlationId": " string ", 
+    "version": "string"  
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.5.1  Parámetros de Entrada (Path)  
+Dato  Atributo  Tipo  Obligatorio  Longitud mínima  Longitud máxima  
+ID Ejecución  ejecucionId  String  Sí 36 36 
+ 
+ 
+ 
+Microservicio MsDatosCotejoMasivo  20 
+3.1.5.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue exitosa  
+data Object  Sí Cuerpo principal de la respuesta  
+data.ejecucionId  String  Sí Identificador único de la 
+ejecución  
+data.solicitudId  String  Sí Identificador de la solicitud 
+asociada  
+data.codigoOrganizacion  String  Sí Código de la organización  
+data.nombreOrganizacion  String  Sí Nombre de la organización  
+data.codigoEnvio  String  Sí Código del envío  
+data.numeroLote  String  No Número de lote asignado  
+data.codigoEstado  String  Sí Código del estado actual  
+data.descripcionEstado  String  Sí Descripción del estado actual  
+data.totalRegistrosEntrada  Integer  Sí Total de registros esperados  
+data.totalRegistrosProcesados  Integer  No Total de registros procesados  
+data.totalRegistrosCorrectos  Integer  No Total de registros correctos  
+data.totalRegistrosIncorrectos  Integer  No Total de registros incorrectos  
+data.fechaInicioProceso  String (ISO 
+8601)  No Fecha/hora de inicio del 
+procesamiento  
+data.fechaFinProceso  String (ISO 
+8601)  No Fecha/hora de fin del 
+procesamiento  
+data.documentoSustento  String  No Documento de sustento asociado  
+data.observaciones  String  No Observaciones registradas  
+data.urlReporteGenerado  String  No URL del reporte generado  
+data.indicadorDomicilio  String  No Indica si incluye validación de 
+domicilio  
+data.codigoPrograma  String  No Código del programa asociado  
+data.resumenResultados  Object  No Resumen consolidado de 
+resultados  
+data.resumenResultados.totalC
+orrectos  Integer  No Total de registros correctos  
+data.resumenResultados.totalIn
+correctos  Integer  No Total de registros incorrectos  
+data.resumenResultados.totalN
+oEncontrados  Integer  No Total de registros no encontrados  
+data.resumenResultados.totalF
+allecidos  Integer  No Total de ciudadanos fallecidos  
+data.resumenResultados.totalR
+estringidos  Integer  No Total de registros restringidos  
+ 
+ 
+Microservicio MsDatosCotejoMasivo  21 
+data.resumenResultados.totalC
+aducados  Integer  No Total de registros caducados  
+data.resumenResultados.totalE
+rrores  Integer  No Total de errores procesados  
+data.fechaCreacion  String (ISO 
+8601)  Sí Fecha/hora de creación del 
+registro  
+data.usuarioCreacion  String  Sí Usuario que creó el registro  
+data.fechaModificacion  String (ISO 
+8601)  No Fecha/hora de la última 
+modificación  
+data.usuarioModificacion  String  No Usuario que modificó el registro  
+data._links  Object  Sí Hipervínculos de navegación  
+data._links.self  String  Sí URL del recurso principal  
+data._links.registros  String  Sí URL para obtener registros 
+procesados  
+data._links.resultados  String  Sí URL para obtener resultados del 
+cotejo  
+data._links.actualizarEstado  String  Sí URL para actualizar estado de 
+ejecución  
+data._links.solicitud  String  Sí URL de la solicitud asociada  
+metadata  Object  Sí Metadatos de la operación  
+metadata.timestamp  String (ISO 
+8601)  Sí Marca de tiempo de la respuesta  
+metadata.correlationId  String  Sí Identificador único de correlación  
+metadata.version  String  Sí Versión del servicio  
+error  Object  No Objeto de error si aplica  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título o descripción del error  
+error.estado  Integer  No Código de estado asociado al 
+error  
+error.errores  Array  No Listado de errores detallados  
+error.errores[].detalleError  String  No Descripción del error específico  
+ 
+3.1.5.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Ejecución consultada  exitosamente  
+401 Unauthorized  Token JWT inválido o expirado  
+403 Forbidden  Usuario sin permisos para consultar  
+404 Not Found  Ejecución no encontrada  
+500 Internal Server Error  Error interno del servidor  
+ 

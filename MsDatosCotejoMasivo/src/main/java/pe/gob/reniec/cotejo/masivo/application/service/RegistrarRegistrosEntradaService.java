@@ -4,7 +4,6 @@ import pe.gob.reniec.cotejo.masivo.domain.model.RegistroEntrada;
 import pe.gob.reniec.cotejo.masivo.domain.ports.in.RegistrarRegistrosEntradaUseCase;
 import pe.gob.reniec.cotejo.masivo.domain.ports.out.RegistroEntradaRepositoryPort;
 import java.util.List;
-import java.util.UUID;
 
 public class RegistrarRegistrosEntradaService implements RegistrarRegistrosEntradaUseCase {
     private final RegistroEntradaRepositoryPort registroEntradaRepositoryPort;
@@ -14,7 +13,7 @@ public class RegistrarRegistrosEntradaService implements RegistrarRegistrosEntra
     }
 
     @Override
-    public List<RegistroEntrada> registrar(UUID ejecucionId, List<RegistroEntrada> registros) {
-        return registroEntradaRepositoryPort.guardarLote(registros);
+    public ResultadoRegistroBatch registrarBatch(String ejecucionId, List<RegistroEntrada> registros) {
+        throw new UnsupportedOperationException("Implementación pendiente");
     }
 }

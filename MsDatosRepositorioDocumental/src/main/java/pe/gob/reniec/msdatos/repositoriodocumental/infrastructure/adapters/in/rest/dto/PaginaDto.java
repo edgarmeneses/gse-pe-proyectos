@@ -1,17 +1,18 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
-import java.util.Objects;
-
 /**
  * DTO: Información de paginación
  */
 public class PaginaDto {
-    private final Integer number;
-    private final Integer size;
-    private final Long totalElements;
-    private final Integer totalPages;
-    private final Boolean hasNext;
-    private final Boolean hasPrevious;
+    private Integer number;
+    private Integer size;
+    private Long totalElements;
+    private Integer totalPages;
+    private Boolean hasNext;
+    private Boolean hasPrevious;
+
+    public PaginaDto() {
+    }
 
     public PaginaDto(Integer number, Integer size, Long totalElements, Integer totalPages, Boolean hasNext, Boolean hasPrevious) {
         this.number = number;
@@ -22,35 +23,51 @@ public class PaginaDto {
         this.hasPrevious = hasPrevious;
     }
 
-    public Integer number() { return number; }
-    public Integer size() { return size; }
-    public Long totalElements() { return totalElements; }
-    public Integer totalPages() { return totalPages; }
-    public Boolean hasNext() { return hasNext; }
-    public Boolean hasPrevious() { return hasPrevious; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PaginaDto paginaDto = (PaginaDto) o;
-        return Objects.equals(number, paginaDto.number) && Objects.equals(size, paginaDto.size) && Objects.equals(totalElements, paginaDto.totalElements) && Objects.equals(totalPages, paginaDto.totalPages) && Objects.equals(hasNext, paginaDto.hasNext) && Objects.equals(hasPrevious, paginaDto.hasPrevious);
+    public Integer getNumber() {
+        return number;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(number, size, totalElements, totalPages, hasNext, hasPrevious);
+    public void setNumber(Integer number) {
+        this.number = number;
     }
 
-    @Override
-    public String toString() {
-        return "PaginaDto{" +
-                "number=" + number +
-                ", size=" + size +
-                ", totalElements=" + totalElements +
-                ", totalPages=" + totalPages +
-                ", hasNext=" + hasNext +
-                ", hasPrevious=" + hasPrevious +
-                '}';
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
+    public Long getTotalElements() {
+        return totalElements;
+    }
+
+    public void setTotalElements(Long totalElements) {
+        this.totalElements = totalElements;
+    }
+
+    public Integer getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(Integer totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public Boolean getHasNext() {
+        return hasNext;
+    }
+
+    public void setHasNext(Boolean hasNext) {
+        this.hasNext = hasNext;
+    }
+
+    public Boolean getHasPrevious() {
+        return hasPrevious;
+    }
+
+    public void setHasPrevious(Boolean hasPrevious) {
+        this.hasPrevious = hasPrevious;
     }
 }

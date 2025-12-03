@@ -1,40 +1,33 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
-import java.util.Objects;
-
 /**
  * DTO: Información de ciudadano
  */
 public class CiudadanoDto {
-    private final String dni;
-    private final String nombreCompleto;
+    private String dni;
+    private String nombreCompleto;
+
+    public CiudadanoDto() {
+    }
 
     public CiudadanoDto(String dni, String nombreCompleto) {
         this.dni = dni;
         this.nombreCompleto = nombreCompleto;
     }
 
-    public String dni() { return dni; }
-    public String nombreCompleto() { return nombreCompleto; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CiudadanoDto that = (CiudadanoDto) o;
-        return Objects.equals(dni, that.dni) && Objects.equals(nombreCompleto, that.nombreCompleto);
+    public String getDni() {
+        return dni;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(dni, nombreCompleto);
+    public void setDni(String dni) {
+        this.dni = dni;
     }
 
-    @Override
-    public String toString() {
-        return "CiudadanoDto{" +
-                "dni='" + dni + '\'' +
-                ", nombreCompleto='" + nombreCompleto + '\'' +
-                '}';
+    public String getNombreCompleto() {
+        return nombreCompleto;
+    }
+
+    public void setNombreCompleto(String nombreCompleto) {
+        this.nombreCompleto = nombreCompleto;
     }
 }

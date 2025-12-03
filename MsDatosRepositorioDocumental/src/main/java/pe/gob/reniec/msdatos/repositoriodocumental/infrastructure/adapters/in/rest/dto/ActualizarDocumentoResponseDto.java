@@ -1,16 +1,18 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * DTO Response: Actualizar Documento
  */
 public class ActualizarDocumentoResponseDto {
-    private final String id;
-    private final List<String> camposActualizados;
-    private final String updatedAt;
-    private final String estadoDocumento;
+    private String id;
+    private List<String> camposActualizados;
+    private String updatedAt;
+    private String estadoDocumento;
+
+    public ActualizarDocumentoResponseDto() {
+    }
 
     public ActualizarDocumentoResponseDto(String id, List<String> camposActualizados, String updatedAt, String estadoDocumento) {
         this.id = id;
@@ -19,31 +21,35 @@ public class ActualizarDocumentoResponseDto {
         this.estadoDocumento = estadoDocumento;
     }
 
-    public String id() { return id; }
-    public List<String> camposActualizados() { return camposActualizados; }
-    public String updatedAt() { return updatedAt; }
-    public String estadoDocumento() { return estadoDocumento; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ActualizarDocumentoResponseDto that = (ActualizarDocumentoResponseDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(camposActualizados, that.camposActualizados) && Objects.equals(updatedAt, that.updatedAt) && Objects.equals(estadoDocumento, that.estadoDocumento);
+    public String getId() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, camposActualizados, updatedAt, estadoDocumento);
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "ActualizarDocumentoResponseDto{" +
-                "id='" + id + '\'' +
-                ", camposActualizados=" + camposActualizados +
-                ", updatedAt='" + updatedAt + '\'' +
-                ", estadoDocumento='" + estadoDocumento + '\'' +
-                '}';
+    public List<String> getCamposActualizados() {
+        return camposActualizados;
+    }
+
+    public void setCamposActualizados(List<String> camposActualizados) {
+        this.camposActualizados = camposActualizados;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getEstadoDocumento() {
+        return estadoDocumento;
+    }
+
+    public void setEstadoDocumento(String estadoDocumento) {
+        this.estadoDocumento = estadoDocumento;
     }
 }

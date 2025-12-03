@@ -1,15 +1,17 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * DTO Response: Actualizar Carpeta
  */
 public class ActualizarCarpetaResponseDto {
-    private final String id;
-    private final String updatedAt;
-    private final List<String> camposActualizados;
+    private String id;
+    private String updatedAt;
+    private List<String> camposActualizados;
+
+    public ActualizarCarpetaResponseDto() {
+    }
 
     public ActualizarCarpetaResponseDto(String id, String updatedAt, List<String> camposActualizados) {
         this.id = id;
@@ -17,29 +19,27 @@ public class ActualizarCarpetaResponseDto {
         this.camposActualizados = camposActualizados;
     }
 
-    public String id() { return id; }
-    public String updatedAt() { return updatedAt; }
-    public List<String> camposActualizados() { return camposActualizados; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ActualizarCarpetaResponseDto that = (ActualizarCarpetaResponseDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(updatedAt, that.updatedAt) && Objects.equals(camposActualizados, that.camposActualizados);
+    public String getId() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, updatedAt, camposActualizados);
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "ActualizarCarpetaResponseDto{" +
-                "id='" + id + '\'' +
-                ", updatedAt='" + updatedAt + '\'' +
-                ", camposActualizados=" + camposActualizados +
-                '}';
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<String> getCamposActualizados() {
+        return camposActualizados;
+    }
+
+    public void setCamposActualizados(List<String> camposActualizados) {
+        this.camposActualizados = camposActualizados;
     }
 }

@@ -1,15 +1,17 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * DTO: Item de carpeta en listados
  */
 public class CarpetaItemDto {
-    private final String id;
-    private final Map<String, Object> metadata;
-    private final String createdAt;
+    private String id;
+    private Map<String, Object> metadata;
+    private String createdAt;
+
+    public CarpetaItemDto() {
+    }
 
     public CarpetaItemDto(String id, Map<String, Object> metadata, String createdAt) {
         this.id = id;
@@ -17,29 +19,27 @@ public class CarpetaItemDto {
         this.createdAt = createdAt;
     }
 
-    public String id() { return id; }
-    public Map<String, Object> metadata() { return metadata; }
-    public String createdAt() { return createdAt; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CarpetaItemDto that = (CarpetaItemDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(metadata, that.metadata) && Objects.equals(createdAt, that.createdAt);
+    public String getId() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, metadata, createdAt);
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "CarpetaItemDto{" +
-                "id='" + id + '\'' +
-                ", metadata=" + metadata +
-                ", createdAt='" + createdAt + '\'' +
-                '}';
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 }

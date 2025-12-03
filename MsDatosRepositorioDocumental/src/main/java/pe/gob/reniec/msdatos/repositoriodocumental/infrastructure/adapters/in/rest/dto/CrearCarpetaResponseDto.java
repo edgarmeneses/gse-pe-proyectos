@@ -1,15 +1,16 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
-import java.util.Objects;
-
 /**
  * DTO Response: Crear Carpeta
  */
 public class CrearCarpetaResponseDto {
-    private final String id;
-    private final String createdAt;
-    private final String estadoCarpeta;
-    private final String ruta;
+    private String id;
+    private String createdAt;
+    private String estadoCarpeta;
+    private String ruta;
+
+    public CrearCarpetaResponseDto() {
+    }
 
     public CrearCarpetaResponseDto(String id, String createdAt, String estadoCarpeta, String ruta) {
         this.id = id;
@@ -18,31 +19,35 @@ public class CrearCarpetaResponseDto {
         this.ruta = ruta;
     }
 
-    public String id() { return id; }
-    public String createdAt() { return createdAt; }
-    public String estadoCarpeta() { return estadoCarpeta; }
-    public String ruta() { return ruta; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CrearCarpetaResponseDto that = (CrearCarpetaResponseDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(createdAt, that.createdAt) && Objects.equals(estadoCarpeta, that.estadoCarpeta) && Objects.equals(ruta, that.ruta);
+    public String getId() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, createdAt, estadoCarpeta, ruta);
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "CrearCarpetaResponseDto{" +
-                "id='" + id + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                ", estadoCarpeta='" + estadoCarpeta + '\'' +
-                ", ruta='" + ruta + '\'' +
-                '}';
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getEstadoCarpeta() {
+        return estadoCarpeta;
+    }
+
+    public void setEstadoCarpeta(String estadoCarpeta) {
+        this.estadoCarpeta = estadoCarpeta;
+    }
+
+    public String getRuta() {
+        return ruta;
+    }
+
+    public void setRuta(String ruta) {
+        this.ruta = ruta;
     }
 }

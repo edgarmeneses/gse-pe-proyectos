@@ -1,25 +1,25 @@
 package pe.gob.reniec.cotejo.masivo.domain.model;
 
-import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 public class ResultadoCotejo {
-    private UUID resultadoCotejoId;
-    private UUID registroEntradaId;
+    private String resultadoId;
+    private String registroEntradaId;
+    private String ejecucionId;
     private String codigoResultado;
     private String numeroDniEncontrado;
     private String apellidoPaternoEncontrado;
     private String apellidoMaternoEncontrado;
     private String nombresEncontrado;
-    private LocalDate fechaNacimientoEncontrada;
+    private LocalDateTime fechaNacimientoEncontrada;
     private String indicadorSexoEncontrado;
     private String codigoUbigeoDomicilio;
     private String descripcionDomicilio;
     private String estadoCivil;
     private String condicionCiudadano;
-    private LocalDate fechaCaducidadDni;
+    private LocalDateTime fechaCaducidadDni;
     private String indicadorRestriccion;
-    private LocalDate fechaRestriccion;
+    private LocalDateTime fechaRestriccion;
     private String coincideDni;
     private String coincideApellidoPaterno;
     private String coincideApellidoMaterno;
@@ -31,20 +31,35 @@ public class ResultadoCotejo {
     public ResultadoCotejo() {
     }
 
-    public UUID getResultadoCotejoId() {
-        return resultadoCotejoId;
+    public ResultadoCotejo(String resultadoId, String registroEntradaId, String ejecucionId, String codigoResultado) {
+        this.resultadoId = resultadoId;
+        this.registroEntradaId = registroEntradaId;
+        this.ejecucionId = ejecucionId;
+        this.codigoResultado = codigoResultado;
     }
 
-    public void setResultadoCotejoId(UUID resultadoCotejoId) {
-        this.resultadoCotejoId = resultadoCotejoId;
+    public String getResultadoId() {
+        return resultadoId;
     }
 
-    public UUID getRegistroEntradaId() {
+    public void setResultadoId(String resultadoId) {
+        this.resultadoId = resultadoId;
+    }
+
+    public String getRegistroEntradaId() {
         return registroEntradaId;
     }
 
-    public void setRegistroEntradaId(UUID registroEntradaId) {
+    public void setRegistroEntradaId(String registroEntradaId) {
         this.registroEntradaId = registroEntradaId;
+    }
+
+    public String getEjecucionId() {
+        return ejecucionId;
+    }
+
+    public void setEjecucionId(String ejecucionId) {
+        this.ejecucionId = ejecucionId;
     }
 
     public String getCodigoResultado() {
@@ -87,11 +102,11 @@ public class ResultadoCotejo {
         this.nombresEncontrado = nombresEncontrado;
     }
 
-    public LocalDate getFechaNacimientoEncontrada() {
+    public LocalDateTime getFechaNacimientoEncontrada() {
         return fechaNacimientoEncontrada;
     }
 
-    public void setFechaNacimientoEncontrada(LocalDate fechaNacimientoEncontrada) {
+    public void setFechaNacimientoEncontrada(LocalDateTime fechaNacimientoEncontrada) {
         this.fechaNacimientoEncontrada = fechaNacimientoEncontrada;
     }
 
@@ -135,11 +150,11 @@ public class ResultadoCotejo {
         this.condicionCiudadano = condicionCiudadano;
     }
 
-    public LocalDate getFechaCaducidadDni() {
+    public LocalDateTime getFechaCaducidadDni() {
         return fechaCaducidadDni;
     }
 
-    public void setFechaCaducidadDni(LocalDate fechaCaducidadDni) {
+    public void setFechaCaducidadDni(LocalDateTime fechaCaducidadDni) {
         this.fechaCaducidadDni = fechaCaducidadDni;
     }
 
@@ -151,11 +166,11 @@ public class ResultadoCotejo {
         this.indicadorRestriccion = indicadorRestriccion;
     }
 
-    public LocalDate getFechaRestriccion() {
+    public LocalDateTime getFechaRestriccion() {
         return fechaRestriccion;
     }
 
-    public void setFechaRestriccion(LocalDate fechaRestriccion) {
+    public void setFechaRestriccion(LocalDateTime fechaRestriccion) {
         this.fechaRestriccion = fechaRestriccion;
     }
 

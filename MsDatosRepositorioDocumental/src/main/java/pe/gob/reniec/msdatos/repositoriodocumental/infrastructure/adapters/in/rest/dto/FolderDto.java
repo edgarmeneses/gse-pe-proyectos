@@ -1,18 +1,20 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * DTO: Información de carpeta
  */
 public class FolderDto {
-    private final String id;
-    private final Map<String, Object> metadata;
-    private final String path;
-    private final String estadoCarpeta;
-    private final String createdAt;
-    private final String updatedAt;
+    private String id;
+    private Map<String, Object> metadata;
+    private String path;
+    private String estadoCarpeta;
+    private String createdAt;
+    private String updatedAt;
+
+    public FolderDto() {
+    }
 
     public FolderDto(String id, Map<String, Object> metadata, String path, String estadoCarpeta, String createdAt, String updatedAt) {
         this.id = id;
@@ -23,35 +25,51 @@ public class FolderDto {
         this.updatedAt = updatedAt;
     }
 
-    public String id() { return id; }
-    public Map<String, Object> metadata() { return metadata; }
-    public String path() { return path; }
-    public String estadoCarpeta() { return estadoCarpeta; }
-    public String createdAt() { return createdAt; }
-    public String updatedAt() { return updatedAt; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FolderDto folderDto = (FolderDto) o;
-        return Objects.equals(id, folderDto.id) && Objects.equals(metadata, folderDto.metadata) && Objects.equals(path, folderDto.path) && Objects.equals(estadoCarpeta, folderDto.estadoCarpeta) && Objects.equals(createdAt, folderDto.createdAt) && Objects.equals(updatedAt, folderDto.updatedAt);
+    public String getId() {
+        return id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, metadata, path, estadoCarpeta, createdAt, updatedAt);
+    public void setId(String id) {
+        this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "FolderDto{" +
-                "id='" + id + '\'' +
-                ", metadata=" + metadata +
-                ", path='" + path + '\'' +
-                ", estadoCarpeta='" + estadoCarpeta + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                ", updatedAt='" + updatedAt + '\'' +
-                '}';
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getEstadoCarpeta() {
+        return estadoCarpeta;
+    }
+
+    public void setEstadoCarpeta(String estadoCarpeta) {
+        this.estadoCarpeta = estadoCarpeta;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -1,24 +1,24 @@
 package pe.gob.reniec.siirc.msdatosgrafos.domain.ports.out;
 
-import pe.gob.reniec.siirc.msdatosgrafos.domain.model.ConsultaVinculosResult;
+import pe.gob.reniec.siirc.msdatosgrafos.domain.model.CategoriaParentesco;
+import pe.gob.reniec.siirc.msdatosgrafos.domain.model.GrafoParentesco;
 
 /**
- * Puerto de salida para acceso a datos de vínculos de parentesco (Repository)
+ * Puerto de salida para acceder al repositorio de vínculos de parentesco.
  */
 public interface VinculoParentescoRepositoryPort {
     
     /**
-     * Consulta vínculos de parentesco en la base de datos de grafos
+     * Consulta el grafo completo de vínculos de parentesco de un ciudadano.
      * 
      * @param idCiudadano Identificador del ciudadano
-     * @param gradoMaximo Grado máximo de parentesco
-     * @param categoriaParentesco Categoría de parentesco
-     * @param soloVigentes Indica si solo se deben retornar vínculos vigentes
-     * @param pagina Número de página
-     * @param registrosPorPagina Cantidad de registros por página
-     * @return Resultado de la consulta con vínculos, resumen y paginación
+     * @param gradoMaximo Grado máximo de parentesco (opcional)
+     * @param categoria Categoría de parentesco (opcional)
+     * @param soloVigentes Si true, solo incluye vínculos vigentes (opcional)
+     * @return GrafoParentesco con todos los vínculos que cumplen los criterios
      */
-    ConsultaVinculosResult consultarVinculosParentesco(String idCiudadano, Long gradoMaximo, 
-                                                       String categoriaParentesco, Boolean soloVigentes, 
-                                                       Long pagina, Long registrosPorPagina);
+    GrafoParentesco consultarGrafoParentesco(String idCiudadano, 
+                                            Integer gradoMaximo, 
+                                            CategoriaParentesco categoria, 
+                                            Boolean soloVigentes);
 }

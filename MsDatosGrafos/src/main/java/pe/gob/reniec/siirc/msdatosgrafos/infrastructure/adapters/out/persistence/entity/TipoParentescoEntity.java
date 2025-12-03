@@ -1,11 +1,5 @@
 package pe.gob.reniec.siirc.msdatosgrafos.infrastructure.adapters.out.persistence.entity;
 
-import java.time.LocalDate;
-
-/**
- * Entity para persistencia de Tipo de Parentesco
- * POJO sin anotaciones de framework
- */
 public class TipoParentescoEntity {
     private String codigo;
     private String descripcion;

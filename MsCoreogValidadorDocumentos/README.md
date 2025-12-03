@@ -1,67 +1,105 @@
-# MsCoreogValidadorDocumentos
+# Microservicio MsCoreogValidadorDocumentos
 
-## Resumen del Microservicio
+## Resumen
 
-**Nombre:** MsCoreogValidadorDocumentos  
-**Contexto:** Validación de Documentos con IA para el Sistema SIIRC de RENIEC  
-**Versión API:** v1  
-**Tipo:** Microservicio de Dominio (MsDominio)  
-**Paquete Base:** `pe.gob.reniec.coreog.validadordocumentos`
+**Nombre del Microservicio**: MsCoreogValidadorDocumentos  
+**Contexto de Negocio**: Validación de Documentos con Inteligencia Artificial para SIIRC (Sistema Integrado de Identificación y Registro Civil)  
+**Tipo**: MsDominio (Microservicio de Dominio)  
+**Versión del API**: v1  
+**Paquete Base**: `pe.gob.reniec.coreog.validadordocumentos`  
+**Fecha de Generación**: 03/12/2025
 
 ## Descripción
 
 El Microservicio de Validación de Documentos con IA (MsCoreogValidadorDocumentos) es responsable de la evaluación automática de documentos digitales dentro de la plataforma SIIRC, utilizando modelos de inteligencia artificial para detectar posibles inconsistencias, errores o señales de fraude.
 
-Este microservicio forma parte del ecosistema de Gestión de Seguridad Electrónica del RENIEC y se integra con el DNI Electrónico (DNIe) para facilitar servicios digitales seguros.
+Este microservicio pertenece al RENIEC (Registro Nacional de Identificación y Estado Civil) y forma parte de la arquitectura de microservicios para la modernización y transformación digital del Estado peruano.
 
-## Características Arquitectónicas
+### Justificación de la Arquitectura Hexagonal
 
-### Tipo de Microservicio: MsDominio
+Este proyecto implementa **Arquitectura Hexagonal estricta** sin dependencias de frameworks, siguiendo los principios DDD (Domain-Driven Design):
 
-Como microservicio de dominio, **MsCoreogValidadorDocumentos**:
+- **Capa de Dominio**: Entidades, objetos de valor y puertos (interfaces) que definen el núcleo del negocio.
+- **Capa de Aplicación**: Servicios que implementan los casos de uso del negocio.
+- **Capa de Infraestructura**: Adaptadores que conectan el dominio con tecnologías externas (REST, bases de datos, servicios externos).
 
-- **NO define `RepositoryPort`** - No maneja directamente persistencia de datos
-- **Define puertos de salida hacia MsData** - Se integra con `MsDataValidadorDocumentos` para operaciones de datos
-- **No especifica protocolo de conexión** - Los adaptadores implementan interfaces sin asumir HTTP/SOAP/colas
-- **Implementa lógica de negocio** - Contiene las reglas de validación y calificación de documentos
+### Características del Tipo de Microservicio
 
-### Arquitectura Hexagonal
+**MsDominio (Microservicio de Dominio)**:
+- ❌ **NO define `RepositoryPort`**: No tiene responsabilidad de persistencia directa
+- ✅ **Define puertos de salida hacia MsData**: Integración con microservicios de datos (MsDataValidadorDocumentos, MsDataRegistradores)
+- ✅ **Implementa lógica de negocio**: Contiene las reglas de validación y evaluación de documentos
+- ✅ **No define protocolo de conexión**: Los adaptadores no especifican HTTP, SOAP, colas, etc. (neutralidad tecnológica)
 
-El proyecto sigue estrictamente los principios de Arquitectura Hexagonal (Ports & Adapters):
+## Arquitectura del Proyecto
 
 ```
-├── domain/
-│   ├── model/              # Entidades y objetos de valor (POJOs puros)
-│   └── ports/
-│       ├── in/             # Casos de uso (interfaces)
-│       └── out/            # Puertos hacia MsData (interfaces)
-├── application/
-│   └── service/            # Servicios que implementan casos de uso
-└── infrastructure/
+src/main/java/pe/gob/reniec/coreog/validadordocumentos/
+├── domain/                                    # Capa de Dominio
+│   ├── model/                                 # Entidades y Objetos de Valor
+│   │   ├── Documento.java                     # Entidad: Documento digital
+│   │   ├── Evaluacion.java                    # Aggregate Root: Evaluación con IA
+│   │   ├── Verificacion.java                  # Aggregate Root: Verificación de firma
+│   │   └── Registrador.java                   # Entidad: Registrador civil
+│   └── ports/                                 # Puertos (Interfaces)
+│       ├── in/                                # Puertos de Entrada (Use Cases)
+│       │   ├── CalificarDocumentoUseCase.java
+│       │   └── VerificarFirmaRegistradorUseCase.java
+│       └── out/                               # Puertos de Salida (hacia MsData y externos)
+│           ├── EvaluacionDataPort.java        # Persistencia de Evaluaciones (MsData)
+│           ├── VerificacionDataPort.java      # Persistencia de Verificaciones (MsData)
+│           ├── RegistradorDataPort.java       # Consulta de Registradores (MsData)
+│           ├── GestorDocumentalPort.java      # Gestor Documental
+│           └── ServicioIAPort.java            # Servicio de Inteligencia Artificial
+│
+├── application/                               # Capa de Aplicación
+│   └── service/                               # Servicios de Aplicación
+│       ├── CalificarDocumentoService.java
+│       └── VerificarFirmaRegistradorService.java
+│
+└── infrastructure/                            # Capa de Infraestructura
     └── adapters/
-        ├── in/rest/        # Adaptador REST (controllers, DTOs, mappers)
-        └── out/msdata/     # Adaptador hacia MsDataValidadorDocumentos
+        ├── in/                                # Adaptadores de Entrada
+        │   └── rest/                          # Adaptador REST
+        │       ├── controller/
+        │       │   └── ValidadorDocumentosController.java
+        │       ├── dto/
+        │       │   ├── CalificarDocumentoRequestDto.java
+        │       │   ├── CalificarDocumentoResponseDto.java
+        │       │   ├── VerificarFirmaRegistradorRequestDto.java
+        │       │   └── VerificarFirmaRegistradorResponseDto.java
+        │       └── mapper/
+        │           ├── CalificarDocumentoDtoMapper.java
+        │           └── VerificarFirmaRegistradorDtoMapper.java
+        └── out/                               # Adaptadores de Salida
+            ├── msdata/                        # Adaptadores hacia MsData
+            │   └── client/
+            │       ├── EvaluacionDataAdapter.java
+            │       ├── VerificacionDataAdapter.java
+            │       └── RegistradorDataAdapter.java
+            └── externo/                       # Adaptadores hacia servicios externos
+                └── client/
+                    ├── GestorDocumentalAdapter.java
+                    └── ServicioIAAdapter.java
 ```
 
 ## Endpoints
 
 ### 1. Calificar Documento
 
-Evalúa uno o más documentos digitales aplicando modelos de IA.
+**Endpoint**: `POST /api/v1/documentos/MsCoreogValidadorDocumentos/calificar`  
+**Descripción**: Evalúa uno o más documentos digitales asociados a un trámite específico, aplicando modelos de inteligencia artificial para determinar su nivel de confiabilidad y detectar posibles riesgos de fraude o inconsistencias.
 
-- **Path:** `/api/v1/documentos/MsCoreogValidadorDocumentos/calificar`
-- **Método:** `POST`
-- **Protocolo:** REST/HTTP
-- **Headers requeridos:**
-  - `Authorization: Bearer {JWT_TOKEN}`
-  - `Content-Type: application/json`
-  - `X-Usuario-Id: {ID_USUARIO}`
-  - `X-Oficina-Id: {ID_OFICINA}`
-- **Headers opcionales:**
-  - `X-Correlation-Id: {UUID}`
+#### Headers
+```
+Authorization: Bearer {JWT_TOKEN}
+Content-Type: application/json
+X-Correlation-Id: {UUID} (opcional, para trazabilidad)
+X-Usuario-Id: {ID_USUARIO}
+X-Oficina-Id: {ID_OFICINA}
+```
 
-#### Request
-
+#### Request Body (JSON)
 ```json
 {
   "solicitudId": "string (UUID)",
@@ -73,14 +111,14 @@ Evalúa uno o más documentos digitales aplicando modelos de IA.
       "tipoDocumental": "string",
       "nombreArchivo": "string",
       "rutaGestorDocumental": "string (URI)",
-      "hashSHA256": "string (64 chars)",
+      "hashSHA256": "string (64 caracteres)",
       "formatoDocumento": "string",
-      "tamanioBytes": 0,
-      "requiereValidacionIA": true
+      "tamanioBytes": integer,
+      "requiereValidacionIA": boolean
     }
   ],
   "parametrosValidacion": {
-    "nivelPonderacionMinimo": 0.0,
+    "nivelPonderacionMinimo": number,
     "modeloIA": "string",
     "tiposObservacion": [
       {
@@ -91,29 +129,28 @@ Evalúa uno o más documentos digitales aplicando modelos de IA.
   },
   "usuarioSolicita": "string",
   "oficinaOrigen": "string",
-  "fechaSolicitud": "YYYY-MM-DDThh:mm:ss±hh:mm",
+  "fechaSolicitud": "YYYY-MM-DDThh:mm:ssZ",
   "observaciones": "string"
 }
 ```
 
-#### Response (200 OK)
-
+#### Response Body (JSON)
 ```json
 {
-  "success": true,
+  "success": boolean,
   "data": {
     "evaluacionId": "string (UUID)",
     "solicitudId": "string (UUID)",
     "tramiteId": "string",
-    "fechaEvaluacion": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "fechaEvaluacion": "YYYY-MM-DDThh:mm:ssZ",
     "modeloIAUtilizado": "string",
-    "tiempoProcesamientoMs": 0,
+    "tiempoProcesamientoMs": integer,
     "resultadoGeneral": {
-      "estado": "string (APROBADO|ALERTA|RECHAZADO)",
-      "scorePromedio": 0.0,
-      "nivelRiesgo": "string (BAJO|MEDIO|ALTO|CRITICO)",
-      "alertaFraude": false,
-      "requiereRevisionManual": false,
+      "estado": "string",
+      "scorePromedio": number,
+      "nivelRiesgo": "string",
+      "alertaFraude": boolean,
+      "requiereRevisionManual": boolean,
       "observacionesGenerales": "string"
     },
     "documentosEvaluados": [
@@ -121,10 +158,10 @@ Evalúa uno o más documentos digitales aplicando modelos de IA.
         "documentoId": "string (UUID)",
         "tipoDocumental": "string",
         "nombreArchivo": "string",
-        "estadoEvaluacion": "string (APROBADO|OBSERVADO|RECHAZADO)",
-        "scoreConfiabilidad": 0.0,
+        "estadoEvaluacion": "string",
+        "scoreConfiabilidad": number,
         "nivelRiesgo": "string",
-        "alertaFraude": false,
+        "alertaFraude": boolean,
         "observaciones": [
           {
             "codigo": "string",
@@ -134,12 +171,12 @@ Evalúa uno o más documentos digitales aplicando modelos de IA.
           }
         ],
         "metricas": {
-          "calidadImagen": 0.0,
-          "legibilidadTexto": 0.0,
-          "integridadEstructura": 0.0,
-          "confianzaOCR": 0.0
+          "calidadImagen": number,
+          "legibilidadTexto": number,
+          "integridadEstructura": number,
+          "confianzaOCR": number
         },
-        "tiempoProcesamientoMs": 0
+        "tiempoProcesamientoMs": integer
       }
     ],
     "accionesRecomendadas": [
@@ -151,7 +188,7 @@ Evalúa uno o más documentos digitales aplicando modelos de IA.
     ]
   },
   "metadata": {
-    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "timestamp": "YYYY-MM-DDThh:mm:ssZ",
     "correlationId": "string (UUID)",
     "version": "string",
     "servidorProcesamiento": "string"
@@ -160,122 +197,161 @@ Evalúa uno o más documentos digitales aplicando modelos de IA.
 ```
 
 #### Status Codes
-
 | Código | Descripción |
 |--------|-------------|
-| 200 | OK - Evaluación realizada exitosamente |
-| 400 | Bad Request - Parámetros inválidos |
-| 401 | Unauthorized - Token JWT inválido o expirado |
-| 403 | Forbidden - Sin permisos suficientes |
-| 404 | Not Found - Solicitud o documentos no encontrados |
-| 408 | Request Timeout - Timeout al obtener documentos |
-| 422 | Unprocessable Entity - Datos no procesables |
-| 429 | Too Many Requests - Límite de rate limit excedido |
-| 500 | Internal Server Error - Error interno del servicio |
-| 502 | Bad Gateway - Error con gestor documental o IA |
-| 503 | Service Unavailable - Servicio de IA no disponible |
-| 504 | Gateway Timeout - Timeout en servicio de IA |
+| 200    | Evaluación realizada exitosamente |
+| 400    | Parámetros inválidos o documentos no encontrados en gestor documental |
+| 401    | Token JWT inválido o expirado |
+| 403    | Usuario sin permisos para solicitar validación de documentos |
+| 404    | Solicitud no encontrada o documentos no localizados |
+| 408    | Timeout al intentar obtener documentos del gestor documental |
+| 422    | Documentos en formato no soportado o trámite en estado no válido |
+| 429    | Límite de rate limit excedido |
+| 500    | Error interno del servicio de validación |
+| 502    | Error al comunicarse con el gestor documental o servicio de IA |
+| 503    | Servicio de inferencia de IA temporalmente no disponible - Circuit Breaker activado |
+| 504    | Timeout en servicio de inferencia de IA - tiempo de procesamiento excedido |
+
+---
 
 ### 2. Verificar Firma del Registrador
 
-Valida la firma digital de un registrador en documentos registrales.
+**Endpoint**: `POST /api/v1/documentos/MsCoreogValidadorDocumentos/verificarFirmaRegistrador`  
+**Descripción**: Verifica la autenticidad de la firma manuscrita y el sello del registrador civil presentes en un documento de acta registral (nacimiento, matrimonio o defunción). Utiliza modelos de IA para comparar las imágenes extraídas contra las firmas y sellos de referencia almacenados en la Base de Datos de Registradores Civiles.
 
-- **Path:** `/api/v1/documentos/MsCoreogValidadorDocumentos/verificar-firma-registrador`
-- **Método:** `POST`
-- **Protocolo:** REST/HTTP
-- **Headers:** Iguales al endpoint anterior
+#### Headers
+```
+Authorization: Bearer {JWT_TOKEN}
+Content-Type: application/json
+X-Correlation-Id: {UUID} (opcional, para trazabilidad)
+X-Usuario-Id: {ID_USUARIO}
+X-Oficina-Id: {ID_OFICINA}
+```
 
-#### Request
-
+#### Request Body (JSON)
 ```json
 {
   "solicitudId": "string (UUID)",
   "tramiteId": "string",
-  "tipoTramite": "string",
-  "documento": {
-    "documentoId": "string (UUID)",
-    "tipoDocumental": "string",
-    "nombreArchivo": "string",
-    "rutaGestorDocumental": "string (URI)",
-    "hashSHA256": "string (64 chars)",
-    "formatoDocumento": "string",
-    "tamanioBytes": 0
+  "documentoId": "string (UUID)",
+  "tipoActa": "string",
+  "rutaGestorDocumental": "string (URI)",
+  "hashSHA256": "string (64 caracteres)",
+  "datosRegistrador": {
+    "numeroDniRegistrador": "string (8 caracteres)",
+    "idUsuario": "string",
+    "primerApellido": "string",
+    "segundoApellido": "string",
+    "prenombres": "string",
+    "codigoLocal": "string (6 caracteres)"
   },
-  "registrador": {
-    "codigoRegistrador": "string",
-    "nombreRegistrador": "string",
-    "documentoIdentidad": "string",
-    "oficinaRegistral": "string",
-    "periodoInicio": "YYYY-MM-DD",
-    "periodoFin": "YYYY-MM-DD"
+  "datosActa": {
+    "numeroActa": "string",
+    "anioActa": integer,
+    "fechaInscripcion": "YYYY-MM-DDThh:mm:ssZ",
+    "oficinaRegistroCivil": "string"
   },
-  "firmaDigital": {
-    "idFirma": "string",
-    "numeroSerieCertificado": "string",
-    "subjectDN": "string",
-    "algoritmoFirma": "string",
-    "fechaFirma": "YYYY-MM-DDThh:mm:ss±hh:mm",
-    "huellaCertificado": "string",
-    "entidadCertificadora": "string"
-  },
-  "parametrosValidacionFirma": {
-    "validarContraBDRegistradores": true,
-    "validarPeriodoVigencia": true,
-    "validarCertificadoDigital": true
+  "parametrosVerificacion": {
+    "umbralSimilitudFirma": number,
+    "umbralSimilitudSello": number,
+    "modeloIA": "string",
+    "incluirImagenesReferencia": boolean
   },
   "usuarioSolicita": "string",
   "oficinaOrigen": "string",
-  "fechaSolicitud": "YYYY-MM-DDThh:mm:ss±hh:mm",
+  "fechaSolicitud": "YYYY-MM-DDThh:mm:ssZ",
   "observaciones": "string"
 }
 ```
 
-#### Response (200 OK)
-
+#### Response Body (JSON)
 ```json
 {
-  "success": true,
+  "success": boolean,
   "data": {
     "verificacionId": "string (UUID)",
     "solicitudId": "string (UUID)",
     "tramiteId": "string",
     "documentoId": "string (UUID)",
-    "fechaVerificacion": "YYYY-MM-DDThh:mm:ss±hh:mm",
-    "resultadoVerificacion": {
+    "fechaVerificacion": "YYYY-MM-DDThh:mm:ssZ",
+    "modeloIAUtilizado": "string",
+    "tiempoProcesamientoMs": integer,
+    "resultadoGeneral": {
+      "estadoVerificacion": "string",
+      "firmaValida": boolean,
+      "selloValido": boolean,
+      "periodoValido": boolean,
+      "requiereRevisionManual": boolean,
+      "observacionesGenerales": "string"
+    },
+    "verificacionFirma": {
       "estadoFirma": "string",
-      "esFirmaValida": true,
-      "detalleEstado": "string",
-      "fuenteValidacion": "string",
-      "requiereRevisionManual": false
+      "scoreSimilitud": number,
+      "nivelConfianza": "string",
+      "firmaEncontradaEnBD": boolean,
+      "imagenFirmaDocumento": "string (Base64)",
+      "imagenFirmaReferencia": "string (Base64)",
+      "observaciones": "string",
+      "metricas": {
+        "similitudEstructural": number,
+        "similitudTrazos": number,
+        "calidadImagenExtraida": number
+      }
     },
-    "datosRegistrador": {
-      "codigoRegistrador": "string",
-      "nombreRegistrador": "string",
-      "documentoIdentidad": "string",
-      "oficinaRegistral": "string",
-      "periodoInicio": "YYYY-MM-DD",
-      "periodoFin": "YYYY-MM-DD",
-      "enPeriodoVigencia": true
+    "verificacionSello": {
+      "estadoSello": "string",
+      "scoreSimilitud": number,
+      "nivelConfianza": "string",
+      "selloEncontradoEnBD": boolean,
+      "imagenSelloDocumento": "string (Base64)",
+      "imagenSelloReferencia": "string (Base64)",
+      "observaciones": "string",
+      "metricas": {
+        "similitudForma": number,
+        "legibilidadTexto": number,
+        "calidadImagenExtraida": number
+      }
     },
-    "datosFirmaDigital": {
-      "idFirma": "string",
-      "numeroSerieCertificado": "string",
-      "subjectDN": "string",
-      "algoritmoFirma": "string",
-      "fechaFirma": "YYYY-MM-DDThh:mm:ss±hh:mm",
-      "huellaCertificado": "string",
-      "entidadCertificadora": "string"
+    "verificacionPeriodo": {
+      "estadoPeriodo": "string",
+      "registradorEncontrado": boolean,
+      "registradorHabilitado": boolean,
+      "fechaInscripcionActa": "YYYY-MM-DDThh:mm:ssZ",
+      "periodoHabilitacion": {
+        "fechaInicio": "YYYY-MM-DDThh:mm:ssZ",
+        "fechaFin": "YYYY-MM-DDThh:mm:ssZ",
+        "codigoLocal": "string",
+        "nombreOficina": "string"
+      },
+      "estadoRegistrador": "string",
+      "observaciones": "string"
+    },
+    "datosRegistradorVerificado": {
+      "numeroDniRegistrador": "string",
+      "idUsuario": "string",
+      "nombreCompleto": "string",
+      "codigoLocal": "string",
+      "nombreOficina": "string",
+      "estadoActual": "string"
     },
     "alertas": [
       {
         "codigo": "string",
+        "tipo": "string",
         "descripcion": "string",
         "severidad": "string"
+      }
+    ],
+    "accionesRecomendadas": [
+      {
+        "tipo": "string",
+        "descripcion": "string",
+        "prioridad": "string"
       }
     ]
   },
   "metadata": {
-    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "timestamp": "YYYY-MM-DDThh:mm:ssZ",
     "correlationId": "string (UUID)",
     "version": "string",
     "servidorProcesamiento": "string"
@@ -284,204 +360,278 @@ Valida la firma digital de un registrador en documentos registrales.
 ```
 
 #### Status Codes
-
-Similares al endpoint de calificación, con énfasis en errores relacionados con:
-- Sistema de firma digital
-- Base de datos de registradores
-- Validación de certificados
-
-## Entidades del Dominio
-
-### Entidades Principales
-
-| Entidad | Descripción | Tipo Java |
-|---------|-------------|-----------|
-| `SolicitudCalificacion` | Solicitud de evaluación de documentos | Aggregate Root |
-| `SolicitudVerificacionFirma` | Solicitud de verificación de firma | Aggregate Root |
-| `Documento` | Documento digital a validar | Entity |
-| `Registrador` | Datos del registrador civil | Entity |
-| `FirmaDigital` | Información de firma digital | Entity |
-| `EvaluacionDocumento` | Resultado de evaluación | Entity |
-| `VerificacionFirma` | Resultado de verificación | Entity |
-
-### Objetos de Valor
-
-- `ParametrosValidacion`
-- `ParametrosValidacionFirma`
-- `TipoObservacion`
-- `ResultadoGeneral`
-- `DocumentoEvaluado`
-- `Observacion`
-- `Metricas`
-- `AccionRecomendada`
-- `ResultadoVerificacion`
-- `DatosRegistrador`
-- `DatosFirmaDigital`
-- `Alerta`
-
-## Reglas de Mapeo de Tipos
-
-Mapeo desde tipos JSON del PDF a tipos Java:
-
-| Tipo JSON | Tipo Java |
-|-----------|-----------|
-| `string` | `String` |
-| `integer` / `int` / `long` | `Long` |
-| `number` / `decimal` / `double` | `Double` |
-| `boolean` | `Boolean` |
-| `date` | `LocalDate` |
-| `datetime` / `timestamp` / `Date-Time` | `LocalDateTime` |
-| `array` / `list` | `List<T>` |
-
-Formato de fechas:
-- **Fecha:** `YYYY-MM-DD` (ISO 8601)
-- **Fecha-Hora:** `YYYY-MM-DDThh:mm:ss±hh:mm` (ISO 8601 con zona horaria)
-
-## Integración con MsDataValidadorDocumentos
-
-### Puertos de Salida Definidos
-
-Este microservicio define dos puertos de salida hacia el componente de datos:
-
-1. **`CalificacionDocumentoDataPort`**
-   - `procesarCalificacion(SolicitudCalificacion)`: Envía solicitud de calificación
-   - `consultarEvaluacion(String)`: Consulta estado de evaluación
-
-2. **`VerificacionFirmaDataPort`**
-   - `procesarVerificacion(SolicitudVerificacionFirma)`: Envía solicitud de verificación
-   - `consultarVerificacion(String)`: Consulta estado de verificación
-
-### Adaptadores Implementados
-
-- **`CalificacionDocumentoDataAdapter`**: Implementa `CalificacionDocumentoDataPort`
-- **`VerificacionFirmaDataAdapter`**: Implementa `VerificacionFirmaDataPort`
-
-**IMPORTANTE:** Los adaptadores están implementados como stubs que lanzan `UnsupportedOperationException`. El protocolo de comunicación (HTTP, SOAP, colas, etc.) debe configurarse en tiempo de implementación según los requerimientos de infraestructura.
-
-## Limitaciones y Consideraciones
-
-### Neutralidad Tecnológica
-
-Este proyecto se genera bajo estricta **neutralidad tecnológica**:
-
-1. **Sin Frameworks:** No utiliza Spring, JAX-RS, JPA, ni ningún framework
-2. **Sin Anotaciones:** Código Java puro (POJOs)
-3. **Sin Dependencias Externas:** Compila con JDK estándar
-4. **Sin Protocolo Definido:** Los adaptadores hacia MsData no especifican tecnología de conexión
-
-### Implementación de Producción
-
-Para llevar este código a producción, se requiere:
-
-1. **Configurar Framework Web** (ej. Spring Boot) para exponer los controllers como endpoints REST
-2. **Implementar Adaptadores de Salida** con tecnología específica (RestTemplate, WebClient, JMS, etc.)
-3. **Configurar Inyección de Dependencias** para conectar puertos y adaptadores
-4. **Añadir Manejo de Errores** y mapeo a códigos HTTP
-5. **Implementar Seguridad** (validación de JWT, autorización)
-6. **Configurar Logging y Trazabilidad**
-7. **Definir Build Tool** (Maven o Gradle) y dependencias
-
-### Compilación
-
-El código generado es compilable como Java puro sin dependencias externas:
-
-```bash
-# Compilación con javac (ejemplo)
-javac -d bin -sourcepath src/main/java src/main/java/pe/gob/reniec/coreog/validadordocumentos/**/*.java
-```
-
-## Casos de Uso Implementados
-
-Según el PDF, solo se implementan los siguientes casos de uso:
-
-1. **Calificar Documento** (`CalificarDocumentoUseCase`)
-2. **Verificar Firma del Registrador** (`VerificarFirmaRegistradorUseCase`)
-
-No se han creado casos de uso adicionales no documentados en el PDF.
-
-## Estructura del Proyecto
-
-```
-src/main/java/pe/gob/reniec/coreog/validadordocumentos/
-├── domain/
-│   ├── model/
-│   │   ├── AccionRecomendada.java
-│   │   ├── Alerta.java
-│   │   ├── DatosFirmaDigital.java
-│   │   ├── DatosRegistrador.java
-│   │   ├── Documento.java
-│   │   ├── DocumentoEvaluado.java
-│   │   ├── EvaluacionDocumento.java
-│   │   ├── FirmaDigital.java
-│   │   ├── Metricas.java
-│   │   ├── Observacion.java
-│   │   ├── ParametrosValidacion.java
-│   │   ├── ParametrosValidacionFirma.java
-│   │   ├── Registrador.java
-│   │   ├── ResultadoGeneral.java
-│   │   ├── ResultadoVerificacion.java
-│   │   ├── SolicitudCalificacion.java
-│   │   ├── SolicitudVerificacionFirma.java
-│   │   ├── TipoObservacion.java
-│   │   └── VerificacionFirma.java
-│   └── ports/
-│       ├── in/
-│       │   ├── CalificarDocumentoUseCase.java
-│       │   └── VerificarFirmaRegistradorUseCase.java
-│       └── out/
-│           ├── CalificacionDocumentoDataPort.java
-│           └── VerificacionFirmaDataPort.java
-├── application/
-│   └── service/
-│       ├── CalificarDocumentoService.java
-│       └── VerificarFirmaRegistradorService.java
-└── infrastructure/
-    └── adapters/
-        ├── in/
-        │   └── rest/
-        │       ├── controller/
-        │       │   └── ValidadorDocumentosController.java
-        │       ├── dto/
-        │       │   ├── AccionRecomendadaDto.java
-        │       │   ├── AlertaDto.java
-        │       │   ├── CalificarDocumentoRequestDto.java
-        │       │   ├── CalificarDocumentoResponseDto.java
-        │       │   ├── DatosFirmaDigitalDto.java
-        │       │   ├── DatosRegistradorDto.java
-        │       │   ├── DetalleErrorDto.java
-        │       │   ├── DocumentoDto.java
-        │       │   ├── DocumentoEvaluadoDto.java
-        │       │   ├── ErrorDto.java
-        │       │   ├── EvaluacionDataDto.java
-        │       │   ├── FirmaDigitalDto.java
-        │       │   ├── MetadataDto.java
-        │       │   ├── MetricasDto.java
-        │       │   ├── ObservacionDto.java
-        │       │   ├── ParametrosValidacionDto.java
-        │       │   ├── ParametrosValidacionFirmaDto.java
-        │       │   ├── RegistradorDto.java
-        │       │   ├── ResultadoGeneralDto.java
-        │       │   ├── ResultadoVerificacionDto.java
-        │       │   ├── TipoObservacionDto.java
-        │       │   ├── VerificarFirmaRequestDto.java
-        │       │   ├── VerificarFirmaResponseDto.java
-        │       │   └── VerificacionDataDto.java
-        │       └── mapper/
-        │           ├── CalificarDocumentoDtoMapper.java
-        │           └── VerificarFirmaDtoMapper.java
-        └── out/
-            └── msdata/
-                └── client/
-                    ├── CalificacionDocumentoDataAdapter.java
-                    └── VerificacionFirmaDataAdapter.java
-```
-
-## Contacto y Soporte
-
-**Organismo:** Registro Nacional de Identificación y Estado Civil (RENIEC)  
-**Sistema:** SIIRC - Sistema Integral de Identificación y Registro Civil  
-**Módulo:** Gestión de Seguridad Electrónica - DNIe
+| Código | Descripción |
+|--------|-------------|
+| 200    | Verificación realizada exitosamente |
+| 400    | Parámetros inválidos o documento no encontrado en gestor documental |
+| 401    | Token JWT inválido o expirado |
+| 403    | Usuario sin permisos para solicitar verificación de firma |
+| 404    | Documento no localizado en gestor documental o registrador no encontrado en BD |
+| 408    | Timeout al intentar obtener documento del gestor documental |
+| 422    | Documento en formato no soportado o no contiene firma/sello extraíble |
+| 429    | Límite de rate limit excedido |
+| 500    | Error interno del servicio de verificación |
+| 502    | Error al comunicarse con el gestor documental, BD de Registradores o servicio de IA |
+| 503    | Servicio de inferencia de IA temporalmente no disponible - Circuit Breaker activado |
+| 504    | Timeout en servicio de inferencia de IA - tiempo de procesamiento excedido |
 
 ---
 
-**Nota:** Este proyecto fue generado automáticamente siguiendo las especificaciones del documento "Microservicio MsCoreogValidadorDocumentos v1.1.pdf" bajo estrictos principios de Domain-Driven Design y Arquitectura Hexagonal sin dependencias tecnológicas.
+## Entidades del Dominio
+
+### 1. Documento
+**Descripción**: Representa un documento digital que será validado por el sistema.
+
+**Atributos**:
+- `documentoId`: String (UUID)
+- `tipoDocumental`: String
+- `nombreArchivo`: String
+- `rutaGestorDocumental`: String (URI)
+- `hashSHA256`: String (64 caracteres)
+- `formatoDocumento`: String
+- `tamanioBytes`: Long
+- `requiereValidacionIA`: Boolean
+
+### 2. Evaluacion (Aggregate Root)
+**Descripción**: Representa el resultado de la evaluación de documentos con IA.
+
+**Atributos principales**:
+- `evaluacionId`: String (UUID)
+- `solicitudId`: String (UUID)
+- `tramiteId`: String
+- `fechaEvaluacion`: LocalDateTime
+- `modeloIAUtilizado`: String
+- `tiempoProcesamientoMs`: Long
+- `resultadoGeneral`: ResultadoGeneral
+- `documentosEvaluados`: List<DocumentoEvaluado>
+- `accionesRecomendadas`: List<AccionRecomendada>
+
+**Objetos de valor anidados**:
+- `ResultadoGeneral`: estado, scorePromedio, nivelRiesgo, alertaFraude, requiereRevisionManual, observacionesGenerales
+- `DocumentoEvaluado`: documentoId, tipoDocumental, estadoEvaluacion, scoreConfiabilidad, nivelRiesgo, alertaFraude, observaciones, metricas
+- `Observacion`: codigo, descripcion, severidad, evidencias
+- `Metricas`: calidadImagen, legibilidadTexto, integridadEstructura, confianzaOCR
+- `AccionRecomendada`: tipo, descripcion, prioridad
+
+### 3. Verificacion (Aggregate Root)
+**Descripción**: Representa el resultado de la verificación de firma y sello del registrador.
+
+**Atributos principales**:
+- `verificacionId`: String (UUID)
+- `solicitudId`: String (UUID)
+- `tramiteId`: String
+- `documentoId`: String (UUID)
+- `fechaVerificacion`: LocalDateTime
+- `modeloIAUtilizado`: String
+- `tiempoProcesamientoMs`: Long
+- `resultadoGeneral`: ResultadoGeneral
+- `verificacionFirma`: VerificacionFirma
+- `verificacionSello`: VerificacionSello
+- `verificacionPeriodo`: VerificacionPeriodo
+- `datosRegistradorVerificado`: DatosRegistrador
+- `alertas`: List<Alerta>
+- `accionesRecomendadas`: List<AccionRecomendada>
+
+**Objetos de valor anidados**:
+- `ResultadoGeneral`: estadoVerificacion, firmaValida, selloValido, periodoValido, requiereRevisionManual, observacionesGenerales
+- `VerificacionFirma`: estadoFirma, scoreSimilitud, nivelConfianza, firmaEncontradaEnBD, imagenFirmaDocumento, imagenFirmaReferencia, metricas
+- `VerificacionSello`: estadoSello, scoreSimilitud, nivelConfianza, selloEncontradoEnBD, imagenSelloDocumento, imagenSelloReferencia, metricas
+- `VerificacionPeriodo`: estadoPeriodo, registradorEncontrado, registradorHabilitado, fechaInscripcionActa, periodoHabilitacion, estadoRegistrador
+- `Alerta`: codigo, tipo, descripcion, severidad
+
+### 4. Registrador
+**Descripción**: Representa los datos de un registrador civil.
+
+**Atributos**:
+- `numeroDniRegistrador`: String (8 caracteres)
+- `idUsuario`: String
+- `primerApellido`: String
+- `segundoApellido`: String
+- `prenombres`: String
+- `codigoLocal`: String (6 caracteres)
+
+---
+
+## Mapeo de Tipos de Datos
+
+### Reglas de Conversión (Especificación PDF → Java)
+
+| Tipo en PDF | Tipo Java | Descripción |
+|-------------|-----------|-------------|
+| `string` | `String` | Cadenas de texto |
+| `integer` / `int` | `Long` | Números enteros (se usa Long por seguridad) |
+| `number` / `decimal` / `double` | `Double` | Números decimales |
+| `boolean` | `Boolean` | Valores booleanos |
+| `date` | `LocalDate` | Fechas sin hora |
+| `datetime` / `timestamp` / `YYYY-MM-DDThh:mm:ssZ` | `LocalDateTime` | Fechas con hora (ISO 8601) |
+| `array` / `list` | `List<T>` | Listas de elementos |
+| `UUID` | `String` | Identificadores únicos (representados como String) |
+| `Base64` | `String` | Imágenes codificadas en Base64 |
+| `URI` | `String` | URLs y rutas |
+
+### Notas sobre el Mapeo
+- **Fechas**: Se utiliza `LocalDateTime` de Java 8+ para representar fechas en formato ISO 8601.
+- **UUIDs**: Representados como `String` por simplicidad, sin dependencia de librerías UUID.
+- **Números**: Se prefiere `Long` sobre `Integer` y `Double` sobre `Float` para mayor precisión.
+- **Imágenes**: Representadas como `String` en Base64 según especificación del PDF.
+
+---
+
+## Puertos de Salida (Integraciones)
+
+### Hacia Microservicios de Datos (MsData)
+
+#### 1. EvaluacionDataPort
+**Propósito**: Comunicación con MsDataValidadorDocumentos para persistir evaluaciones.
+
+**Operaciones**:
+- `guardarEvaluacion(Evaluacion)`: Guarda una evaluación
+- `consultarEvaluacionPorId(String)`: Consulta evaluación por ID
+- `consultarEvaluacionesPorSolicitud(String)`: Consulta evaluaciones de una solicitud
+
+#### 2. VerificacionDataPort
+**Propósito**: Comunicación con MsDataValidadorDocumentos para persistir verificaciones.
+
+**Operaciones**:
+- `guardarVerificacion(Verificacion)`: Guarda una verificación
+- `consultarVerificacionPorId(String)`: Consulta verificación por ID
+- `consultarVerificacionesPorSolicitud(String)`: Consulta verificaciones de una solicitud
+
+#### 3. RegistradorDataPort
+**Propósito**: Comunicación con MsDataRegistradores para consultar información de registradores.
+
+**Operaciones**:
+- `consultarRegistradorPorDni(String)`: Consulta registrador por DNI
+- `consultarFirmaReferencia(String)`: Obtiene firma de referencia
+- `consultarSelloReferencia(String)`: Obtiene sello de referencia
+- `verificarHabilitacionEnFecha(String, LocalDateTime, String)`: Verifica habilitación del registrador
+
+### Hacia Servicios Externos
+
+#### 4. GestorDocumentalPort
+**Propósito**: Comunicación con el sistema de gestión documental.
+
+**Operaciones**:
+- `obtenerDocumento(String)`: Obtiene contenido del documento
+- `verificarIntegridadDocumento(String, String)`: Verifica hash SHA256
+- `existeDocumento(String)`: Verifica existencia del documento
+
+#### 5. ServicioIAPort
+**Propósito**: Comunicación con el servicio de inteligencia artificial.
+
+**Operaciones**:
+- `evaluarDocumentos(SolicitudEvaluacionIA)`: Evalúa documentos con IA
+- `compararFirma(String, String, Double)`: Compara firmas
+- `compararSello(String, String, Double)`: Compara sellos
+- `extraerFirma(byte[])`: Extrae firma de un documento
+- `extraerSello(byte[])`: Extrae sello de un documento
+
+---
+
+## Limitaciones y Aclaraciones
+
+### Neutralidad Tecnológica
+Este proyecto está diseñado siguiendo estricta **neutralidad tecnológica**:
+
+1. **Sin Frameworks**: No se utilizan Spring, JAX-RS, JPA, MapStruct, ni ningún framework.
+2. **Sin Anotaciones**: Todo el código es POJO puro de Java.
+3. **Sin Protocolo Definido**: Los adaptadores hacia servicios externos no especifican HTTP, SOAP, colas u otros protocolos.
+4. **Compilable como Java Puro**: El código compila sin dependencias externas.
+
+### Tipo de Microservicio: MsDominio
+
+**Características clave**:
+- ✅ Define **puertos de salida** hacia MsData (EvaluacionDataPort, VerificacionDataPort, RegistradorDataPort)
+- ❌ **NO define RepositoryPort** (no tiene responsabilidad de persistencia directa)
+- ✅ Implementa **lógica de negocio** de validación y evaluación de documentos
+- ✅ Los **adaptadores no definen tecnología** (implementación a completar según stack técnico)
+
+### Estado de Implementación
+
+Este proyecto contiene la **estructura completa** de Arquitectura Hexagonal con:
+
+- ✅ **Dominio**: Entidades, objetos de valor, puertos de entrada y salida
+- ✅ **Aplicación**: Servicios de aplicación (casos de uso)
+- ✅ **Infraestructura**: Controladores REST, DTOs, mappers y adaptadores
+
+**Pendientes de implementación**:
+- Lógica de negocio completa en los servicios de aplicación
+- Conversión completa en los mappers (DTO ↔ Dominio)
+- Implementación de adaptadores de salida (conexión real con MsData y servicios externos)
+- Manejo de excepciones y validaciones
+- Configuración de infraestructura (sin pom.xml ni build por neutralidad tecnológica)
+
+### Endpoints Implementados
+
+Según el PDF de especificación, este microservicio implementa **únicamente 2 endpoints**:
+1. Calificar Documento
+2. Verificar Firma del Registrador
+
+**No se han agregado operaciones adicionales** que no estén documentadas en el PDF (sin inferencias).
+
+### Códigos HTTP Estándar
+
+Todos los endpoints implementan el conjunto estandarizado de códigos de respuesta HTTP:
+
+| Código | Descripción |
+|--------|-------------|
+| 200    | OK - Operación completada exitosamente |
+| 201    | Created - Recurso creado exitosamente |
+| 400    | Bad Request - Parámetros inválidos o datos incompletos |
+| 401    | Unauthorized - Token JWT inválido, expirado o ausente |
+| 403    | Forbidden - Sin permisos suficientes |
+| 404    | Not Found - Recurso no encontrado |
+| 408    | Request Timeout - Tiempo de espera agotado |
+| 409    | Conflict - Conflicto con el estado actual del recurso |
+| 422    | Unprocessable Entity - Datos válidos pero no procesables |
+| 429    | Too Many Requests - Límite de rate limit excedido |
+| 500    | Internal Server Error - Error interno del servicio |
+| 502    | Bad Gateway - Servicio externo no disponible |
+| 503    | Service Unavailable - Servicio temporalmente no disponible |
+| 504    | Gateway Timeout - Servicio externo no respondió a tiempo |
+
+---
+
+## Patrones y Prácticas Implementadas
+
+### Patrones de Arquitectura
+- **Arquitectura Hexagonal (Ports & Adapters)**: Separación estricta entre dominio, aplicación e infraestructura
+- **Domain-Driven Design (DDD)**: Aggregate Roots (Evaluacion, Verificacion), Entidades, Objetos de Valor
+- **Dependency Inversion**: El dominio no depende de la infraestructura; todo mediante interfaces (puertos)
+
+### Patrones de Diseño Mencionados (para implementación futura)
+- **Circuit Breaker**: Para resiliencia en llamadas a servicios de IA (status 503)
+- **Retry**: Para tolerancia a fallos en integraciones externas
+- **Rate Limiting**: Control de límites de peticiones (status 429)
+- **Distributed Tracing**: Trazabilidad mediante X-Correlation-Id
+
+---
+
+## Próximos Pasos
+
+Para completar la implementación del microservicio, se recomienda:
+
+1. **Implementar lógica de negocio** en los servicios de aplicación (`CalificarDocumentoService`, `VerificarFirmaRegistradorService`)
+2. **Completar mappers** para conversión entre DTOs y objetos de dominio
+3. **Implementar adaptadores de salida** con la tecnología elegida (HTTP REST, gRPC, etc.)
+4. **Agregar validaciones** de entrada en los casos de uso
+5. **Implementar manejo de excepciones** y conversión a códigos HTTP apropiados
+6. **Agregar configuración de build** (Maven/Gradle) según la tecnología elegida
+7. **Implementar pruebas unitarias e integración** para cada capa
+8. **Configurar observabilidad** (logging, métricas, tracing)
+9. **Implementar seguridad** (validación JWT, autorización por roles)
+
+---
+
+## Información de Contacto
+
+**Organización**: RENIEC - Registro Nacional de Identificación y Estado Civil  
+**Sistema**: SIIRC - Sistema Integrado de Identificación y Registro Civil  
+**Versión del Documento**: 1.0  
+**Fecha**: 02/12/2025
+
+---
+
+## Licencia
+
+Este proyecto es propiedad de RENIEC y está destinado para uso interno de la institución en el contexto de la modernización y transformación digital del Estado peruano.

@@ -1,77 +1,76 @@
 package pe.gob.reniec.coreog.validadordocumentos.domain.model;
 
-import java.time.LocalDate;
-
 /**
- * Entidad de dominio que representa un registrador civil
+ * Entidad de dominio: Registrador
+ * Representa los datos de un registrador civil
  */
 public class Registrador {
-    private String codigoRegistrador;
-    private String nombreRegistrador;
-    private String documentoIdentidad;
-    private String oficinaRegistral;
-    private LocalDate periodoInicio;
-    private LocalDate periodoFin;
-
+    
+    private String numeroDniRegistrador;
+    private String idUsuario;
+    private String primerApellido;
+    private String segundoApellido;
+    private String prenombres;
+    private String codigoLocal;
+    
     public Registrador() {
     }
-
-    public Registrador(String codigoRegistrador, String nombreRegistrador, 
-                       String documentoIdentidad, String oficinaRegistral, 
-                       LocalDate periodoInicio, LocalDate periodoFin) {
-        this.codigoRegistrador = codigoRegistrador;
-        this.nombreRegistrador = nombreRegistrador;
-        this.documentoIdentidad = documentoIdentidad;
-        this.oficinaRegistral = oficinaRegistral;
-        this.periodoInicio = periodoInicio;
-        this.periodoFin = periodoFin;
+    
+    public Registrador(String numeroDniRegistrador, String idUsuario, String primerApellido, 
+                       String segundoApellido, String prenombres, String codigoLocal) {
+        this.numeroDniRegistrador = numeroDniRegistrador;
+        this.idUsuario = idUsuario;
+        this.primerApellido = primerApellido;
+        this.segundoApellido = segundoApellido;
+        this.prenombres = prenombres;
+        this.codigoLocal = codigoLocal;
     }
-
-    public String getCodigoRegistrador() {
-        return codigoRegistrador;
+    
+    public String getNumeroDniRegistrador() {
+        return numeroDniRegistrador;
     }
-
-    public void setCodigoRegistrador(String codigoRegistrador) {
-        this.codigoRegistrador = codigoRegistrador;
+    
+    public void setNumeroDniRegistrador(String numeroDniRegistrador) {
+        this.numeroDniRegistrador = numeroDniRegistrador;
     }
-
-    public String getNombreRegistrador() {
-        return nombreRegistrador;
+    
+    public String getIdUsuario() {
+        return idUsuario;
     }
-
-    public void setNombreRegistrador(String nombreRegistrador) {
-        this.nombreRegistrador = nombreRegistrador;
+    
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
     }
-
-    public String getDocumentoIdentidad() {
-        return documentoIdentidad;
+    
+    public String getPrimerApellido() {
+        return primerApellido;
     }
-
-    public void setDocumentoIdentidad(String documentoIdentidad) {
-        this.documentoIdentidad = documentoIdentidad;
+    
+    public void setPrimerApellido(String primerApellido) {
+        this.primerApellido = primerApellido;
     }
-
-    public String getOficinaRegistral() {
-        return oficinaRegistral;
+    
+    public String getSegundoApellido() {
+        return segundoApellido;
     }
-
-    public void setOficinaRegistral(String oficinaRegistral) {
-        this.oficinaRegistral = oficinaRegistral;
+    
+    public void setSegundoApellido(String segundoApellido) {
+        this.segundoApellido = segundoApellido;
     }
-
-    public LocalDate getPeriodoInicio() {
-        return periodoInicio;
+    
+    public String getPrenombres() {
+        return prenombres;
     }
-
-    public void setPeriodoInicio(LocalDate periodoInicio) {
-        this.periodoInicio = periodoInicio;
+    
+    public void setPrenombres(String prenombres) {
+        this.prenombres = prenombres;
     }
-
-    public LocalDate getPeriodoFin() {
-        return periodoFin;
+    
+    public String getCodigoLocal() {
+        return codigoLocal;
     }
-
-    public void setPeriodoFin(LocalDate periodoFin) {
-        this.periodoFin = periodoFin;
+    
+    public void setCodigoLocal(String codigoLocal) {
+        this.codigoLocal = codigoLocal;
     }
 }

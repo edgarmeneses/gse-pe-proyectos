@@ -1,41 +1,35 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * DTO Response: Listar Documentos
  */
 public class ListarDocumentosResponseDto {
-    private final PaginaDto page;
-    private final List<DocumentoItemDto> content;
+    private PaginaDto page;
+    private List<DocumentoItemDto> content;
+
+    public ListarDocumentosResponseDto() {
+    }
 
     public ListarDocumentosResponseDto(PaginaDto page, List<DocumentoItemDto> content) {
         this.page = page;
         this.content = content;
     }
 
-    public PaginaDto page() { return page; }
-    public List<DocumentoItemDto> content() { return content; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ListarDocumentosResponseDto that = (ListarDocumentosResponseDto) o;
-        return Objects.equals(page, that.page) && Objects.equals(content, that.content);
+    public PaginaDto getPage() {
+        return page;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(page, content);
+    public void setPage(PaginaDto page) {
+        this.page = page;
     }
 
-    @Override
-    public String toString() {
-        return "ListarDocumentosResponseDto{" +
-                "page=" + page +
-                ", content=" + content +
-                '}';
+    public List<DocumentoItemDto> getContent() {
+        return content;
+    }
+
+    public void setContent(List<DocumentoItemDto> content) {
+        this.content = content;
     }
 }

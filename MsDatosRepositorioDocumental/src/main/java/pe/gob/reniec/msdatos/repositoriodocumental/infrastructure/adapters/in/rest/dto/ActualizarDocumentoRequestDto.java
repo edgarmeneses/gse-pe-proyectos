@@ -1,16 +1,18 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * DTO Request: Actualizar Documento
  */
 public class ActualizarDocumentoRequestDto {
-    private final String archivoBase64;
-    private final String carpetaId;
-    private final Map<String, Object> metadata;
-    private final String estadoDocumento;
+    private String archivoBase64;
+    private String carpetaId;
+    private Map<String, Object> metadata;
+    private String estadoDocumento;
+
+    public ActualizarDocumentoRequestDto() {
+    }
 
     public ActualizarDocumentoRequestDto(String archivoBase64, String carpetaId, Map<String, Object> metadata, String estadoDocumento) {
         this.archivoBase64 = archivoBase64;
@@ -19,31 +21,35 @@ public class ActualizarDocumentoRequestDto {
         this.estadoDocumento = estadoDocumento;
     }
 
-    public String archivoBase64() { return archivoBase64; }
-    public String carpetaId() { return carpetaId; }
-    public Map<String, Object> metadata() { return metadata; }
-    public String estadoDocumento() { return estadoDocumento; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ActualizarDocumentoRequestDto that = (ActualizarDocumentoRequestDto) o;
-        return Objects.equals(archivoBase64, that.archivoBase64) && Objects.equals(carpetaId, that.carpetaId) && Objects.equals(metadata, that.metadata) && Objects.equals(estadoDocumento, that.estadoDocumento);
+    public String getArchivoBase64() {
+        return archivoBase64;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(archivoBase64, carpetaId, metadata, estadoDocumento);
+    public void setArchivoBase64(String archivoBase64) {
+        this.archivoBase64 = archivoBase64;
     }
 
-    @Override
-    public String toString() {
-        return "ActualizarDocumentoRequestDto{" +
-                "archivoBase64='" + archivoBase64 + '\'' +
-                ", carpetaId='" + carpetaId + '\'' +
-                ", metadata=" + metadata +
-                ", estadoDocumento='" + estadoDocumento + '\'' +
-                '}';
+    public String getCarpetaId() {
+        return carpetaId;
+    }
+
+    public void setCarpetaId(String carpetaId) {
+        this.carpetaId = carpetaId;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getEstadoDocumento() {
+        return estadoDocumento;
+    }
+
+    public void setEstadoDocumento(String estadoDocumento) {
+        this.estadoDocumento = estadoDocumento;
     }
 }
