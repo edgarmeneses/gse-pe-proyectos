@@ -27,6 +27,7 @@ Reglas Globales (sin tecnología)
 - Por regla general, los proyectos deben seguir la estructura y convenciones de carpetas definida abajo.
 - los Dtos manejalos como records de java
 - Trata de inferir el tipo de dato mas adecuado por ejemplo si son fechas o el string trae un formato tipo fecha usa LocalDateTime, si son valores enteros de acuerdo al tipo define cual es la mejor opcion si un int o un long
+- Pon mucha atencion al dominio si buen este esta basado en lod Dtos de entrada y de salida gener las clases que permitan representar el modelo de dominio de maenra correcta por ejemplo temas de paginacion o cosas por el estilo.
 
 Identificación del Tipo de Microservicio
 - Si el nombre o contexto indica “MsDominio…”, trátalo como microservicio de dominio:

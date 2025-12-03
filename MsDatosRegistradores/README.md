@@ -1,78 +1,91 @@
-# Microservicio MsDatosRegistradores
+# MsDatosRegistradores
 
-## Resumen
+## Resumen del Microservicio
 
 **Nombre:** MsDatosRegistradores  
 **Tipo:** MsData (Microservicio de Datos)  
-**Contexto:** Sistema Integrado de Identificación y Registro Civil (SIIRC) - RENIEC  
-**Versión API:** 1.0.0  
-**Paquete Base:** `pe.gob.reniec.msdatosregistradores`
+**Versión API:** v1.0  
+**Contexto de Negocio:** Gestión de Seguridad Electrónica - Personalización del DNIe de RENIEC  
+**Paquete Base:** `pe.gob.reniec.gse.registradores`
 
-## Descripción
+### Descripción
 
 El Microservicio Datos Registradores es un componente de persistencia y acceso a datos dedicado. Su propósito principal es interactuar de manera exclusiva con la Base de Datos de Registradores, actuando como el único intermediario para su administración. Se encarga de almacenar, recuperar y gestionar de forma segura toda la información operacional del registrador y sus elementos de autenticación.
 
-### Funciones Principales
-
-- **Operaciones CRUD sobre Registradores:** Realiza las operaciones básicas sobre la información de asignación y datos personales de los registradores.
-- **Almacenamiento de Elementos de Autenticación:** Persiste de forma segura las imágenes y hashes de la firma manuscrita y el sello oficial del registrador.
-- **Gestión de Periodos:** Administra los rangos de fechas en que un registrador estuvo activo en una oficina específica.
-- **Consulta por Trazabilidad:** Proporciona funciones de consulta para determinar la ubicación y el periodo exacto en el que un registrador específico estuvo activo.
+---
 
 ## Arquitectura
 
-Este microservicio sigue una **Arquitectura Hexagonal (Ports & Adapters)** estricta sin dependencias de frameworks ni tecnologías concretas.
+Este microservicio implementa **Arquitectura Hexagonal estricta** siguiendo los principios de Domain-Driven Design (DDD).
 
 ### Tipo de Microservicio: MsData
 
-Como microservicio de datos:
-- **Define RepositoryPort y RepositoryAdapter** para acceso a base de datos
-- **Define Entities** (POJOs sin anotaciones JPA)
-- **NO usa frameworks** (sin Spring, JAX-RS, JPA, etc.)
-- **Código Java puro** compilable sin dependencias externas
+Como microservicio de tipo **MsData**:
+
+- ✅ **Define `RepositoryPort`**: Interface en `domain.ports.out` que especifica operaciones de persistencia
+- ✅ **Define `RepositoryAdapter`**: Implementación del puerto en `infrastructure.adapters.out.persistence`
+- ✅ **Define `Entities`**: POJOs de persistencia sin anotaciones JPA en `infrastructure.adapters.out.persistence.entity`
+- ❌ **NO se integra con otro MsData**: Es un componente de datos independiente
 
 ### Estructura del Proyecto
 
 ```
-src/main/java/pe/gob/reniec/msdatosregistradores/
+src/main/java/pe/gob/reniec/gse/registradores/
 ├── domain/
-│   ├── model/                      # Aggregate Root y Value Objects
-│   │   ├── Registrador.java
-│   │   ├── AsignacionActual.java
-│   │   ├── Firma.java
-│   │   ├── Sello.java
-│   │   ├── Periodo.java
-│   │   ├── Auditoria.java
-│   │   └── Paginacion.java
+│   ├── model/                          # Entidades de dominio y Value Objects
+│   │   ├── Registrador.java           # Aggregate Root
+│   │   ├── AsignacionActual.java      # Value Object
+│   │   ├── Firma.java                 # Value Object
+│   │   ├── Sello.java                 # Value Object
+│   │   ├── Periodo.java               # Entity
+│   │   ├── Auditoria.java             # Value Object
+│   │   ├── Paginacion.java            # Value Object
+│   │   ├── FiltroRegistrador.java     # Value Object
+│   │   └── ResultadoPaginado.java     # Value Object
 │   └── ports/
-│       ├── in/                     # Casos de uso (interfaces)
+│       ├── in/                         # Puertos de entrada (Use Cases)
 │       │   ├── CrearRegistradorUseCase.java
-│       │   ├── ConsultarRegistradorUseCase.java
-│       │   └── ListarRegistradoresUseCase.java
-│       └── out/                    # Puerto de salida
+│       │   ├── ListarRegistradoresUseCase.java
+│       │   └── ConsultarRegistradorUseCase.java
+│       └── out/                        # Puertos de salida
 │           └── RegistradorRepositoryPort.java
+│
 ├── application/
-│   └── service/                    # Implementación de casos de uso
+│   └── service/                        # Servicios de aplicación
 │       ├── CrearRegistradorService.java
-│       ├── ConsultarRegistradorService.java
-│       └── ListarRegistradoresService.java
+│       ├── ListarRegistradoresService.java
+│       └── ConsultarRegistradorService.java
+│
 └── infrastructure/
     └── adapters/
         ├── in/
         │   └── rest/
         │       ├── controller/
         │       │   └── RegistradorController.java
-        │       ├── dto/            # Records Java (request/response)
-        │       │   ├── RegistradorRequestDto.java
+        │       ├── dto/                # Records de Java (DTOs)
+        │       │   ├── CrearRegistradorRequestDto.java
         │       │   ├── RegistradorResponseDto.java
-        │       │   ├── ListarRegistradoresResponseDto.java
+        │       │   ├── ListaRegistradoresResponseDto.java
+        │       │   ├── RegistradorListadoDto.java
         │       │   ├── RegistradorDetalleResponseDto.java
-        │       │   └── ... (DTOs auxiliares)
+        │       │   ├── AsignacionActualDto.java
+        │       │   ├── FirmaDto.java
+        │       │   ├── SelloDto.java
+        │       │   ├── PeriodoDto.java
+        │       │   ├── AuditoriaDto.java
+        │       │   ├── LinksDto.java
+        │       │   ├── LinksDetalleDto.java
+        │       │   ├── PaginacionDto.java
+        │       │   ├── MetadataDto.java
+        │       │   ├── ApiResponseDto.java
+        │       │   ├── ErrorResponseDto.java
+        │       │   ├── ErrorDto.java
+        │       │   └── ErrorDetalleDto.java
         │       └── mapper/
         │           └── RegistradorDtoMapper.java
         └── out/
             └── persistence/
-                ├── entity/
+                ├── entity/             # Entidades de persistencia (POJOs)
                 │   ├── RegistradorEntity.java
                 │   └── PeriodoEntity.java
                 ├── mapper/
@@ -80,25 +93,29 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
                 └── RegistradorRepositoryAdapter.java
 ```
 
+---
+
 ## Endpoints
 
 ### 1. Crear Registrador
 
-**Operación:** Crear  
-**Método HTTP:** POST  
-**Path:** `/api/v1/registradores/MsDatosRegistradores`  
-**API Gateway:** Interno  
-**Protocolo:** REST/HTTP
+**POST** `/api/v1/registradores/MsDatosRegistradores`
+
+Crea un nuevo registrador civil en el sistema.
 
 #### Headers
-- `Authorization`: String (Bearer token JWT para autenticación)
-- `Content-Type`: String ("application/json")
-- `X-Correlation-ID`: UUID (Identificador único de correlación)
-- `X-Office-Code`: String (Código de oficina)
-- `X-User-Role`: String (Rol: ADMINISTRADOR_REGISTRADORES)
-- `X-Idempotency-Key`: UUID (Clave para evitar creaciones duplicadas)
+
+| Header | Tipo | Obligatorio | Descripción |
+|--------|------|-------------|-------------|
+| Authorization | String | Sí | Bearer token JWT para autenticación |
+| Content-Type | String | Sí | application/json |
+| X-Correlation-ID | UUID | Sí | Identificador único de correlación para trazabilidad |
+| X-Office-Code | String | Sí | Código de oficina desde donde se realiza la operación |
+| X-User-Role | String | Sí | Rol del usuario (ADMINISTRADOR_REGISTRADORES) |
+| X-Idempotency-Key | UUID | Sí | Clave para evitar creaciones duplicadas |
 
 #### Request Body
+
 ```json
 {
   "idRegistrador": "string",
@@ -112,7 +129,8 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
 }
 ```
 
-#### Response Body
+#### Response (201 Created)
+
 ```json
 {
   "success": true,
@@ -122,9 +140,9 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
     "nombreCompleto": "string",
     "codigoLocal": "string",
     "descripcionLocal": "string",
-    "codigoEstadoRegistrador": "01",
-    "descripcionEstado": "REGISTRADOR ACTIVO",
-    "fechaRegistro": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "codigoEstadoRegistrador": "string",
+    "descripcionEstado": "string",
+    "fechaRegistro": "YYYY-MM-DDThh:mm:ssZ",
     "usuarioRegistro": "string",
     "_links": {
       "self": "string",
@@ -135,61 +153,55 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
     }
   },
   "metadata": {
-    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "timestamp": "YYYY-MM-DDThh:mm:ssZ",
     "correlationId": "string",
-    "version": "1.0.0"
-  },
-  "error": {
-    "tipo": "string",
-    "titulo": "string",
-    "estado": "integer",
-    "errores": [
-      {
-        "detalleError": "string"
-      }
-    ]
+    "version": "string"
   }
 }
 ```
 
 #### Status Codes
-| Código | Respuesta | Descripción |
-|--------|-----------|-------------|
-| 201 | Created | Registrador creado exitosamente |
-| 400 | Bad Request | Datos inválidos o incompletos |
-| 401 | Unauthorized | Token JWT inválido o expirado |
-| 403 | Forbidden | Usuario sin permisos para crear registradores |
-| 409 | Conflict | Ya existe un registrador con ese DNI/ID |
-| 422 | Unprocessable Entity | Datos válidos pero lógica de negocio no permite procesarlos |
-| 500 | Internal Server Error | Error interno del servidor |
+
+| Código | Descripción |
+|--------|-------------|
+| 201 | Created - Registrador creado exitosamente |
+| 400 | Bad Request - Datos inválidos o incompletos |
+| 401 | Unauthorized - Token JWT inválido o expirado |
+| 403 | Forbidden - Usuario sin permisos para crear registradores |
+| 409 | Conflict - Ya existe un registrador con ese DNI/ID |
+| 422 | Unprocessable Entity - Datos válidos pero lógica de negocio no permite procesarlos |
+| 500 | Internal Server Error - Error interno del servidor |
 
 ---
 
 ### 2. Listar Registradores
 
-**Operación:** Listar  
-**Método HTTP:** GET  
-**Path:** `/api/v1/registradores/MsDatosRegistradores`  
-**API Gateway:** Interno  
-**Protocolo:** REST/HTTP
+**GET** `/api/v1/registradores/MsDatosRegistradores`
+
+Lista registradores con filtros opcionales y paginación.
 
 #### Headers
-- `Authorization`: String (Bearer token JWT)
-- `X-Correlation-ID`: UUID
-- `X-Office-Code`: String
-- `X-User-Role`: String
+
+| Header | Tipo | Obligatorio | Descripción |
+|--------|------|-------------|-------------|
+| Authorization | String | Sí | Bearer token JWT |
+| X-Correlation-ID | UUID | Sí | Identificador único de correlación |
+| X-Office-Code | String | Sí | Código de oficina |
+| X-User-Role | String | Sí | Rol del usuario |
 
 #### Query Parameters
+
 | Parámetro | Tipo | Obligatorio | Descripción |
 |-----------|------|-------------|-------------|
-| codigoLocal | String | No | Código de la oficina (6 caracteres) |
-| estado | String | No | Estado del registrador (2 caracteres) |
-| numeroDni | String | No | DNI del registrador (8 caracteres) |
-| nombreRegistrador | String | No | Nombre del registrador (máx 100 caracteres) |
-| pagina | Integer | No | Número de página (1-9999) |
-| registrosPorPagina | Integer | No | Registros por página (1-100) |
+| codigoLocal | String | No | Código del local utilizado como filtro |
+| estado | String | No | Estado aplicado como criterio de búsqueda |
+| numeroDni | String | No | Número de documento utilizado como filtro |
+| nombreRegistrador | String | No | Nombre del registrador asociado a la consulta |
+| pagina | Integer | No | Número de página para la paginación |
+| registrosPorPagina | Integer | No | Cantidad de registros por página (máximo 100) |
 
-#### Response Body
+#### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -206,9 +218,9 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
         "descripcionLocal": "string",
         "codigoEstadoRegistrador": "string",
         "descripcionEstado": "string",
-        "tieneFirmaRegistrada": true,
-        "tieneSellosRegistrado": true,
-        "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm",
+        "tieneFirmaRegistrada": "boolean",
+        "tieneSellosRegistrado": "boolean",
+        "fechaCreacion": "YYYY-MM-DDThh:mm:ssZ",
         "_links": {
           "self": "string",
           "firmas": "string",
@@ -218,62 +230,56 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
       }
     ],
     "paginacion": {
-      "totalRegistros": 150,
-      "totalPaginas": 8,
-      "paginaActual": 1,
-      "registrosPorPagina": 20,
-      "tieneAnterior": false,
-      "tieneSiguiente": true
+      "totalRegistros": "integer",
+      "totalPaginas": "integer",
+      "paginaActual": "integer",
+      "registrosPorPagina": "integer",
+      "tieneAnterior": "boolean",
+      "tieneSiguiente": "boolean"
     }
   },
   "metadata": {
-    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "timestamp": "YYYY-MM-DDThh:mm:ssZ",
     "correlationId": "string",
-    "version": "1.0.0"
-  },
-  "error": {
-    "tipo": "string",
-    "titulo": "string",
-    "estado": "integer",
-    "errores": [
-      {
-        "detalleError": "string"
-      }
-    ]
+    "version": "string"
   }
 }
 ```
 
 #### Status Codes
-| Código | Respuesta | Descripción |
-|--------|-----------|-------------|
-| 200 | OK | Lista de registradores recuperada exitosamente |
-| 400 | Bad Request | Parámetros de filtro inválidos |
-| 401 | Unauthorized | Token JWT inválido o expirado |
-| 403 | Forbidden | Usuario sin permisos para consultar |
-| 500 | Internal Server Error | Error interno del servidor |
+
+| Código | Descripción |
+|--------|-------------|
+| 200 | OK - Lista de registradores consultada exitosamente |
+| 400 | Bad Request - Parámetros de filtro inválidos |
+| 401 | Unauthorized - Token JWT inválido o expirado |
+| 403 | Forbidden - Usuario sin permisos para consultar |
+| 500 | Internal Server Error - Error interno del servidor |
 
 ---
 
 ### 3. Consultar Registrador Específico
 
-**Operación:** Consultar  
-**Método HTTP:** GET  
-**Path:** `/api/v1/registradores/MsDatosRegistradores/{idRegistrador}`  
-**API Gateway:** Interno  
-**Protocolo:** REST/HTTP
+**GET** `/api/v1/registradores/MsDatosRegistradores/{idRegistrador}`
+
+Obtiene la información detallada de un registrador específico.
 
 #### Headers
-- `Authorization`: String (Bearer token JWT)
-- `X-Correlation-ID`: UUID
-- `X-Office-Code`: String
+
+| Header | Tipo | Obligatorio | Descripción |
+|--------|------|-------------|-------------|
+| Authorization | String | Sí | Bearer token JWT |
+| X-Correlation-ID | UUID | Sí | Identificador único de correlación |
+| X-Office-Code | String | Sí | Código de oficina |
 
 #### Path Parameters
+
 | Parámetro | Tipo | Obligatorio | Descripción |
 |-----------|------|-------------|-------------|
-| idRegistrador | String | Sí | ID del registrador (1-8 caracteres) |
+| idRegistrador | String | Sí | Identificador del registrador (1-8 caracteres) |
 
-#### Response Body
+#### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -288,35 +294,35 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
     "asignacionActual": {
       "codigoLocal": "string",
       "descripcionLocal": "string",
-      "codigoEstadoRegistrador": "01",
-      "descripcionEstado": "REGISTRADOR ACTIVO",
-      "fechaAsignacion": "YYYY-MM-DDThh:mm:ss±hh:mm"
+      "codigoEstadoRegistrador": "string",
+      "descripcionEstado": "string",
+      "fechaAsignacion": "YYYY-MM-DDThh:mm:ssZ"
     },
     "firma": {
-      "tieneRegistrada": true,
+      "tieneRegistrada": "boolean",
       "hashFirma": "string",
-      "fechaUltimaActualizacion": "YYYY-MM-DDThh:mm:ss±hh:mm"
+      "fechaUltimaActualizacion": "YYYY-MM-DDThh:mm:ssZ"
     },
     "sello": {
-      "tieneRegistrado": true,
+      "tieneRegistrado": "boolean",
       "hashSello": "string",
-      "fechaUltimaActualizacion": "YYYY-MM-DDThh:mm:ss±hh:mm"
+      "fechaUltimaActualizacion": "YYYY-MM-DDThh:mm:ssZ"
     },
     "periodos": [
       {
         "idPeriodo": "string",
         "codigoLocal": "string",
         "descripcionLocal": "string",
-        "fechaInicio": "YYYY-MM-DD",
-        "fechaFin": "YYYY-MM-DD",
+        "fechaInicio": "YYYY-MM-DDThh:mm:ssZ",
+        "fechaFin": "YYYY-MM-DDThh:mm:ssZ",
         "estado": "string"
       }
     ],
     "auditoria": {
       "usuarioCreacion": "string",
-      "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm",
+      "fechaCreacion": "YYYY-MM-DDThh:mm:ssZ",
       "usuarioModificacion": "string",
-      "fechaModificacion": "YYYY-MM-DDThh:mm:ss±hh:mm"
+      "fechaModificacion": "YYYY-MM-DDThh:mm:ssZ"
     },
     "_links": {
       "self": "string",
@@ -329,10 +335,173 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
     }
   },
   "metadata": {
-    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "timestamp": "YYYY-MM-DDThh:mm:ssZ",
     "correlationId": "string",
-    "version": "1.0.0"
-  },
+    "version": "string"
+  }
+}
+```
+
+#### Status Codes
+
+| Código | Descripción |
+|--------|-------------|
+| 200 | OK - Registrador consultado exitosamente |
+| 400 | Bad Request - ID de registrador inválido |
+| 401 | Unauthorized - Token JWT inválido o expirado |
+| 403 | Forbidden - Usuario sin permisos para consultar |
+| 404 | Not Found - Registrador no encontrado |
+| 500 | Internal Server Error - Error interno del servidor |
+
+---
+
+## Modelo de Dominio
+
+### Entidades
+
+#### Registrador (Aggregate Root)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| idRegistrador | String | Identificador único del registrador (1-8 caracteres) |
+| numeroDni | String | DNI del registrador (8 caracteres) |
+| primerApellido | String | Primer apellido (1-128 caracteres) |
+| segundoApellido | String | Segundo apellido (opcional, 1-128 caracteres) |
+| prenombres | String | Nombres del registrador (1-160 caracteres) |
+| nombreCompleto | String | Nombre completo concatenado |
+| numeroImagen | String | Código o identificador de la imagen asociada |
+| codigoLocal | String | Código de la oficina asignada (6 caracteres) |
+| tipoRegistrador | String | Tipo de registrador (opcional, 2 caracteres) |
+| observaciones | String | Observaciones adicionales (opcional, 0-500 caracteres) |
+| codigoEstadoRegistrador | String | Código del estado actual |
+| asignacionActual | AsignacionActual | Información de asignación vigente |
+| firma | Firma | Información de la firma registrada |
+| sello | Sello | Información del sello registrado |
+| periodos | List\<Periodo\> | Lista de periodos de asignación |
+| auditoria | Auditoria | Información de auditoría |
+
+#### AsignacionActual (Value Object)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| codigoLocal | String | Código de la oficina |
+| descripcionLocal | String | Nombre de la oficina |
+| codigoEstadoRegistrador | String | Código del estado |
+| descripcionEstado | String | Descripción del estado |
+| fechaAsignacion | LocalDateTime | Fecha/hora de asignación |
+
+#### Firma (Value Object)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| tieneRegistrada | Boolean | Indica si tiene firma registrada |
+| hashFirma | String | Hash de la firma |
+| fechaUltimaActualizacion | LocalDateTime | Última actualización |
+
+#### Sello (Value Object)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| tieneRegistrado | Boolean | Indica si tiene sello registrado |
+| hashSello | String | Hash del sello |
+| fechaUltimaActualizacion | LocalDateTime | Última actualización |
+
+#### Periodo (Entity)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| idPeriodo | String | Identificador del periodo |
+| codigoLocal | String | Código de la oficina |
+| descripcionLocal | String | Descripción de la oficina |
+| fechaInicio | LocalDateTime | Fecha de inicio |
+| fechaFin | LocalDateTime | Fecha de fin |
+| estado | String | Estado del periodo |
+
+#### Auditoria (Value Object)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| usuarioCreacion | String | Usuario que creó el registro |
+| fechaCreacion | LocalDateTime | Fecha de creación |
+| usuarioModificacion | String | Usuario que modificó el registro |
+| fechaModificacion | LocalDateTime | Fecha de modificación |
+
+---
+
+## Mapeo de Tipos
+
+| Tipo en Especificación | Tipo Java |
+|------------------------|-----------|
+| string | String |
+| integer | Long |
+| boolean | Boolean |
+| datetime (YYYY-MM-DDThh:mm:ssZ) | LocalDateTime |
+| array/list | List\<T\> |
+
+---
+
+## Casos de Uso
+
+1. **CrearRegistradorUseCase**: Crear un nuevo registrador civil en el sistema
+2. **ListarRegistradoresUseCase**: Listar registradores con filtros opcionales y paginación
+3. **ConsultarRegistradorUseCase**: Obtener información detallada de un registrador específico
+
+---
+
+## Limitaciones y Consideraciones
+
+### Neutralidad Tecnológica
+
+- ✅ El código está implementado sin frameworks (Spring, JAX-RS, JPA, etc.)
+- ✅ Clases e interfaces son POJOs puros de Java
+- ✅ No hay anotaciones de tecnologías específicas
+- ✅ Los adaptadores tienen métodos stub que lanzan `UnsupportedOperationException`
+
+### No Implementado
+
+- ❌ **Operaciones de Actualización**: No están documentadas en la especificación PDF
+- ❌ **Operaciones de Eliminación**: No están documentadas en la especificación PDF
+- ❌ **Implementación de Persistencia**: Los métodos del `RegistradorRepositoryAdapter` requieren tecnología específica (JDBC, JPA, etc.)
+- ❌ **Protocolo de Conexión**: No se define cómo conectar con servicios externos
+
+### Para Implementación Real
+
+Para hacer funcional este microservicio se requiere:
+
+1. **Framework Web**: Spring Boot, Quarkus, Micronaut, etc.
+2. **Tecnología de Persistencia**: 
+   - JDBC puro con DataSource
+   - Spring Data JPA
+   - MyBatis
+   - jOOQ
+3. **Base de Datos**: PostgreSQL, Oracle, SQL Server, etc.
+4. **Seguridad**: Implementación de validación JWT
+5. **Manejo de Errores**: Exception handlers y respuestas de error estandarizadas
+6. **Logging**: SLF4J con Logback o Log4j2
+7. **Validaciones**: Bean Validation (JSR-380)
+
+---
+
+## Códigos de Respuesta HTTP Estándar
+
+| Código | Descripción |
+|--------|-------------|
+| 200 | OK - Operación completada exitosamente |
+| 201 | Created - Recurso creado exitosamente |
+| 400 | Bad Request - Parámetros inválidos o datos incompletos |
+| 401 | Unauthorized - Token JWT inválido, expirado o ausente |
+| 403 | Forbidden - Sin permisos suficientes para ejecutar la operación |
+| 404 | Not Found - Recurso no encontrado en el sistema |
+| 409 | Conflict - Conflicto con el estado actual del recurso |
+| 422 | Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio |
+| 500 | Internal Server Error - Error interno del servicio |
+
+---
+
+## Estructura de Respuesta de Error
+
+```json
+{
   "error": {
     "tipo": "string",
     "titulo": "string",
@@ -346,171 +515,17 @@ src/main/java/pe/gob/reniec/msdatosregistradores/
 }
 ```
 
-#### Status Codes
-| Código | Respuesta | Descripción |
-|--------|-----------|-------------|
-| 200 | OK | Registrador encontrado exitosamente |
-| 400 | Bad Request | ID de registrador inválido |
-| 401 | Unauthorized | Token JWT inválido o expirado |
-| 403 | Forbidden | Usuario sin permisos para consultar |
-| 404 | Not Found | Registrador no encontrado |
-| 500 | Internal Server Error | Error interno del servidor |
+---
 
-## Entidades del Dominio
+## Documentos de Referencia
 
-### Registrador (Aggregate Root)
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| idRegistrador | String | Identificador único del registrador |
-| numeroDni | String | DNI del registrador |
-| primerApellido | String | Primer apellido |
-| segundoApellido | String | Segundo apellido (opcional) |
-| prenombres | String | Nombres del registrador |
-| nombreCompleto | String | Nombre completo concatenado |
-| numeroImagen | String | Código de imagen asociada (opcional) |
-| asignacionActual | AsignacionActual | Asignación vigente |
-| firma | Firma | Información de firma |
-| sello | Sello | Información de sello |
-| periodos | List\<Periodo\> | Lista de periodos |
-| auditoria | Auditoria | Información de auditoría |
+- **Especificación Original**: `Microservicio MsDatosRegistradores V1.0.pdf`
+- **Información Extraída**: `ESPECIFICACION_EXTRAIDA.md`
+- **Prompt de Generación**: `AGENT_PROMPT.md`
 
-### AsignacionActual
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| codigoLocal | String | Código de oficina |
-| descripcionLocal | String | Nombre de la oficina |
-| codigoEstadoRegistrador | String | Código de estado (01=Activo, 02=Baja) |
-| descripcionEstado | String | Descripción del estado |
-| fechaAsignacion | LocalDateTime | Fecha/hora de asignación |
+---
 
-### Firma
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| tieneRegistrada | Boolean | Indica si tiene firma registrada |
-| hashFirma | String | Hash de la firma (opcional) |
-| fechaUltimaActualizacion | LocalDateTime | Última actualización (opcional) |
+## Fecha de Generación
 
-### Sello
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| tieneRegistrado | Boolean | Indica si tiene sello registrado |
-| hashSello | String | Hash del sello (opcional) |
-| fechaUltimaActualizacion | LocalDateTime | Última actualización (opcional) |
-
-### Periodo
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| idPeriodo | String | Identificador del periodo |
-| codigoLocal | String | Código de oficina |
-| descripcionLocal | String | Descripción de la oficina |
-| fechaInicio | LocalDate | Fecha de inicio |
-| fechaFin | LocalDate | Fecha de fin |
-| estado | String | Estado del periodo |
-
-### Auditoria
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| usuarioCreacion | String | Usuario que creó el registro |
-| fechaCreacion | LocalDateTime | Fecha de creación |
-| usuarioModificacion | String | Usuario que modificó (opcional) |
-| fechaModificacion | LocalDateTime | Fecha de modificación (opcional) |
-
-### Paginacion
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| totalRegistros | Long | Total de registros encontrados |
-| totalPaginas | Long | Total de páginas disponibles |
-| paginaActual | Long | Número de página actual |
-| registrosPorPagina | Long | Registros por página |
-| tieneAnterior | Boolean | Indica si existe página anterior |
-| tieneSiguiente | Boolean | Indica si existe página siguiente |
-
-## Reglas de Mapeo de Tipos
-
-| Tipo en Especificación | Tipo Java |
-|------------------------|-----------|
-| string | String |
-| integer/int | Long |
-| number/decimal/double | Double |
-| boolean | Boolean |
-| date | LocalDate |
-| datetime/timestamp (ISO 8601) | LocalDateTime |
-| array/list | List\<T\> |
-
-## Códigos de Respuesta HTTP Estándar
-
-| Código | Descripción |
-|--------|-------------|
-| 200 | OK - Operación completada exitosamente |
-| 201 | Created - Recurso creado exitosamente |
-| 400 | Bad Request - Parámetros inválidos o datos incompletos |
-| 401 | Unauthorized - Token JWT inválido, expirado o ausente |
-| 403 | Forbidden - Sin permisos suficientes para ejecutar la operación |
-| 404 | Not Found - Recurso no encontrado en el sistema |
-| 408 | Request Timeout - Tiempo de espera agotado al conectar |
-| 409 | Conflict - Conflicto con el estado actual del recurso |
-| 422 | Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio |
-| 429 | Too Many Requests - Límite de rate limit excedido |
-| 500 | Internal Server Error - Error interno del servicio |
-| 502 | Bad Gateway - Servicio externo no disponible o respuesta inválida |
-| 503 | Service Unavailable - Servicio temporalmente no disponible |
-| 504 | Gateway Timeout - Servicio externo no respondió en tiempo esperado |
-
-## Limitaciones y Restricciones
-
-### Tecnológicas
-- **Sin Frameworks:** No se utilizan frameworks como Spring, JAX-RS, Hibernate, JPA, etc.
-- **Sin Anotaciones:** Las clases son POJOs puros sin anotaciones de frameworks
-- **Sin Dependencias Externas:** El código es Java puro compilable sin librerías adicionales
-- **Sin Protocolo Definido:** No se especifica cómo conectar con componentes externos
-- **Métodos Stub:** Los métodos de servicio lanzan `UnsupportedOperationException` como placeholder
-
-### Arquitectónicas
-- **MsData:** Como microservicio de datos, define RepositoryPort y RepositoryAdapter
-- **Sin Lógica de Negocio Compleja:** Actúa como capa de acceso a datos
-- **CRUD Básico:** Operaciones de creación, consulta y listado según especificación
-
-### Funcionales
-- **Solo Endpoints Documentados:** Se implementan únicamente los 3 endpoints del PDF
-- **Sin Operaciones Adicionales:** No se crean operaciones de actualización o eliminación (no están en el PDF)
-- **Sin Validaciones Implementadas:** Las validaciones deben agregarse en implementación futura
-
-## Notas de Implementación
-
-1. **Este es un proyecto base** que requiere implementación de:
-   - Lógica real en servicios y adapters
-   - Conexión a base de datos
-   - Validaciones de negocio
-   - Manejo de errores y excepciones
-   - Logging y trazabilidad
-   - Mappers completos entre capas
-
-2. **Tecnologías futuras sugeridas:**
-   - Framework: Spring Boot
-   - Persistencia: Spring Data JPA / MyBatis
-   - API REST: Spring Web
-   - Base de Datos: Oracle / PostgreSQL
-   - Seguridad: Spring Security + JWT
-   - Documentación: OpenAPI/Swagger
-
-3. **Patrón Hexagonal:**
-   - El dominio es independiente de la infraestructura
-   - Los puertos definen contratos
-   - Los adapters implementan la infraestructura
-   - Fácil testing y cambio de tecnologías
-
-## Compilación
-
-El proyecto actual contiene solo clases e interfaces Java puras, compilables con:
-
-```bash
-javac -d target/classes -sourcepath src/main/java src/main/java/**/*.java
-```
-
-No requiere herramientas de build como Maven o Gradle en su estado actual.
-
-## Autor
-
-**Proyecto generado automáticamente** siguiendo especificación del PDF "Microservicio MsDatosRegistradores.pdf" v1.0  
-**Organización:** RENIEC (Registro Nacional de Identificación y Estado Civil)  
-**Sistema:** SIIRC (Sistema Integrado de Identificación y Registro Civil)
+**Fecha:** 03 de diciembre de 2025  
+**Versión del Documento:** 1.0

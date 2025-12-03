@@ -1,9 +1,5 @@
 package pe.gob.reniec.siirc.msdatosgrafos.infrastructure.adapters.out.persistence.entity;
 
-/**
- * Entity para persistencia de Sustento
- * POJO sin anotaciones de framework
- */
 public class SustentoEntity {
     private String idActaSustento;
     private String idDocumentoSustento;

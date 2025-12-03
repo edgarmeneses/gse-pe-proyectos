@@ -1,30 +1,46 @@
 package pe.gob.reniec.siirc.msdatosgrafos.domain.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
- * Value Object que representa la vigencia de una relación de parentesco
+ * Value Object que representa el período de vigencia de un vínculo de parentesco.
  */
 public class Vigencia {
-    private final LocalDate fechaInicio;
-    private final LocalDate fechaFin;
-    private final Boolean esVigente;
+    private final LocalDateTime fechaInicio;
+    private final LocalDateTime fechaFin;
 
-    public Vigencia(LocalDate fechaInicio, LocalDate fechaFin, Boolean esVigente) {
+    public Vigencia(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
-        this.esVigente = esVigente;
     }
 
-    public LocalDate getFechaInicio() {
+    public LocalDateTime getFechaInicio() {
         return fechaInicio;
     }
 
-    public LocalDate getFechaFin() {
+    public LocalDateTime getFechaFin() {
         return fechaFin;
     }
 
-    public Boolean getEsVigente() {
-        return esVigente;
+    /**
+     * Verifica si la vigencia está activa en este momento.
+     */
+    public boolean estaVigente() {
+        LocalDateTime ahora = LocalDateTime.now();
+        boolean despuesDeFechaInicio = fechaInicio == null || !ahora.isBefore(fechaInicio);
+        boolean antesDeFechaFin = fechaFin == null || ahora.isBefore(fechaFin);
+        return despuesDeFechaInicio && antesDeFechaFin;
+    }
+
+    /**
+     * Verifica si la vigencia está activa en una fecha específica.
+     */
+    public boolean estaVigenteEn(LocalDateTime fecha) {
+        if (fecha == null) {
+            return false;
+        }
+        boolean despuesDeFechaInicio = fechaInicio == null || !fecha.isBefore(fechaInicio);
+        boolean antesDeFechaFin = fechaFin == null || fecha.isBefore(fechaFin);
+        return despuesDeFechaInicio && antesDeFechaFin;
     }
 }
