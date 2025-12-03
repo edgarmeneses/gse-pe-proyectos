@@ -36,26 +36,26 @@ public class CiudadanoController {
         return CiudadanoDtoMapper.toResponseDto(id, ciudadano);
     }
 
-    public Object actualizar(String id, CrearCiudadanoRequestDto request) {
+    public CiudadanoActualizadoResponseDto actualizar(String id, ActualizarCiudadanoRequestDto request) {
         Ciudadano ciudadano = CiudadanoDtoMapper.toDomain(request);
         List<String> datosActualizados = actualizarCiudadanoUseCase.actualizar(id, ciudadano);
         throw new UnsupportedOperationException("Implementación pendiente");
     }
 
-    public Ciudadano obtenerPorDocumento(String tipoDocumento, String numeroDocumento) {
+    public CiudadanoPorDocumentoResponse obtenerPorDocumento(String tipoDocumento, String numeroDocumento) {
         return consultarCiudadanoUseCase.consultar(tipoDocumento, numeroDocumento);
     }
 
-    public List<Ciudadano> listar(Integer page, Integer size, String queryParam1, 
+    public CiudadanosResponseDto listar(Integer page, Integer size, String queryParam1,
                                   String queryParam2, String queryParam3, List<String> fields) {
         return listarCiudadanosUseCase.listar(page, size, queryParam1, queryParam2, queryParam3, fields);
     }
 
-    public Object consultarInformesPericial(String tipoDocumento, String numeroDocumento) {
+    public InformePericialResponseDto consultarInformesPericial(String tipoDocumento, String numeroDocumento) {
         return consultarInformePericialUseCase.consultar(tipoDocumento, numeroDocumento);
     }
 
-    public ConsultaMasiva consultaMasiva(ConsultaMasivaRequestDto request) {
+    public CiudadanosResponseDto consultaMasiva(ConsultaMasivaRequestDto request) {
         ConsultaMasiva consulta = ConsultaMasivaDtoMapper.toDomain(request);
         return consultaMasivaUseCase.procesar(consulta);
     }

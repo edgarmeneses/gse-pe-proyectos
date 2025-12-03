@@ -8,525 +8,254 @@
 **Paquete Base:** `pe.gob.reniec.msdatosciudadano`  
 **Contexto de Negocio:** Gestión centralizada de la información de identificación (DNI) de los ciudadanos peruanos para el sistema de personalización del DNI Electrónico de RENIEC.
 
-### Características del Proyecto
+## Descripción
 
-Este proyecto implementa una **Arquitectura Hexagonal estricta** siguiendo los principios de **Domain-Driven Design (DDD)** sin dependencias a frameworks específicos:
+El Microservicio de Ciudadano es un componente esencial de la plataforma, encargado de la gestión centralizada de la información de identificación (DNI) de los ciudadanos. Su propósito principal es actuar como la única fuente de verdad para los datos de los ciudadanos, garantizando la consistencia y la integridad en toda la plataforma.
 
-- ✅ **Sin Frameworks:** Código Java puro sin anotaciones de Spring, JPA, JAX-RS, MapStruct, etc.
-- ✅ **POJOs puros:** Todas las clases son Plain Old Java Objects sin anotaciones tecnológicas
-- ✅ **Puertos e Interfaces:** Separación clara entre dominio, aplicación e infraestructura
-- ✅ **DTOs como Records:** Uso de Java Records para objetos de transferencia de datos
-- ✅ **RepositoryPort:** Como MsData, define interfaces de repositorio y sus adaptadores
-- ✅ **Neutralidad tecnológica:** No se define protocolo de conexión ni persistencia específica
+Este microservicio es del tipo **MsData**, lo que significa que:
+- Define interfaces `RepositoryPort` y sus implementaciones `RepositoryAdapter`
+- Define entidades del dominio y entidades de persistencia
+- Gestiona el almacenamiento y recuperación de datos
+- No depende de frameworks ni tecnologías específicas (implementación pura en Java)
 
-## Tipo de Microservicio: MsData
+## Arquitectura Hexagonal
 
-Según la clasificación del proyecto, **MsDatosCiudadano es un microservicio de DATOS (MsData)**, lo que significa:
-
-### Características Estructurales de MsData:
-
-1. **SÍ define RepositoryPort**: Interfaces para acceso a datos en `domain/ports/out`
-2. **SÍ tiene RepositoryAdapter**: Implementaciones de repositorios en `infrastructure/adapters/out/persistence`
-3. **SÍ define Entities**: POJOs en `infrastructure/adapters/out/persistence/entity` (sin anotaciones JPA)
-4. **NO es MsDominio**: No requiere puertos hacia otros microservicios de datos externos
-5. **Puertos IN/OUT completos**: Define casos de uso (in) y repositorios (out) según endpoints del PDF
-
-## Estructura del Proyecto
+El proyecto sigue estrictamente los principios de Arquitectura Hexagonal sin dependencias a frameworks:
 
 ```
 src/main/java/pe/gob/reniec/msdatosciudadano/
 ├── domain/
-│   ├── model/                                    # Aggregate Roots y Value Objects
-│   │   ├── Ciudadano.java                       # Aggregate Root principal
-│   │   ├── Alerta.java
-│   │   ├── CambioDomicilio.java
-│   │   ├── ConfiguracionCotejo.java
-│   │   ├── Contacto.java
-│   │   ├── CotejoMasivo.java
-│   │   ├── DatosBiometricos.java
-│   │   ├── DireccionResidencia.java
-│   │   ├── EntidadSolicitante.java
-│   │   ├── FirmaDigital.java
-│   │   ├── Fotografia.java
-│   │   ├── HuellaDactilar.java
-│   │   ├── InformacionElectoral.java
+│   ├── model/                          # Entidades del dominio (POJOs)
+│   │   ├── Ciudadano.java
 │   │   ├── InformacionParental.java
+│   │   ├── DireccionResidencia.java
+│   │   ├── Contacto.java
+│   │   ├── InformacionElectoral.java
+│   │   ├── DatosBiometricos.java
+│   │   ├── HuellaDactilar.java
+│   │   ├── Fotografia.java
+│   │   ├── FirmaDigital.java
+│   │   ├── Alerta.java
 │   │   ├── InformePericial.java
-│   │   └── RegistroCotejo.java
+│   │   ├── ConsultaMasiva.java         # Consulta masiva de información (no cotejo)
+│   │   ├── RegistroCotejo.java
+│   │   ├── ConfiguracionCotejo.java
+│   │   ├── EntidadSolicitante.java
+│   │   └── CambioDomicilio.java
 │   └── ports/
-│       ├── in/                                   # Casos de uso (interfaces)
+│       ├── in/                         # Casos de uso (interfaces)
+│       │   ├── CrearCiudadanoUseCase.java
 │       │   ├── ActualizarCiudadanoUseCase.java
-│       │   ├── ConsultaMasivaUseCase.java
-│       │   ├── ConsultarAlertaUseCase.java
-│       │   ├── ConsultarCambiosDomicilioUseCase.java
 │       │   ├── ConsultarCiudadanoUseCase.java
+│       │   ├── ListarCiudadanosUseCase.java
 │       │   ├── ConsultarInformePericialUseCase.java
 │       │   ├── CrearAlertaUseCase.java
-│       │   ├── CrearCiudadanoUseCase.java
 │       │   ├── ListarAlertaUseCase.java
-│       │   └── ListarCiudadanosUseCase.java
-│       └── out/                                  # Puertos de repositorio (MsData)
-│           ├── AlertaRepositoryPort.java
-│           ├── CambioDomicilioRepositoryPort.java
+│       │   ├── ConsultarAlertaUseCase.java
+│       │   ├── ConsultarCambiosDomicilioUseCase.java
+│       │   └── ConsultaMasivaUseCase.java
+│       └── out/                        # Puertos de salida (interfaces)
 │           ├── CiudadanoRepositoryPort.java
-│           ├── CotejoMasivoRepositoryPort.java
-│           └── InformePericialRepositoryPort.java
+│           ├── AlertaRepositoryPort.java
+│           ├── InformePericialRepositoryPort.java
+│           ├── ConsultaMasivaRepositoryPort.java
+│           └── CambioDomicilioRepositoryPort.java
 ├── application/
-│   └── service/                                  # Implementación de casos de uso
+│   └── service/                        # Servicios de aplicación
+│       ├── CrearCiudadanoService.java
 │       ├── ActualizarCiudadanoService.java
-│       ├── ConsultaMasivaService.java
-│       ├── ConsultarAlertaService.java
-│       ├── ConsultarCambiosDomicilioService.java
 │       ├── ConsultarCiudadanoService.java
+│       ├── ListarCiudadanosService.java
 │       ├── ConsultarInformePericialService.java
 │       ├── CrearAlertaService.java
-│       ├── CrearCiudadanoService.java
 │       ├── ListarAlertaService.java
-│       └── ListarCiudadanosService.java
+│       ├── ConsultarAlertaService.java
+│       ├── ConsultarCambiosDomicilioService.java
+│       └── ConsultaMasivaService.java
 └── infrastructure/
     └── adapters/
-        ├── in/                                   # Adaptadores de entrada
+        ├── in/
         │   └── rest/
-        │       ├── controller/
-        │       │   ├── AlertaController.java    # Sin anotaciones
-        │       │   ├── CiudadanoController.java
-        │       │   └── ConsultasController.java
-        │       ├── dto/                          # Java Records
-        │       │   ├── AlertaResponseDto.java
-        │       │   ├── CiudadanoResponseDto.java
-        │       │   ├── ConfiguracionCotejoDto.java
-        │       │   ├── ConsultaMasivaRequestDto.java
-        │       │   ├── ContactoDto.java
-        │       │   ├── CrearAlertaRequestDto.java
+        │       ├── controller/         # Controladores REST (POJOs)
+        │       │   ├── CiudadanoController.java    # Agregado Ciudadano + ConsultaMasiva
+        │       │   ├── AlertaController.java       # Agregado Alerta
+        │       │   └── DomicilioController.java    # Agregado Domicilio/Circunscripción
+        │       ├── dto/                # DTOs (Records de Java)
         │       │   ├── CrearCiudadanoRequestDto.java
-        │       │   ├── DatosBiometricosDto.java
-        │       │   ├── DireccionResidenciaDto.java
-        │       │   ├── EntidadSolicitanteDto.java
-        │       │   ├── ErrorDetalleDto.java
-        │       │   ├── ErrorResponseDto.java
-        │       │   ├── FirmaDigitalDto.java
-        │       │   ├── FotografiaDto.java
-        │       │   ├── HuellaDactilarDto.java
-        │       │   ├── InformacionElectoralDto.java
+        │       │   ├── CiudadanoResponseDto.java
         │       │   ├── InformacionParentalDto.java
-        │       │   └── RegistroCotejoDto.java
-        │       └── mapper/                       # Conversión DTO ↔ Domain
-        │           ├── AlertaDtoMapper.java
+        │       │   ├── DireccionResidenciaDto.java
+        │       │   ├── ContactoDto.java
+        │       │   ├── InformacionElectoralDto.java
+        │       │   ├── DatosBiometricosDto.java
+        │       │   ├── HuellaDactilarDto.java
+        │       │   ├── FotografiaDto.java
+        │       │   ├── FirmaDigitalDto.java
+        │       │   ├── CrearAlertaRequestDto.java
+        │       │   ├── AlertaResponseDto.java
+        │       │   ├── ConsultaMasivaRequestDto.java
+        │       │   ├── EntidadSolicitanteDto.java
+        │       │   ├── ConfiguracionCotejoDto.java
+        │       │   ├── RegistroCotejoDto.java
+        │       │   ├── ErrorResponseDto.java
+        │       │   └── ErrorDetalleDto.java
+        │       └── mapper/              # Mappers DTO-Domain
         │           ├── CiudadanoDtoMapper.java
-        │           └── CotejoMasivoDtoMapper.java
+        │           ├── AlertaDtoMapper.java
+        │           └── ConsultaMasivaDtoMapper.java
         └── out/
-            └── persistence/                       # MsData: Adaptadores de repositorio
-                ├── entity/                        # Entidades de persistencia (POJOs)
-                │   ├── AlertaEntity.java
-                │   └── CiudadanoEntity.java
-                ├── mapper/                        # Conversión Entity ↔ Domain
-                │   ├── AlertaPersistenceMapper.java
-                │   └── CiudadanoPersistenceMapper.java
-                └── [repositorios]                 # Implementan RepositoryPort
-                    ├── AlertaRepositoryAdapter.java
-                    ├── CambioDomicilioRepositoryAdapter.java
-                    ├── CiudadanoRepositoryAdapter.java
-                    ├── CotejoMasivoRepositoryAdapter.java
-                    └── InformePericialRepositoryAdapter.java
+            └── persistence/
+                ├── entity/             # Entidades de persistencia (POJOs)
+                │   ├── CiudadanoEntity.java
+                │   └── AlertaEntity.java
+                ├── mapper/             # Mappers Domain-Entity
+                │   ├── CiudadanoPersistenceMapper.java
+                │   └── AlertaPersistenceMapper.java
+                ├── CiudadanoRepositoryAdapter.java
+                ├── AlertaRepositoryAdapter.java
+                ├── InformePericialRepositoryAdapter.java
+                ├── ConsultaMasivaRepositoryAdapter.java
+                └── CambioDomicilioRepositoryAdapter.java
 ```
 
-## Endpoints Documentados
+## Controladores y Responsabilidades
 
-Todos los endpoints están extraídos del documento de especificación PDF y solo se implementan aquellos que aparecen explícitamente documentados.
+### CiudadanoController
+Gestiona el agregado **Ciudadano** y operaciones de consulta masiva de información de ciudadanos:
+- Crear Ciudadano
+- Actualizar Ciudadano  
+- Consultar Ciudadano (individual)
+- Listar Ciudadanos (paginado)
+- Consultar Informe Pericial
+- **Consulta Masiva** (recupera información de ciudadanos sin cotejo)
+
+### AlertaController
+Gestiona el agregado **Alerta**:
+- Crear Alerta
+- Listar Alertas
+- Consultar Alerta
+
+### DomicilioController
+Gestiona cambios de domicilio por circunscripciones (agregado independiente):
+- Consultar Cambios de Domicilio (por fecha y circunscripción)
+
+## Endpoints
 
 ### 1. Crear Ciudadano
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano`  
-**Método:** `POST`  
-**Headers:**
-- `Content-Type: multipart/form-data`
-- `Authorization: Bearer <token>` (JWT para autenticación)
-- `X-Correlation-ID: <UUID>` (ID de correlación para trazabilidad)
-- `X-Request-Source: <string>` (origen: CoreService, IdentityValidation, SolicitudesService)
-- `X-Retry-Attempt: <integer>` (0 para primera llamada, máx 3)
-- `X-Office-Code: <string>` (Código de oficina RENIEC, formato: ORG-LIMA-CENTRO)
-
-**Request Body:** JSON con datos completos del ciudadano
-```json
-{
-  "estado": "string",
-  "tipoDocumento": "string",
-  "numeroDocumento": "string",
-  "primerNombre": "string",
-  "segundoNombre": "string",
-  "primerApellido": "string",
-  "segundoApellido": "string",
-  "fechaNacimiento": "YYYY-MM-DD",
-  "sexo": "string",
-  "estadoCivil": "string",
-  "nacionalidad": "string",
-  "paisNacimiento": "string",
-  "departamentoNacimiento": "string",
-  "provinciaNacimiento": "string",
-  "distritoNacimiento": "string",
-  "grupoSanguineo": "string",
-  "estatura": "string",
-  "informacionParental": { /* ... */ },
-  "direccionResidencia": { /* ... */ },
-  "contacto": { /* ... */ },
-  "informacionElectoral": { /* ... */ },
-  "datosBiometricos": { /* ... */ }
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "id": "string",
-  "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm"
-}
-```
-
-**Códigos de Estado:**
-- `201` Created - Ciudadano creado exitosamente
-- `400` Bad Request - Parámetros incorrectos
-- `401` Unauthorized - Token inválido o ausente
-- `403` Forbidden - Sin permisos
-- `408` Request Timeout - Tiempo de espera agotado
-- `413` Payload Too Large - Más de 500 registros o >50MB
-- `422` Unprocessable Entity - Datos válidos pero no procesables
-- `429` Too Many Requests - Límite excedido (100 req/hora)
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano`
+- **Método:** POST
+- **Headers:**
+  - `Content-Type: multipart/form-data`
+  - `Authorization: Bearer <token>`
+  - `X-Correlation-ID: <UUID>`
+  - `X-Office-Code: <código_oficina>`
+- **Request Body:** JSON con datos completos del ciudadano (ver estructura en PDF)
+- **Response (201):** `{ "id": "string", "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm" }`
+- **Errores:** 400, 401, 403, 408, 413, 422, 429
+- **Controller:** `CiudadanoController`
 
 ### 2. Actualizar Ciudadano
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/{id}`  
-**Método:** `PUT`  
-**Path Parameters:**
-- `id` (string, requerido) - Identificador del ciudadano
-
-**Headers:** Igual que Crear Ciudadano
-
-**Request Body:** JSON con datos del ciudadano a actualizar (misma estructura que Crear)
-
-**Response (200 OK):**
-```json
-{
-  "id": "string",
-  "fechaCreacion": "YYYY-MM-DDThh:mm:ssZ",
-  "fechaActualizacion": "YYYY-MM-DDThh:mm:ssZ",
-  "datosActualizados": ["campo1", "campo2"]
-}
-```
-
-**Códigos de Estado:**
-- `200` OK - Ciudadano actualizado exitosamente
-- `400` Bad Request - Parámetros inválidos o estructura incorrecta
-- `401` Unauthorized - Token JWT inválido, expirado o ausente
-- `403` Forbidden - Sin permisos para actualizar el ciudadano
-- `408` Request Timeout - Tiempo de espera agotado
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/{id}`
+- **Método:** PUT
+- **Headers:** Igual que Crear Ciudadano
+- **Request Body:** JSON con datos del ciudadano a actualizar
+- **Response (200):** `{ "id": "string", "fechaCreacion": "...", "fechaActualizacion": "...", "datosActualizados": [...] }`
+- **Errores:** 400, 401, 403, 408, 413, 422, 429
+- **Controller:** `CiudadanoController`
 
 ### 3. Obtener Ciudadano
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/documento`  
-**Método:** `GET`  
-**Query Parameters:**
-- `tipoDocumento` (string, requerido, long: 1-50)
-- `numeroDocumento` (string, requerido, long: 1-50)
-
-**Headers:** Igual que endpoints anteriores
-
-**Response (200 OK):**
-```json
-{
-  "tipoDocumento": "string",
-  "numeroDocumento": "string",
-  "fechaCreacion": "YYYY-MM-DDThh:mm:ssZ",
-  "fechaActualizacion": "YYYY-MM-DDThh:mm:ssZ",
-  "ciudadano": { /* objeto completo */ },
-  "estado": "string"
-}
-```
-
-**Códigos de Estado:**
-- `200` OK - Ciudadano encontrado exitosamente
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos para obtener el ciudadano
-- `404` Not Found - No se encontró el ciudadano solicitado
-- `408` Request Timeout - Tiempo de espera agotado
-- `429` Too Many Requests - Límite de rate limit excedido
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/documento`
+- **Método:** GET
+- **Query Params:**
+  - `tipoDocumento` (string, requerido)
+  - `numeroDocumento` (string, requerido)
+- **Response (200):** Datos completos del ciudadano
+- **Errores:** 401, 403, 404, 408, 429
+- **Controller:** `CiudadanoController`
 
 ### 4. Listar Ciudadanos
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/ciudadano`  
-**Método:** `GET`  
-**Query Parameters:**
-- `page` (integer, requerido, mín: 1)
-- `size` (integer, requerido, mín: 1)
-- `queryParam1` (string, opcional, long: 1-20)
-- `queryParam2` (string, opcional, long: 1-20)
-- `queryParam3` (string, opcional, long: 1-20)
-- `fields` (array of string, opcional) - Campos específicos a retornar
-
-**Response (200 OK):**
-```json
-{
-  "page": {
-    "number": 1,
-    "size": 10,
-    "totalElements": 100,
-    "totalPages": 10,
-    "hasNext": true
-  },
-  "contenido": [
-    { /* ciudadano 1 */ },
-    { /* ciudadano 2 */ }
-  ]
-}
-```
-
-**Códigos de Estado:**
-- `200` OK - Consulta exitosa
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos
-- `404` Not Found - Sin resultados
-- `408` Request Timeout - Tiempo de espera agotado
-- `429` Too Many Requests - Límite excedido
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/ciudadano`
+- **Método:** GET
+- **Query Params:**
+  - `page` (integer, requerido)
+  - `size` (integer, requerido)
+  - `queryParam1`, `queryParam2`, `queryParam3` (string, opcional)
+  - `fields` (array string, opcional)
+- **Response (200):** Paginación con lista de ciudadanos
+- **Errores:** 401, 403, 404, 408, 429
+- **Controller:** `CiudadanoController`
 
 ### 5. Consultar Informe Pericial
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/informes-periciales`  
-**Método:** `GET`  
-**Query Parameters:**
-- `tipoDocumento` (string, requerido)
-- `numeroDocumento` (string, requerido)
-
-**Response (200 OK):**
-```json
-{
-  "informes": [
-    {
-      "informeId": "string",
-      "tipoInforme": "string",
-      "fechaInforme": "YYYY-MM-DDThh:mm:ssZ",
-      "urlPdf": "string"
-    }
-  ]
-}
-```
-
-**Códigos de Estado:**
-- `200` OK - Informe pericial encontrado exitosamente
-- `204` No Content - No se encontró información pericial
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos
-- `404` Not Found - Ciudadano no encontrado
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/informes-periciales`
+- **Método:** GET
+- **Query Params:**
+  - `tipoDocumento` (string, requerido)
+  - `numeroDocumento` (string, requerido)
+- **Response (200):** Lista de informes periciales
+- **Errores:** 204, 401, 403, 404
+- **Controller:** `CiudadanoController`
 
 ### 6. Crear Alerta
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`  
-**Método:** `POST`  
-**Request Body:**
-```json
-{
-  "situacion": "A|B|C",
-  "ciudadanoId": "string",
-  "motivo": "string",
-  "fechaDeteccion": "YYYY-MM-DDThh:mm:ssZ",
-  "circunscripcionId": "string",
-  "medioVerificacion": "fisico|virtual",
-  "documentoSoporteId": "string",
-  "equipoTrabajoId": "string"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "id": "string",
-  "fechaCreacion": "YYYY-MM-DDThh:mm:ssZ",
-  "estado": "string"
-}
-```
-
-**Códigos de Estado:**
-- `201` Created - Alerta creada exitosamente
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos para crear la alerta
-- `404` Not Found - El ciudadano no existe
-- `409` Conflict - Alerta duplicada
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`
+- **Método:** POST
+- **Request Body:** Datos de la alerta (situación, ciudadanoId, motivo, etc.)
+- **Response (201):** `{ "id": "string", "fechaCreacion": "...", "estado": "string" }`
+- **Errores:** 401, 403, 404, 409
+- **Controller:** `AlertaController`
 
 ### 7. Listar Alertas
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`  
-**Método:** `GET`  
-**Query Parameters:** Similar a Listar Ciudadanos (page, size, queryParam1-3, fields)
-
-**Response (200 OK):** Paginación con lista de alertas (misma estructura que Listar Ciudadanos)
-
-**Códigos de Estado:**
-- `200` OK - Alertas encontradas exitosamente
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos
-- `404` Not Found - No se encontró la alerta
-- `408` Request Timeout - Tiempo de espera agotado
-- `429` Too Many Requests - Límite de rate limit excedido
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`
+- **Método:** GET
+- **Query Params:** Similar a Listar Ciudadanos
+- **Response (200):** Paginación con lista de alertas
+- **Errores:** 401, 403, 404, 408, 429
+- **Controller:** `AlertaController`
 
 ### 8. Consultar Alerta
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`  
-**Método:** `GET`  
-**Query Parameters:**
-- `alertaId` (string, requerido)
-
-**Response (200 OK):** Detalle completo de la alerta específica
-
-**Códigos de Estado:**
-- `200` OK - Alerta encontrada
-- `400` Bad Request - Parámetros incorrectos
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos
-- `404` Not Found - Alerta no encontrada
-- `408` Request Timeout - Tiempo de espera agotado
-- `429` Too Many Requests - Límite excedido
-- `500` Internal Server Error - Error interno
-- `502` Bad Gateway - Servicio externo no disponible
-- `503` Service Unavailable - Servicio temporalmente no disponible
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/alerta`
+- **Método:** GET
+- **Query Params:**
+  - `alertaId` (string, requerido)
+- **Response (200):** Detalle completo de la alerta
+- **Errores:** 400, 401, 403, 404, 408, 429, 500, 502, 503
+- **Controller:** `AlertaController`
 
 ### 9. Consultar Cambios Domicilio
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/cambio-domicilio`  
-**Método:** `GET`  
-**Query Parameters:**
-- `fechaDesde` (string YYYY-MM-DD, requerido)
-- `fechaHasta` (string YYYY-MM-DD, requerido)
-- `circunscripcionId` (string, opcional)
-- `queryParam1`, `queryParam2`, `queryParam3` (string, opcional)
-
-**Response (200 OK):**
-```json
-{
-  "circunscripciones": [
-    {
-      "circunscripcionId": "string",
-      "totalCambios": 0,
-      "promedio": 0.0,
-      "migraciones": [
-        {
-          "tipoDocumento": "string",
-          "numeroDocumento": "string",
-          "domicilio": {
-            "departamento": "string",
-            "provincia": "string",
-            "distrito": "string"
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
-**Códigos de Estado:**
-- `200` OK - Consulta realizada exitosamente
-- `204` No Content - No se encontró resultado para los filtros
-- `400` Bad Request - Información incorrecta en los filtros
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos
-- `404` Not Found - Circunscripción no encontrada
-- `408` Request Timeout - Tiempo de espera agotado
-- `429` Too Many Requests - Límite excedido
-- `500` Internal Server Error - El sistema no responde
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/cambio-domicilio`
+- **Método:** GET
+- **Query Params:**
+  - `fechaDesde` (string YYYY-MM-DD, requerido)
+  - `fechaHasta` (string YYYY-MM-DD, requerido)
+  - `circunscripcionId` (string, opcional)
+  - `queryParam1`, `queryParam2`, `queryParam3` (string, opcional)
+- **Response (200):** Lista de cambios de domicilio
+- **Errores:** 204, 400, 401, 403, 404, 408, 429, 500
+- **Controller:** `DomicilioController`
 
 ### 10. Consulta Masiva
-
-**Path:** `/api/v1/ciudadano/MsDatosCiudadano/consulta-masiva`  
-**Método:** `POST`  
-**Request Body:**
-```json
-{
-  "solicitudId": "string",
-  "registros": [
-    {
-      "numeroSecuencia": "string",
-      "tipoDocumento": "string",
-      "numeroDocumento": "string"
-    }
-  ]
-}
-```
-
-**Response (200 OK / 202 Accepted):**
-```json
-{
-  "solicitudId": "string",
-  "fechaProcesamiento": "YYYY-MM-DDThh:mm:ssZ",
-  "estadoProceso": "string",
-  "resultados": [
-    {
-      "numeroSecuencia": "string",
-      "tipoDocumento": "string",
-      "numeroDocumento": "string",
-      "estadoConsulta": "ENCONTRADO|NO_ENCONTRADO|ERROR",
-      "datosCiudadano": {
-        "primerApellido": "string",
-        "segundoApellido": "string",
-        "prenombres": "string",
-        "fechaNacimiento": "YYYY-MM-DD",
-        "sexo": "string",
-        "estadoCivil": "string",
-        "ubigeo": "string",
-        "direccion": "string"
-      }
-    }
-  ]
-}
-```
-
-**Códigos de Estado:**
-- `200` OK - Cotejo completado síncronamente (lote pequeño)
-- `202` Accepted - Cotejo masivo aceptado, procesamiento en curso
-- `400` Bad Request - Parámetros incorrectos
-- `401` Unauthorized - Token JWT inválido
-- `403` Forbidden - Sin permisos
-- `408` Request Timeout - Tiempo de espera agotado
-- `413` Payload Too Large - Más de 500 registros
-- `422` Unprocessable Entity - Datos válidos pero no procesables
-- `429` Too Many Requests - Límite excedido
-- `500` Internal Server Error - Error interno
-- `502` Bad Gateway - Servicio externo no disponible
-- `503` Service Unavailable - Servicio temporalmente no disponible
-
----
+- **Path:** `/api/v1/ciudadano/MsDatosCiudadano/consulta-masiva`
+- **Método:** POST
+- **Request Body:** Solicitud con entidad solicitante, configuración y registros (máx 500)
+- **Response (200/202):** Resultado de la consulta masiva con estadísticas de ciudadanos recuperados
+- **Errores:** 400, 401, 403, 408, 413, 422, 429, 500, 502, 503
+- **Controller:** `CiudadanoController`
+- **Nota:** Esta operación únicamente recupera información oficial registrada. No realiza cotejo, comparaciones ni validaciones campo por campo.
 
 ## Entidades del Dominio
 
 ### Ciudadano (Aggregate Root)
-
 Representa la información completa de un ciudadano peruano.
 
 **Atributos principales:**
-- `id: String` - Identificador único
-- `tipoDocumento: String` - Tipo de documento (DNI, CE, etc.)
-- `numeroDocumento: String` - Número de documento
+- `id: String`
+- `tipoDocumento: String`
+- `numeroDocumento: String`
 - `primerNombre: String`
 - `segundoNombre: String`
 - `primerApellido: String`
 - `segundoApellido: String`
 - `fechaNacimiento: LocalDate`
-- `sexo: String` - M/F
+- `sexo: String`
 - `estadoCivil: String`
 - `nacionalidad: String`
 - `paisNacimiento: String`
@@ -535,167 +264,91 @@ Representa la información completa de un ciudadano peruano.
 - `distritoNacimiento: String`
 - `grupoSanguineo: String`
 - `estatura: String`
-- `estado: String` - Estado del registro (activo, inactivo, etc.)
+- `estado: String`
 - `fechaCreacion: LocalDateTime`
 - `fechaActualizacion: LocalDateTime`
 
 **Objetos de valor asociados:**
-- `informacionParental: InformacionParental` - Datos de padre y madre
-- `direccionResidencia: DireccionResidencia` - Dirección completa
-- `contacto: Contacto` - Teléfonos y correos
-- `informacionElectoral: InformacionElectoral` - Datos electorales
-- `datosBiometricos: DatosBiometricos` - Huellas, fotos, firma
-
----
+- `informacionParental: InformacionParental`
+- `direccionResidencia: DireccionResidencia`
+- `contacto: Contacto`
+- `informacionElectoral: InformacionElectoral`
+- `datosBiometricos: DatosBiometricos`
 
 ### Alerta
-
 Representa una alerta de domicilio asociada a un ciudadano.
 
 **Atributos:**
 - `id: String`
 - `ciudadanoId: String`
-- `situacion: String` - A, B o C (según normativa)
+- `situacion: String` (A, B, C)
 - `motivo: String`
 - `fechaDeteccion: LocalDateTime`
 - `circunscripcionId: String`
-- `medioVerificacion: String` - físico o virtual
+- `medioVerificacion: String` (fisico, virtual)
 - `documentoSoporteId: String`
 - `equipoTrabajoId: String`
 - `fechaCreacion: LocalDateTime`
 - `fechaActualizacion: LocalDateTime`
 - `estado: String`
 
----
-
 ### InformePericial
-
-Representa un informe pericial registrado para un ciudadano.
+Representa un informe pericial biométrico de un ciudadano.
 
 **Atributos:**
 - `informeId: String`
-- `tipoInforme: String`
-- `fechaInforme: LocalDateTime`
+- `ciudadanoId: String`
+- `solicitudId: String`
+- `fechaGeneracion: LocalDateTime`
+- `huellaCoincide: Boolean`
+- `rostroCoincide: Boolean`
 - `urlPdf: String`
 
----
-
-### CotejoMasivo
-
-Representa una solicitud de cotejo masivo de ciudadanos.
+### ConsultaMasiva
+Representa una solicitud de consulta masiva de información de ciudadanos (no realiza cotejo).
 
 **Atributos:**
 - `solicitudId: String`
+- `codigoCotejo: String` (legacy, mantiene compatibilidad con configuración)
+- `entidadSolicitante: EntidadSolicitante`
+- `configuracionCotejo: ConfiguracionCotejo` (legacy, define campos a recuperar)
+- `registros: List<RegistroCotejo>` (máx 500)
 - `fechaProcesamiento: LocalDateTime`
 - `estadoProceso: String`
-- `registros: List<RegistroCotejo>`
 
----
+**Nota:** A pesar del nombre "cotejo" en algunos atributos legacy, esta operación únicamente recupera información registrada sin realizar comparaciones ni validaciones campo por campo.
 
 ### CambioDomicilio
-
-Representa un cambio de domicilio registrado en una circunscripción.
+Representa un cambio de domicilio de un ciudadano.
 
 **Atributos:**
-- `circunscripcionId: String`
-- `totalCambios: Integer`
-- `promedio: Double`
-- `migraciones: List<Migracion>` - Lista de cambios de domicilio
-
----
-
-### Objetos de Valor (Value Objects)
-
-#### InformacionParental
-- `primerNombrePaterno: String`
-- `segundoNombrePaterno: String`
-- `primerApellidoPaterno: String`
-- `segundoApellidoPaterno: String`
-- `primerNombreMaterno: String`
-- `segundoNombreMaterno: String`
-- `primerApellidoMaterno: String`
-- `segundoApellidoMaterno: String`
-- `tipoDocumentoPaterno: String`
-- `numeroDocumentoPaterno: String`
-- `tipoDocumentoMaterno: String`
-- `numeroDocumentoMaterno: String`
-
-#### DireccionResidencia
+- `tipoDocumento: String`
+- `numeroDocumento: String`
+- `nombreCompleto: String`
 - `departamento: String`
 - `provincia: String`
 - `distrito: String`
-- `centroPoblado: String`
-- `direccionCompleta: String`
-- `referencia: String`
-- `ubigeo: String`
-
-#### Contacto
-- `telefonoFijo: String`
-- `telefonoMovil: String`
-- `correoElectronico: String`
-- `correoAlternativo: String`
-
-#### InformacionElectoral
-- `numeroInscripcion: String`
-- `fechaInscripcion: LocalDate`
-- `localVotacion: String`
-- `mesa: String`
-
-#### DatosBiometricos
-- `huellasDactilares: List<HuellaDactilar>`
-- `fotografia: List<Fotografia>`
-- `firmaDigital: List<FirmaDigital>`
-- `fechaRegistro: LocalDateTime`
-
-#### HuellaDactilar
-- `nombreDedo: String`
-- `formato: String`
-- `valor: String` - Base64 o referencia
-
-#### Fotografia
-- `formato: String`
-- `valorBase64: String`
-- `resolucion: String`
-- `modoCaptura: String`
-
-#### FirmaDigital
-- `formato: String`
-- `valorBase64: String`
-- `dispositivoCaptura: String`
-
-#### RegistroCotejo
-- `numeroSecuencia: String`
-- `tipoDocumento: String`
-- `numeroDocumento: String`
-- `primerApellido: String`
-- `segundoApellido: String`
-- `prenombres: String`
-- `fechaNacimiento: LocalDate`
-- `sexo: String`
-- `estadoCivil: String`
-- `ubigeo: String`
-- `direccion: String`
-
----
+- `fechaCambio: LocalDate`
 
 ## Reglas de Mapeo de Tipos
 
-Según las especificaciones del proyecto, los tipos de datos del PDF se mapean a tipos Java de la siguiente manera:
+El proyecto utiliza los siguientes tipos de datos Java para mapear los atributos del PDF:
 
-| Tipo en PDF          | Tipo Java          | Observaciones                                    |
-|----------------------|--------------------|--------------------------------------------------|
-| string               | String             | Texto genérico                                   |
-| integer / int        | Integer / Long     | Dependiendo del rango esperado                   |
-| long                 | Long               | Números grandes                                  |
-| number / decimal     | Double             | Números con decimales                            |
-| boolean              | Boolean            | Valores verdadero/falso                          |
-| date                 | LocalDate          | Solo fecha (YYYY-MM-DD)                          |
-| datetime / timestamp | LocalDateTime      | Fecha y hora (YYYY-MM-DDThh:mm:ssZ)              |
-| array / list         | List\<T\>          | Colecciones genéricas                            |
-| object               | POJO / Record      | Objetos anidados                                 |
-| enum                 | String             | Enumeraciones como String (sin enum Java)        |
+| Tipo en PDF | Tipo en Java |
+|------------|--------------|
+| string | `String` |
+| integer/int/long | `Long` |
+| number/decimal/double | `Double` |
+| boolean | `Boolean` |
+| date (YYYY-MM-DD) | `LocalDate` |
+| datetime/timestamp (ISO 8601) | `LocalDateTime` |
+| array/list | `List<T>` |
 
----
+**Ejemplos:**
+- `fechaNacimiento` → `LocalDate`
+- `fechaCreacion` → `LocalDateTime`
+- `inscritoVotacion` → `Boolean`
+- `huellasDactilares` → `List<HuellaDactilar>`
 
 ## Códigos de Respuesta HTTP Estándar
 
@@ -711,207 +364,87 @@ Según las especificaciones del proyecto, los tipos de datos del PDF se mapean a
 | 404 | Not Found - Recurso no encontrado en el sistema |
 | 408 | Request Timeout - Tiempo de espera agotado al conectar |
 | 409 | Conflict - Conflicto con el estado actual del recurso |
-| 413 | Payload Too Large - Tamaño del lote excede el límite (>500 registros o >50MB) |
-| 422 | Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio |
-| 429 | Too Many Requests - Límite de rate limit excedido (100 req/hora) |
+| 413 | Payload Too Large - Tamaño del lote excede el límite |
+| 422 | Unprocessable Entity - Datos válidos pero no procesables |
+| 429 | Too Many Requests - Límite de rate limit excedido |
 | 500 | Internal Server Error - Error interno del servicio |
 | 502 | Bad Gateway - Servicio externo no disponible o respuesta inválida |
-| 503 | Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto |
+| 503 | Service Unavailable - Servicio temporalmente no disponible |
 | 504 | Gateway Timeout - Servicio externo no respondió en tiempo esperado |
-
----
-
-## Estructura de Respuesta de Error
-
-Todas las respuestas de error siguen la siguiente estructura estándar:
-
-```json
-{
-  "error": {
-    "tipo": "string",
-    "titulo": "string",
-    "estado": 400,
-    "errores": [
-      {
-        "detalleError": "string"
-      }
-    ]
-  }
-}
-```
-
-**Campos:**
-- `tipo` (string) - Path de la ruta con error o categoría del error
-- `titulo` (string) - Título o descripción corta del error
-- `estado` (integer) - Código de estado HTTP asociado
-- `errores` (array) - Lista de detalles específicos de los errores detectados
-- `errores[].detalleError` (string) - Mensaje específico del error
-
----
 
 ## Limitaciones y Consideraciones
 
 ### Neutralidad Tecnológica
+- **Sin frameworks:** El código está escrito en Java puro sin dependencias a Spring, JAX-RS, JPA, MapStruct, etc.
+- **Sin anotaciones:** No se utilizan anotaciones de frameworks (@RestController, @Entity, @Component, etc.)
+- **POJOs puros:** Todas las clases son Plain Old Java Objects con getters/setters estándar
+- **Records para DTOs:** Se utilizan records de Java (disponibles desde Java 14) para inmutabilidad de DTOs
 
-1. **Sin Frameworks:** El código no depende de Spring, Jakarta EE, Hibernate, etc.
-2. **Sin Anotaciones:** Clases POJOs puros sin @Entity, @Component, @RestController, etc.
-3. **Sin Protocolo Definido:** Los adaptadores no implementan HTTP, SOAP o colas específicas
-4. **Sin ORM:** Las entidades de persistencia son POJOs sin mapeo JPA
-5. **Sin Serialización Automática:** Los mappers convierten manualmente entre DTOs y dominio
+### Implementación de Adaptadores
+- Los adaptadores de persistencia (`RepositoryAdapter`) tienen métodos stub que lanzan `UnsupportedOperationException`
+- La implementación real dependerá de la tecnología de persistencia elegida (base de datos, ORM, etc.)
+- Los mappers de persistencia están definidos pero requieren completar la lógica de conversión para objetos complejos
 
-### Arquitectura Hexagonal
+### Protocolo de Comunicación
+- No se define el protocolo específico para comunicación HTTP (REST, SOAP, GraphQL)
+- Los Controllers son clases Java simples sin anotaciones de routing
+- La configuración del servidor HTTP y el binding de rutas debe hacerse externamente
 
-- **Puertos de Entrada (In):** Interfaces de casos de uso en `domain/ports/in`
-- **Puertos de Salida (Out):** Interfaces de repositorio en `domain/ports/out`
-- **Adaptadores de Entrada:** Controllers y DTOs en `infrastructure/adapters/in/rest`
-- **Adaptadores de Salida:** Repository Adapters en `infrastructure/adapters/out/persistence`
+### Gestión de Errores
+- La estructura de errores está definida en `ErrorResponseDto` pero la lógica de manejo de excepciones debe implementarse
+- Los códigos de estado HTTP están documentados pero no hay validación automática
 
-### Tipo MsData
+### Validaciones
+- No hay validaciones automáticas de entrada (tamaños, formatos, obligatoriedad)
+- Las validaciones deben implementarse manualmente en los servicios o controllers
 
-- **SÍ define RepositoryPort:** Acceso a datos mediante interfaces en puertos out
-- **SÍ tiene Entities:** POJOs de persistencia sin anotaciones
-- **SÍ tiene RepositoryAdapter:** Implementaciones de los puertos de repositorio
-- **NO define DataPort hacia otros MS:** Este microservicio ES la fuente de datos
+### Seguridad
+- Los headers de autenticación están documentados pero no hay implementación de validación JWT
+- La gestión de permisos y roles debe implementarse externamente
 
-### Compilación
+### Datos Biométricos
+- Los datos biométricos se manejan como Base64 strings
+- El procesamiento real de huellas, fotografías y firmas digitales está fuera del scope
 
-El código debe compilar como **Java puro** sin dependencias externas. Para ejecutar en producción, se requiere integrar:
-- Un framework web (ej. Spring Boot) que mapee los controllers
-- Un ORM o driver de BD (ej. JPA, JDBC) que implemente los repository adapters
-- Serialización JSON (ej. Jackson, Gson) para los DTOs records
+## Próximos Pasos
 
----
+Para hacer este microservicio funcional, se requiere:
 
-## Casos de Uso Implementados
+1. **Seleccionar tecnologías concretas:**
+   - Framework web (Spring Boot, Quarkus, Micronaut, etc.)
+   - Base de datos (PostgreSQL, MongoDB, Oracle, etc.)
+   - ORM/Persistencia (JPA/Hibernate, MyBatis, JDBC puro, etc.)
 
-Solo se implementan los casos de uso documentados en el PDF de especificación:
+2. **Implementar la capa de persistencia:**
+   - Configurar conexión a base de datos
+   - Implementar los métodos de los `RepositoryAdapter`
+   - Crear esquemas de base de datos
 
-### Ciudadano
-1. ✅ **CrearCiudadanoUseCase** - POST `/api/v1/ciudadano/MsDatosCiudadano`
-2. ✅ **ActualizarCiudadanoUseCase** - PUT `/api/v1/ciudadano/MsDatosCiudadano/{id}`
-3. ✅ **ConsultarCiudadanoUseCase** - GET `/api/v1/ciudadano/MsDatosCiudadano/documento`
-4. ✅ **ListarCiudadanosUseCase** - GET `/api/v1/ciudadano/MsDatosCiudadano/ciudadano`
+3. **Configurar el servidor HTTP:**
+   - Definir el binding de rutas a los Controllers
+   - Implementar serialización/deserialización JSON
+   - Configurar manejo de errores global
 
-### Informes
-5. ✅ **ConsultarInformePericialUseCase** - GET `/api/v1/ciudadano/MsDatosCiudadano/informes-periciales`
+4. **Agregar seguridad:**
+   - Implementar validación de JWT
+   - Agregar autorización basada en roles
+   - Configurar CORS y otras políticas de seguridad
 
-### Alertas
-6. ✅ **CrearAlertaUseCase** - POST `/api/v1/ciudadano/MsDatosCiudadano/alerta`
-7. ✅ **ListarAlertaUseCase** - GET `/api/v1/ciudadano/MsDatosCiudadano/alerta` (paginado)
-8. ✅ **ConsultarAlertaUseCase** - GET `/api/v1/ciudadano/MsDatosCiudadano/alerta?alertaId=...`
+5. **Implementar validaciones:**
+   - Validar datos de entrada
+   - Implementar reglas de negocio específicas
+   - Agregar sanitización de datos
 
-### Cambios de Domicilio
-9. ✅ **ConsultarCambiosDomicilioUseCase** - GET `/api/v1/ciudadano/MsDatosCiudadano/cambio-domicilio`
+6. **Testing:**
+   - Tests unitarios de servicios y mappers
+   - Tests de integración de adaptadores
+   - Tests end-to-end de API
 
-### Consultas Masivas
-10. ✅ **ConsultaMasivaUseCase** - POST `/api/v1/ciudadano/MsDatosCiudadano/consulta-masiva`
+7. **Observabilidad:**
+   - Logging estructurado
+   - Métricas de aplicación
+   - Distributed tracing
 
-**Nota:** No se implementan operaciones DELETE ya que no están documentadas en el PDF de especificación.
+## Conclusión
 
----
-
-## Convenciones de Código
-
-### Nombres de Clases y Métodos
-
-- **Use Cases (Puertos In):** `{Operación}{Entidad}UseCase` (interfaz)
-- **Services:** `{Operación}{Entidad}Service` (implementa Use Case)
-- **Repository Ports:** `{Entidad}RepositoryPort` (interfaz)
-- **Repository Adapters:** `{Entidad}RepositoryAdapter` (implementa Repository Port)
-- **Controllers:** `{Entidad}Controller` (sin anotaciones)
-- **DTOs:** `{Nombre}Dto` o `{Operación}{Entidad}RequestDto/ResponseDto` (records)
-- **Entities:** `{Entidad}Entity` (POJOs de persistencia)
-- **Mappers:** `{Entidad}DtoMapper` y `{Entidad}PersistenceMapper`
-
-### Métodos en Controllers
-
-- `crear(request)` → crea un nuevo recurso
-- `actualizar(id, request)` → actualiza un recurso existente
-- `obtenerPorDocumento(tipo, numero)` → obtiene por documento
-- `obtenerPorId(id)` → obtiene por ID
-- `listar(page, size, filters)` → lista recursos paginados
-
-### Métodos en Mappers
-
-- `toDomain(dto)` → convierte DTO a modelo de dominio
-- `toDto(domain)` → convierte dominio a DTO
-- `toResponseDto(domain)` → convierte dominio a DTO de respuesta
-- `toEntity(domain)` → convierte dominio a entidad de persistencia
-- `toDomainFromEntity(entity)` → convierte entidad a dominio
-
----
-
-## Cómo Extender el Proyecto
-
-### Para agregar un nuevo endpoint:
-
-1. **Verificar que existe en el PDF de especificación** (no inventar operaciones)
-2. **Crear el Use Case (puerto in):** interfaz en `domain/ports/in`
-3. **Implementar el Service:** clase en `application/service`
-4. **Crear/Actualizar el Controller:** método en el controller correspondiente
-5. **Definir DTOs:** records en `infrastructure/adapters/in/rest/dto`
-6. **Actualizar Mappers:** agregar conversiones necesarias
-7. **Si requiere persistencia:** actualizar/crear Repository Port y Adapter
-
-### Para agregar una nueva entidad:
-
-1. **Crear el modelo de dominio:** POJO en `domain/model`
-2. **Definir Repository Port:** interfaz en `domain/ports/out`
-3. **Crear Entity:** POJO en `infrastructure/adapters/out/persistence/entity`
-4. **Implementar Repository Adapter:** clase que implementa el port
-5. **Crear Persistence Mapper:** conversiones entre entity y domain
-6. **Definir DTOs necesarios:** records para request/response
-
----
-
-## Documentación de Referencia
-
-- **Especificación completa:** Ver archivo `Microservicio MsDatosCiudadano V1.3 old.pdf` en la raíz del proyecto
-- **Especificación extraída:** Ver archivo `ciudadano_spec.txt` para búsquedas rápidas
-- **Arquitectura Hexagonal:** Ports & Adapters pattern (Alistair Cockburn)
-- **Domain-Driven Design:** Aggregate Roots, Value Objects, Repositories (Eric Evans)
-
----
-
-## Notas de Implementación
-
-### ¿Por qué sin frameworks?
-
-Este proyecto sigue el principio de **neutralidad tecnológica** para:
-- Facilitar la migración entre tecnologías
-- Evitar acoplamiento con frameworks específicos
-- Permitir testing unitario sin dependencias externas
-- Mantener el dominio puro y sin contaminación tecnológica
-
-### ¿Cómo se ejecuta en producción?
-
-En producción, se debe:
-1. Integrar un framework web (Spring Boot, Quarkus, Micronaut) que enlace los controllers
-2. Configurar un ORM o driver de BD que implemente los repository adapters
-3. Agregar serialización JSON para convertir automáticamente los records
-4. Configurar seguridad JWT para validar los tokens de autorización
-5. Implementar circuit breakers, retry policies y demás patrones de resiliencia
-
-### Estado actual del código
-
-El proyecto contiene:
-- ✅ **Estructura completa** de carpetas según arquitectura hexagonal
-- ✅ **Interfaces de puertos** (Use Cases y Repository Ports)
-- ✅ **Servicios de aplicación** con lógica básica
-- ✅ **Controllers sin anotaciones** con métodos stub
-- ✅ **DTOs como Java Records** con todos los campos
-- ✅ **Modelos de dominio** como POJOs puros
-- ✅ **Entities de persistencia** como POJOs sin anotaciones
-- ✅ **Mappers de conversión** con lógica básica
-- ⚠️ **Adaptadores con UnsupportedOperationException** - requiere implementación de persistencia real
-
----
-
-## Autor
-
-Proyecto generado siguiendo las especificaciones del documento **Microservicio MsDatosCiudadano V1.3** para RENIEC (Registro Nacional de Identificación y Estado Civil del Perú).
-
-**Arquitectura:** Hexagonal (Ports & Adapters)  
-**Paradigma:** Domain-Driven Design (DDD)  
-**Tecnología:** Java puro sin frameworks  
-**Tipo:** Microservicio de Datos (MsData)
+Este proyecto proporciona una base sólida de Arquitectura Hexagonal pura sin dependencias tecnológicas, siguiendo estrictamente las especificaciones del PDF adjunto. La estructura está completa y lista para ser integrada con las tecnologías específicas que el equipo de desarrollo elija utilizar.
