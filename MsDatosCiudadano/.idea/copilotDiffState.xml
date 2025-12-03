@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/main/java/pe/gob/reniec/msdatosciudadano/domain/ports/out/CiudadanoRepositoryPort.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/pe/gob/reniec/msdatosciudadano/domain/ports/out/CiudadanoRepositoryPort.java" />
+              <option name="originalContent" value="package pe.gob.reniec.msdatosciudadano.domain.ports.out;&#10;&#10;import pe.gob.reniec.msdatosciudadano.domain.model.Ciudadano;&#10;import java.util.List;&#10;&#10;public interface CiudadanoRepositoryPort {&#10;    String guardar(Ciudadano ciudadano);&#10;    Ciudadano actualizar(String id, Ciudadano ciudadano);&#10;    Ciudadano buscarPorDocumento(String tipoDocumento, String numeroDocumento);&#10;    Ciudadano buscarPorId(String ciudadanoId);&#10;    List&lt;Ciudadano&gt; listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3, List&lt;String&gt; fields);&#10;}&#10;" />
+              <option name="updatedContent" value="package pe.gob.reniec.msdatosciudadano.domain.ports.out;&#13;&#10;&#13;&#10;import pe.gob.reniec.msdatosciudadano.domain.model.Ciudadano;&#13;&#10;import java.util.List;&#13;&#10;&#13;&#10;public interface CiudadanoRepositoryPort {&#13;&#10;    String guardar(Ciudadano ciudadano);&#13;&#10;    Ciudadano actualizar(String id, Ciudadano ciudadano);&#13;&#10;    Ciudadano buscarPorDocumento(String tipoDocumento, String numeroDocumento);&#13;&#10;    Ciudadano buscarPorId(String ciudadanoId);&#13;&#10;    List&lt;Ciudadano&gt; listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3, List&lt;String&gt; fields);&#13;&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/pe/gob/reniec/msdatosciudadano/infrastructure/adapters/in/rest/dto/AlertaListResponseDto.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/pe/gob/reniec/msdatosciudadano/infrastructure/adapters/in/rest/dto/AlertaListResponseDto.java" />
+              <option name="originalContent" value="package pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.dto;&#10;&#10;import java.util.List;&#10;&#10;public record AlertaListResponseDto (&#10;    PageDto page,&#10;    List&lt;Object&gt; alerts&#10;){&#10;&#10;}&#10;" />
+              <option name="updatedContent" value="package pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.dto;&#10;&#10;import java.util.List;&#10;&#10;public record AlertaListResponseDto (&#10;    PageDto page,&#10;    List&lt;Object&gt; alerts&#10;){&#10;&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/pe/gob/reniec/msdatosciudadano/infrastructure/adapters/out/persistence/CiudadanoRepositoryAdapter.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/pe/gob/reniec/msdatosciudadano/infrastructure/adapters/out/persistence/CiudadanoRepositoryAdapter.java" />
+              <option name="originalContent" value="package pe.gob.reniec.msdatosciudadano.infrastructure.adapters.out.persistence;&#10;&#10;import pe.gob.reniec.msdatosciudadano.domain.model.Ciudadano;&#10;import pe.gob.reniec.msdatosciudadano.domain.ports.out.CiudadanoRepositoryPort;&#10;import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.out.persistence.entity.CiudadanoEntity;&#10;import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.out.persistence.mapper.CiudadanoPersistenceMapper;&#10;import java.util.List;&#10;&#10;public class CiudadanoRepositoryAdapter implements CiudadanoRepositoryPort {&#10;&#10;    @Override&#10;    public String guardar(Ciudadano ciudadano) {&#10;        CiudadanoEntity entity = CiudadanoPersistenceMapper.toEntity(ciudadano);&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#10;    }&#10;&#10;    @Override&#10;    public Ciudadano actualizar(String id, Ciudadano ciudadano) {&#10;        CiudadanoEntity entity = CiudadanoPersistenceMapper.toEntity(ciudadano);&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#10;    }&#10;&#10;    @Override&#10;    public Ciudadano buscarPorDocumento(String tipoDocumento, String numeroDocumento) {&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#10;    }&#10;&#10;    @Override&#10;    public Ciudadano buscarPorId(String ciudadanoId) {&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#10;    }&#10;&#10;    @Override&#10;    public List&lt;Ciudadano&gt; listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3, List&lt;String&gt; fields) {&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#10;    }&#10;}&#10;" />
+              <option name="updatedContent" value="package pe.gob.reniec.msdatosciudadano.infrastructure.adapters.out.persistence;&#13;&#10;&#13;&#10;import pe.gob.reniec.msdatosciudadano.domain.model.Ciudadano;&#13;&#10;import pe.gob.reniec.msdatosciudadano.domain.ports.out.CiudadanoRepositoryPort;&#13;&#10;import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.out.persistence.entity.CiudadanoEntity;&#13;&#10;import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.out.persistence.mapper.CiudadanoPersistenceMapper;&#13;&#10;import java.util.List;&#13;&#10;&#13;&#10;public class CiudadanoRepositoryAdapter implements CiudadanoRepositoryPort {&#13;&#10;&#13;&#10;    @Override&#13;&#10;    public String guardar(Ciudadano ciudadano) {&#13;&#10;        CiudadanoEntity entity = CiudadanoPersistenceMapper.toEntity(ciudadano);&#13;&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#13;&#10;    }&#13;&#10;&#13;&#10;    @Override&#13;&#10;    public Ciudadano actualizar(String id, Ciudadano ciudadano) {&#13;&#10;        CiudadanoEntity entity = CiudadanoPersistenceMapper.toEntity(ciudadano);&#13;&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#13;&#10;    }&#13;&#10;&#13;&#10;    @Override&#13;&#10;    public Ciudadano buscarPorDocumento(String tipoDocumento, String numeroDocumento) {&#13;&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#13;&#10;    }&#13;&#10;&#13;&#10;    @Override&#13;&#10;    public Ciudadano buscarPorId(String ciudadanoId) {&#13;&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#13;&#10;    }&#13;&#10;&#13;&#10;    @Override&#13;&#10;    public List&lt;Ciudadano&gt; listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3, List&lt;String&gt; fields) {&#13;&#10;        throw new UnsupportedOperationException(&quot;Implementación pendiente&quot;);&#13;&#10;    }&#13;&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

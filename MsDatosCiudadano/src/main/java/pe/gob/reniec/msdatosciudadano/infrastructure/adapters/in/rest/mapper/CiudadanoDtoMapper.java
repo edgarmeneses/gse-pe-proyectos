@@ -3,6 +3,8 @@ package pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.mapper;
 import pe.gob.reniec.msdatosciudadano.domain.model.*;
 import pe.gob.reniec.msdatosciudadano.infrastructure.adapters.in.rest.dto.*;
 import java.util.stream.Collectors;
+import java.util.List;
+import java.util.ArrayList;
 
 public class CiudadanoDtoMapper {
 
@@ -10,45 +12,17 @@ public class CiudadanoDtoMapper {
         if (dto == null) {
             return null;
         }
-        
+
+        // CrearCiudadanoRequestDto contiene una lista de registros; mapeamos el primer registro a un Ciudadano mínimo.
+        if (dto.registros() == null || dto.registros().isEmpty()) {
+            return new Ciudadano();
+        }
+
+        RegistroDto registro = dto.registros().get(0);
         Ciudadano ciudadano = new Ciudadano();
-        ciudadano.setTipoDocumento(dto.tipoDocumento());
-        ciudadano.setNumeroDocumento(dto.numeroDocumento());
-        ciudadano.setPrimerNombre(dto.primerNombre());
-        ciudadano.setSegundoNombre(dto.segundoNombre());
-        ciudadano.setPrimerApellido(dto.primerApellido());
-        ciudadano.setSegundoApellido(dto.segundoApellido());
-        ciudadano.setFechaNacimiento(dto.fechaNacimiento());
-        ciudadano.setSexo(dto.sexo());
-        ciudadano.setEstadoCivil(dto.estadoCivil());
-        ciudadano.setNacionalidad(dto.nacionalidad());
-        ciudadano.setPaisNacimiento(dto.paisNacimiento());
-        ciudadano.setDepartamentoNacimiento(dto.departamentoNacimiento());
-        ciudadano.setProvinciaNacimiento(dto.provinciaNacimiento());
-        ciudadano.setDistritoNacimiento(dto.distritoNacimiento());
-        ciudadano.setGrupoSanguineo(dto.grupoSanguineo());
-        ciudadano.setEstatura(dto.estatura());
-        
-        if (dto.informacionParental() != null) {
-            ciudadano.setInformacionParental(toInformacionParental(dto.informacionParental()));
-        }
-        
-        if (dto.direccionResidencia() != null) {
-            ciudadano.setDireccionResidencia(toDireccionResidencia(dto.direccionResidencia()));
-        }
-        
-        if (dto.contacto() != null) {
-            ciudadano.setContacto(toContacto(dto.contacto()));
-        }
-        
-        if (dto.informacionElectoral() != null) {
-            ciudadano.setInformacionElectoral(toInformacionElectoral(dto.informacionElectoral()));
-        }
-        
-        if (dto.datosBiometricos() != null) {
-            ciudadano.setDatosBiometricos(toDatosBiometricos(dto.datosBiometricos()));
-        }
-        
+        ciudadano.setTipoDocumento(registro.tipoDocumento());
+        ciudadano.setNumeroDocumento(registro.numeroDocumento());
+        // otros campos no vienen en este DTO de entrada masiva; se dejan nulos
         return ciudadano;
     }
 
@@ -133,6 +107,23 @@ public class CiudadanoDtoMapper {
     }
 
     public static CiudadanoResponseDto toResponseDto(String id, Ciudadano ciudadano) {
-        return new CiudadanoResponseDto(id, ciudadano.getFechaCreacion());
+        List<CiudadanoResponseDto.ResultadoDto> resultados = new ArrayList<>();
+        String estadoProceso = ciudadano != null && ciudadano.getEstado() != null ? ciudadano.getEstado() : "PENDING";
+        return new CiudadanoResponseDto(id, ciudadano != null ? ciudadano.getFechaCreacion() : null, estadoProceso, resultados);
+    }
+
+    public static CiudadanoDto toDto(Ciudadano ciudadano) {
+        if (ciudadano == null) return null;
+        return new CiudadanoDto(
+            ciudadano.getId(),
+            ciudadano.getTipoDocumento(),
+            ciudadano.getNumeroDocumento(),
+            ciudadano.getPrimerNombre() + (ciudadano.getSegundoNombre() != null ? " " + ciudadano.getSegundoNombre() : "") + " " + (ciudadano.getPrimerApellido() != null ? ciudadano.getPrimerApellido() : "") + (ciudadano.getSegundoApellido() != null ? " " + ciudadano.getSegundoApellido() : ""),
+            ciudadano.getPrimerApellido(),
+            ciudadano.getSegundoApellido(),
+            (ciudadano.getPrimerNombre() != null ? ciudadano.getPrimerNombre() : "") + (ciudadano.getSegundoNombre() != null ? " " + ciudadano.getSegundoNombre() : ""),
+            ciudadano.getFechaNacimiento(),
+            null
+        );
     }
 }

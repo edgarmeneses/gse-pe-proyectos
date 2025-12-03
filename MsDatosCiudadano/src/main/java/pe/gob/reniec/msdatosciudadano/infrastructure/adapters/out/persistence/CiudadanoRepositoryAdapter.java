@@ -26,6 +26,11 @@ public class CiudadanoRepositoryAdapter implements CiudadanoRepositoryPort {
     }
 
     @Override
+    public Ciudadano buscarPorId(String ciudadanoId) {
+        throw new UnsupportedOperationException("Implementación pendiente");
+    }
+
+    @Override
     public List<Ciudadano> listar(Integer page, Integer size, String queryParam1, String queryParam2, String queryParam3, List<String> fields) {
         throw new UnsupportedOperationException("Implementación pendiente");
     }
