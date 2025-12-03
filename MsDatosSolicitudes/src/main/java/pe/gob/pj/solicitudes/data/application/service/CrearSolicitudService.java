@@ -7,13 +7,13 @@ import pe.gob.pj.solicitudes.data.domain.ports.out.SolicitudRepositoryPort;
 public class CrearSolicitudService implements CrearSolicitudUseCase {
     
     private final SolicitudRepositoryPort solicitudRepositoryPort;
-    
+
     public CrearSolicitudService(SolicitudRepositoryPort solicitudRepositoryPort) {
         this.solicitudRepositoryPort = solicitudRepositoryPort;
     }
-    
+
     @Override
-    public Solicitud crear(Solicitud solicitud) {
+    public Solicitud ejecutar(Solicitud solicitud) {
         return solicitudRepositoryPort.guardar(solicitud);
     }
 }

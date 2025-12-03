@@ -3,9 +3,13 @@ package pe.gob.reniec.msdatos.repositoriodocumental.application.service;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Documento;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.CrearDocumentoUseCase;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.DocumentoRepositoryPort;
-import java.util.Map;
 
+/**
+ * Servicio de aplicación: Crear Documento
+ * Implementa la lógica de negocio para crear documentos.
+ */
 public class CrearDocumentoService implements CrearDocumentoUseCase {
+
     private final DocumentoRepositoryPort documentoRepositoryPort;
 
     public CrearDocumentoService(DocumentoRepositoryPort documentoRepositoryPort) {
@@ -13,11 +17,8 @@ public class CrearDocumentoService implements CrearDocumentoUseCase {
     }
 
     @Override
-    public Documento crear(String archivoBase64, String carpetaId, Map<String, Object> metadata) {
-        Documento documento = new Documento();
-        documento.setArchivoBase64(archivoBase64);
-        documento.setCarpetaId(carpetaId);
-        documento.setMetadata(metadata);
+    public Documento crear(Documento documento) {
+        // Aquí iría la lógica de validación de negocio antes de persistir
         return documentoRepositoryPort.guardar(documento);
     }
 }

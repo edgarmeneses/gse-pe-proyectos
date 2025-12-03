@@ -3,7 +3,12 @@ package pe.gob.reniec.msdatos.repositoriodocumental.domain.model;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * Aggregate Root: Documento
+ * Representa un documento digital almacenado en el repositorio documental.
+ */
 public class Documento {
+
     private String id;
     private String archivoBase64;
     private String carpetaId;

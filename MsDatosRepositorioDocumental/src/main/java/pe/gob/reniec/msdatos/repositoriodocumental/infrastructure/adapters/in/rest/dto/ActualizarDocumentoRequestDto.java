@@ -2,6 +2,9 @@ package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.r
 
 import java.util.Map;
 
+/**
+ * DTO Request: Actualizar Documento
+ */
 public record ActualizarDocumentoRequestDto(
     String archivoBase64,
     String carpetaId,

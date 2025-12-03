@@ -1,11 +1,21 @@
 package pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in;
 
-import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Carpeta;
-import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Documento;
-import java.util.List;
 import java.util.Map;
 
+/**
+ * Puerto de entrada: Consultar Carpeta
+ * Define el contrato para consultar el contenido de una carpeta.
+ */
 public interface ConsultarCarpetaUseCase {
-    Map<String, Object> consultarContenido(String id, String queryParam1, String queryParam2, 
-                                           String queryParam3, Integer page, Integer size);
+
+    /**
+     * Consulta el contenido de una carpeta (subcarpetas y documentos).
+     *
+     * @param id Identificador de la carpeta
+     * @param filtros Mapa con parámetros de filtrado (queryParam1, queryParam2, queryParam3)
+     * @param page Número de página
+     * @param size Tamaño de página
+     * @return Información de la carpeta, contenido y paginación
+     */
+    pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto.ConsultarCarpetaResponseDto consultarContenido(String id, Map<String, String> filtros, Integer page, Integer size);
 }

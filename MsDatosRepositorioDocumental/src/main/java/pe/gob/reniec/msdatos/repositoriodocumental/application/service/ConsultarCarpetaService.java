@@ -4,7 +4,12 @@ import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.ConsultarCarp
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.CarpetaRepositoryPort;
 import java.util.Map;
 
+/**
+ * Servicio de aplicación: Consultar Carpeta
+ * Implementa la lógica de negocio para consultar el contenido de carpetas.
+ */
 public class ConsultarCarpetaService implements ConsultarCarpetaUseCase {
+
     private final CarpetaRepositoryPort carpetaRepositoryPort;
 
     public ConsultarCarpetaService(CarpetaRepositoryPort carpetaRepositoryPort) {
@@ -12,8 +17,7 @@ public class ConsultarCarpetaService implements ConsultarCarpetaUseCase {
     }
 
     @Override
-    public Map<String, Object> consultarContenido(String id, String queryParam1, String queryParam2, 
-                                                  String queryParam3, Integer page, Integer size) {
-        return carpetaRepositoryPort.consultarContenido(id, queryParam1, queryParam2, queryParam3, page, size);
+    public pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.rest.dto.ConsultarCarpetaResponseDto consultarContenido(String id, Map<String, String> filtros, Integer page, Integer size) {
+        return carpetaRepositoryPort.consultarContenido(id, filtros, page, size);
     }
 }

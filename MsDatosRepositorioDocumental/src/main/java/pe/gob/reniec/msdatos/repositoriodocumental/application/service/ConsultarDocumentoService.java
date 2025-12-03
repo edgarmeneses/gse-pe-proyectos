@@ -4,7 +4,12 @@ import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Documento;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.ConsultarDocumentoUseCase;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.DocumentoRepositoryPort;
 
+/**
+ * Servicio de aplicación: Consultar Documento
+ * Implementa la lógica de negocio para consultar documentos por ID.
+ */
 public class ConsultarDocumentoService implements ConsultarDocumentoUseCase {
+
     private final DocumentoRepositoryPort documentoRepositoryPort;
 
     public ConsultarDocumentoService(DocumentoRepositoryPort documentoRepositoryPort) {

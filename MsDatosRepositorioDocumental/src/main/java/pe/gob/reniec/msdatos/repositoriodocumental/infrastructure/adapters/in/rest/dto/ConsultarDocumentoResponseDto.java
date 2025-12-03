@@ -2,6 +2,9 @@ package pe.gob.reniec.msdatos.repositoriodocumental.infrastructure.adapters.in.r
 
 import java.util.Map;
 
+/**
+ * DTO Response: Consultar Documento
+ */
 public record ConsultarDocumentoResponseDto(
     String archivo,
     String carpetaId,

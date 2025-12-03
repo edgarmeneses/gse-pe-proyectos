@@ -4,7 +4,12 @@ import pe.gob.reniec.msdatos.repositoriodocumental.domain.model.Carpeta;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.in.ActualizarCarpetaUseCase;
 import pe.gob.reniec.msdatos.repositoriodocumental.domain.ports.out.CarpetaRepositoryPort;
 
+/**
+ * Servicio de aplicación: Actualizar Carpeta
+ * Implementa la lógica de negocio para actualizar carpetas.
+ */
 public class ActualizarCarpetaService implements ActualizarCarpetaUseCase {
+
     private final CarpetaRepositoryPort carpetaRepositoryPort;
 
     public ActualizarCarpetaService(CarpetaRepositoryPort carpetaRepositoryPort) {
@@ -12,21 +17,8 @@ public class ActualizarCarpetaService implements ActualizarCarpetaUseCase {
     }
 
     @Override
-    public Carpeta actualizar(String id, String nombre, String estadoCarpeta, 
-                            String parentId, String descripcion) {
-        Carpeta carpeta = carpetaRepositoryPort.buscarPorId(id);
-        if (nombre != null) {
-            carpeta.setNombre(nombre);
-        }
-        if (estadoCarpeta != null) {
-            carpeta.setEstadoCarpeta(estadoCarpeta);
-        }
-        if (parentId != null) {
-            carpeta.setParentId(parentId);
-        }
-        if (descripcion != null) {
-            carpeta.setDescripcion(descripcion);
-        }
-        return carpetaRepositoryPort.actualizar(carpeta);
+    public Carpeta actualizar(String id, Carpeta carpeta) {
+        // Aquí iría la lógica de validación y reglas de negocio
+        return carpetaRepositoryPort.actualizar(id, carpeta);
     }
 }

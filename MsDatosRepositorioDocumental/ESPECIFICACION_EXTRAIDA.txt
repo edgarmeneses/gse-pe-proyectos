@@ -1,0 +1,997 @@
+
+
+=== PAGE 1 ===
+
+   
+ 
+  
+ 
+Microservicio 
+MsDatosRepositorioDocumental  
+Documento Versión: 1. 3 
+Gestión de Seguridad Electrónica  
+  Fecha generación:  01/12/2025 
+    
+ 
+  
+
+
+=== PAGE 2 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 03/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+1.1 29/11/2025  Control de Arquitectura  Corrección del documento 
+basado en observaciones  
+1.2 30/11/2025  Control de Arquitectura  Revisión estructura de 
+objetos JSON  
+1.3 01/12/2025  Documentador Técnico  Ajustes de formato y 
+respuestas de statusCode  
+    
+
+=== PAGE 3 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ................................ ................................ ..... 4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ................................ ..........................  4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ ................................ ..........  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................................ ..........................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ ................................ ...............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ................................ ...............  5 
+3.1 Microservicio MsDatosRepositorioDocumental ................................ ................................ ................................ ................  5 
+3.1.1 Endpoint: Crear documento  ................................ ................................ ................................ ................................ ..............  5 
+3.1.2 Endpoint: Obtener Documento especifico  ................................ ................................ ................................ ................  7 
+3.1.3 Endpoint: Actualizar documento  ................................ ................................ ................................ ................................ .... 8 
+3.1.4 Endpoint: Consultar varios Documento  ................................ ................................ ................................ ................... 10 
+3.1.5 Endpoint: Crear carpeta  ................................ ................................ ................................ ................................ .................... 12 
+3.1.6 Endpoint: Actualizar carpeta  ................................ ................................ ................................ ................................ .......... 14 
+3.1.7 Endpoint: Consultar contenido de una carpeta  ................................ ................................ ................................ ...15 
+3.1.8 Endpoint: Consultar por Documento del Ciudadano  ................................ ................................ ........................ 18 
+ 
+ 
+ 
+ 
+  
+
+=== PAGE 4 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+
+=== PAGE 5 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio 
+MsDatosRepositorioDocumental  
+Repositorio documental se encarga de la gestión centralizada de documentos digitales dentro 
+de la plataforma SIIRC, integrándose con Alfresco como sistema de gestión documental (ECM). 
+Este microservicio permite la carga, consulta, actualización, recuperaci ón y eliminación de 
+documentos, adicional a esto se debe garantizar la trazabilidad, seguridad e integridad de la 
+información.  
+3.1.1  Endpoint: Crear documento  
+Se realiza la creación de un documento en el sistema.  
+Atributo  Valor  
+Path  /api/v1/documentos/MsDatosRepositorioDocumental/documento  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Entrada  { 
+  "archivoBase64": "string",  
+  "carpetaId": "string",  
+  "metadata": {"Object",  
+    "estructura": {  
+      "nombreArchivo": "string",  
+      "tipoDocumento ": "string",  
+      "descripcion": "string"  
+    } 
+  } 
+   } 
+Respuesta  { 
+  "id": "string",  
+  "metadata": "Documento",  
+  "createdAt": {"string",  
+
+=== PAGE 6 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  6 
+    "format": "date -time",  
+    "description": " YYYY -MM-DDThh:mm:ssZ " 
+  }, 
+  "estadoDocumento": "string"  
+} 
+ 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+ 
+3.1.1.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+archivoBase64  Documento.archivo  String  Sí N/A N/A 
+carpetaId  Carpeta.idcarpeta  String  Sí 1 20 
+metadata  Documento.metadata  Object  Sí - - 
+Metadata.nombreArchivo  Documento.nombre  String  Sí 1 30 
+Metadata.tipoDocumento  Documento.mimeType  String  Sí 1 30 
+Metadata.descripcion  Documento.descripcion  String  No 1 300 
+ 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+id String  Si Numero con el que se registra la 
+solicitud  
+estadoDocumento  String  Si Estado actual del documento  
+createdAt  String  Si Fecha de creación de la solicitud  
+error  Object  No Objeto que especifica algún error 
+existente  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título del error  
+error.estado  Integer  No Código del estado de error  
+error.errores  Array  No Listado de errores  
+error.errores[].detalleError  String  No Detalle del error generado  
+ 
+3.1.1.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Documento creado exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+
+=== PAGE 7 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  7 
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar la operación  
+408 Request Timeout  Tiempo de espera agotado  
+413 Payload Too Large  Tamaño del lote excede el límite (50 MB)  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error de tiempo de espera de puerta de enlace  
+3.1.2  Endpoint: Obtener Documento especifico  
+Permite la consultar el documento por su ID.  
+Atributo  Valor  
+Path  /api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}/descargar  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Parámetros  • id (string):  Identificador utilizado como filtro en la consulta.  
+Respuesta  { 
+  "archivo": "string",  
+  "carpetaId": "string",  
+  "metadata": {“Object"  
+  }, 
+  "estadoDocumento": "string"  
+   } 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+ } 
+ 
+3.1.2.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud mínima  Longitud máxima  
+ID  id String  Sí 2 36 
+ 
+
+=== PAGE 8 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  8 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+archivo  String  Si Archivo solicitado en base64  
+carpetaId  String  Sí Carpeta id donde está el archivo  
+metadata  Object  Sí Información del documento  
+estadoDocumento  String  Sí Estado del documento en el sistema  
+error  Object  No Objeto qué especifica algún error existente 
+en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.2.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Documento encontrado exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar la operación  
+404 Not Found  Documento no encontrado  
+408 Request Timeout  Tiempo de espera agotado  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error de tiempo de espera de puerta de enlace  
+3.1.3  Endpoint: Actualizar documento  
+Permite reemplazar un documento o actualizar su información.  
+Atributo  Valor  
+Path  /api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}  
+API Gateway  Interno  
+Método HTTP  PUT 
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -CENTRO)  
+Entrada  { 
+  "archivoBase64": "string",  
+
+=== PAGE 9 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  9 
+  "carpetaId": "string",  
+  "metadata": {"Object",  
+    "estructura": {  
+      "nombreArchivo": "string",  
+      "tipoDocumento ": "string",  
+      "descripcion": "string"  
+    } 
+  }, 
+  "estadoDocumento": "string"  
+} 
+Respuesta  { 
+  "id": "string",  
+  "camposActualizados": "array",  
+  "updatedAt": {“string”,  
+    "format": "date -time",  
+    "description": " YYYY -MM-DDThh:mm:ssZ " 
+  }, 
+  "estadoDocumento": "string"  
+   
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.3.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+id Documento.id  String  Sí - - 
+archivo  Documento.archivo  String  No - - 
+metadata  Documento.metadata  Object  No - - 
+carpetaId  Carpeta.id  String  No - - 
+estadoDocumento  documento.status  String  No - - 
+ 
+3.1.3.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+id String  Si Registro sobre el cual se realización la 
+actualización  
+updateAt  String  Sí Timestamp del momento exacto cuando se 
+registró la actualización en el sistema  
+estadoDocumento  Integer  Sí Estado del sistema ante la operación 
+ejecutada  
+camposActualizados  Object  Sí Resultado de campos actualizados  
+estadoDocumento  String  Sí Estado del documento en el sistema  
+error  Object  No Objeto qué especifica algún error existente 
+en la operación.  
+
+=== PAGE 10 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  10 
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.3.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Documento actualizad o exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar el análisis de redacción  
+404 Not Found  El documento no existe  
+408 Request Timeout  Tiempo de espera agotado  
+409 Conflict  Conflictos de versión/estado  
+413 Payload Too Large  Tamaño del lote excede el límite (50 MB)  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido (100 req/hora)  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error de tiempo de espera de puerta de enlace  
+3.1.4  Endpoint: Consultar varios Documento  
+Permite la consulta de varios documentos basado en los filtros de búsqueda.  
+Atributo  Valor  
+Path  /api/v1/documentos/ MsDatosRepositorioDocumental/documento  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String(application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -CENTRO)  
+Parámetros  • queryParam1 (string):  Parámetro utilizado para realizar filtrado según la 
+lógica del servicio.  
+• queryParam2 (string):  Parámetro adicional aplicado al proceso de filtrado.  
+• queryParam3 (string):  Parámetro complementario para búsquedas o filtros 
+específicos.  
+• page (integer):  Número de página solicitado para la paginación.  
+• size (integer):  Cantidad de registros que debe retornar el servicio por página.  
+Respuesta  { 
+  "page": {  
+    "number": "integer",  
+    "size": "integer",  
+    "totalElements": "integer",  
+    "totalPages": "integer",  
+
+=== PAGE 11 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  11 
+    "hasNext": "boolean"  
+  }, 
+  "content": {  
+    "ArrayObject": {  
+      "estructura": [  
+        { 
+          "documentoId": "string",  
+          "nombreDocumento": "string",  
+          "rutaDocumento": "string"  
+        } 
+      ] 
+    } 
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.4.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+page  page  Integer  Sí 1 - 
+size size Integer  Sí 1 - 
+queryParam1  filterParam  String  No 1 20 
+queryParam2  filterParam2  String  No 1 20 
+queryParam3  filterParam3  String  No 1 20 
+ 
+3.1.4.2  Parámetros de Respuesta  
+Nombre  Tipo Obligatorio  Descripción  
+number  Integer  Si Número de la Página actual  
+size Integer  Sí Tamaño de página actual  
+totalElements  Long  Sí Cantidad de elementos encontrados  
+totalPages  Integer  Sí Número total de páginas disponibles  
+hasNext  Boolean  Sí Indica si existen más paginas 
+disponibles después de la actual  
+content  Arrayobject  Sí Contiene los resultados según los 
+parámetros filtrados.  
+Content.documentoId  String  Sí Identificador del documento  
+Content.documentoNombre  String  Sí Nombre del documento  
+Content.parentId  String  Sí Identificador del nodo en qué se 
+encuentra  
+
+=== PAGE 12 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  12 
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.4.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar el análisis de redacción  
+408 Request Timeout  Tiempo de espera agotado  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error tiempo de espera en la puerta de enlace  
+3.1.5  Endpoint: Crear carpeta  
+Permite crear una carpeta en el sistema.  
+Atributo  Valor  
+Path  /api/v1/documentos/ MsDatosRepositorioDocumental/carpeta  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -CENTRO)  
+Entrada  { 
+  "nombre": "string",  
+  "parentId": "string",  
+  "descripcion": "string"  
+} 
+Respuesta  { 
+  "id": "string",  
+  "createdAt": {"string",  
+    "format": "date -time",  
+    "description": " YYYY -MM-DDThh:mm:ssZ " 
+  }, 
+  "estadoCarpeta": "string",  
+  "ruta": "string"  
+  } 
+Error Response       "error": {  
+
+=== PAGE 13 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  13 
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.5.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+nombre  Carpeta.nombre  String  Sí 1 30 
+parentId  Carpeta.parent  String  Sí - - 
+descripcion  Carpeta.descripcion  String  No 1 300 
+ 
+3.1.5.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+id String  Si Registro de la creación  
+createdAt  String  Sí Timestamp del momento exacto cuando se 
+registró la creación en el sistema  
+estadoCarpeta  String  Sí Estado de la carpeta  
+ruta String  Sí Ruta de la carpeta en el sistema  
+error  Object  No Objeto qué especifica algún error existente 
+en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.5.3  Valores para el atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Carpeta creada exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para crear carpeta  
+408 Request Timeout  Tiempo de espera agotado  
+409 Conflict  Carpeta con el mismo nombre ya existe  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+
+=== PAGE 14 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  14 
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error Tiempo de espera en la puerta de enlace  
+ 
+3.1.6  Endpoint: Actualizar carpeta  
+Permite actualizar la información, mover y actualizar el estado de una carpeta.  
+Atributo  Valor  
+Path  /api/v1/documentos/MsDatosRepositorioDocumental/carpeta /{id} 
+API Gateway  Interno  
+Método HTTP  PUT 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String (application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Entrada  { 
+  "nombre": "string",  
+  "estadoCarpeta": "string",  
+  "parentId": "string",  
+  "descripcion": "string"  
+} 
+Respuesta  { 
+  "id": "string",  
+  "updateAt": {  
+    "type": "string",  
+    "format": "date -time",  
+    "description": " YYYY -MM-DDThh:mm:ssZ " 
+  }, 
+  "camposActualizados": "ArrayObject"  
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.6.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+nombre  Carpeta.nombre  String  No - - 
+id Carpeta.identificador  String  Sí - - 
+
+=== PAGE 15 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  15 
+estadoCarpeta  Carpeta.estado  String  No - - 
+parentId  Carpeta.padreId  String  no - - 
+descripcion  Carpeta.descripcion  String  no - - 
+ 
+3.1.6.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+id String  Si Registro sobre el cual se realización la 
+actualización  
+updateAt  String  Sí Timestamp del momento exacto cuando 
+se registró la actualización en el sistema  
+estadoCarpeta  String  Sí Estado de la carpeta  
+camposActualizados  Object  Sí Resultado de campos actualizados  
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.6.3  Valores para el atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Carpeta actualizada exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar la actualización  
+404 Not Found  Carpeta no existe  
+408 Request Timeout  Tiempo de espera agotado  
+409 Conflict  Carpeta con el mismo nombre ya existe  
+422 Unprocessable Entity  Datos válidos pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error tiempo de espera en la puerta de enlace  
+3.1.7  Endpoint: Consultar contenido de una carpeta  
+Permite la consulta del contenido de una carpeta.  
+Atributo  Valor  
+Path  /api/v1/documentos/MsDatosRepositorioDocumental/carpeta/{id}  
+
+=== PAGE 16 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  16 
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String(application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Parámetros  • queryParam1 (string):  Parámetro utilizado para realizar filtrado según 
+la lógica del servicio.  
+• queryParam2 (string):  Parámetro adicional aplicado al proceso de 
+filtrado.  
+• queryParam3 (string):  Parámetro complementario para búsquedas o 
+filtros específicos.  
+• page (integer):  Número de página solicitado para la paginación.  
+• size (integer):  Cantidad de registros que debe retornar el servicio por 
+página.  
+Respuesta  { 
+  "folder": {  
+    "id": "String",  
+    "metadata": {"Object"  
+    }, 
+    "path": "String",  
+    "estadoCarpeta": "String",  
+    "createdAt": {"string",  
+      "format": "date -time",  
+      "description": " YYYY -MM-DDThh:mm:ssZ " 
+    }, 
+    "updateAt": {"string",  
+      "format": "date -time",  
+      "description": " YYYY -MM-DDThh:mm:ssZ " 
+    } 
+  }, 
+  "page": {  
+    "number": "Integer",  
+    "size": "Integer",  
+    "totalElements": "Integer",  
+    "totalPages": "Integer",  
+    "hasNext": "Boolean"  
+  }, 
+  "contents": {  
+    "folders": [  
+      { 
+        "id": "String",  
+        "metadata": {“carpeta”  
+                 }, 
+        "createdAt": {  
+          "type": "string",  
+          "format": "date -time",  
+          "description": " YYYY -MM-DDThh:mm:ssZ " 
+        } 
+      } 
+    ], 
+    "documents": [  
+      { 
+        "id": "String",  
+        "metadata": {"documento"  
+        }, 
+        "createdAt": {  
+          "type": "string",  
+          "format": "date -time",  
+
+=== PAGE 17 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  17 
+          "description": " YYYY -MM-DDThh:mm:ssZ " 
+        } 
+      } 
+    ] 
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.7.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+page  page  Integer  Sí 1 - 
+size size Integer  Sí 1  
+id Carpeta.id  String  Sí 1 20 
+queryParam1  filterParam  String  no 1 20 
+queryParam2  filterParam2  String   no 1 20 
+ 
+queryParam3  filterParam3  String  no 1 20 
+ 
+3.1.7.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+folder  Object  Sí Objeto con la información de la 
+carpeta  
+Folder.createdAt  String  Si Fecha de creación de la carpeta  
+Folder.id  String  Sí Identificador de la carpeta  
+Folder.updateAt  String  Sí Fecha de actualización de la 
+carpeta  
+Folder.path  String  SI Path de la carpeta en el sistema  
+metadata  Carpeta  No Metadata de la carpeta creada  
+Folder.estadoCarpeta  String  Sí Estado de la carpeta en el sistema  
+Page.number  Integer  Si Número de la Página actual  
+ 
+Page.size  Integer  Sí Tamaño de página actual  
+Page.totalElements  Long  Sí Cantidad de elementos 
+encontrados  
+Page.totalPages  Integer  Sí Número total de páginas 
+disponibles  
+Page.hasNext  Boolean  Sí Indica si existen más paginas 
+disponibles después de la actual  
+Content.folders  Arraycarpeta  No Listado de las carpetas hijas  
+
+=== PAGE 18 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  18 
+Content.folders.id  String  No Identificador de la subcarpeta  
+Content.folders.metadatada  Carpeta  No Metadata de la carperta  
+Content.folders.createdAt  String  No Fecha de creación de la carpeta en 
+el sistema  
+Content.documents  Arraydocumento  No Información de los documentos 
+dentro de la carpeta  
+Content.documents.id  String  No Identificador del documento  
+Content.documents.metadatada  documento  No Metadata del documento  
+Content.documents.createdAt  String  No Fecha de creación del documento  
+ 
+3.1.7.3  Valores para el atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada  exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar esta consulta  
+404 Not Found  Carpeta no existe  
+408 Request Timeout  Tiempo de espera agotado  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error tiempo de espera en la puerta de enlace  
+3.1.8  Endpoint: Consultar por Documento del Ciudadano  
+Permite la consulta los documentos basados en el DNI del  
+Atributo  Valor  
+Path  /api/v1/documentos/MsDatosRepositorioDocumental/ documento/{id}/descargar  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: String(application/json)  
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -CENTRO)  
+Parámetros  • dni (string, path ): Número de DNI del ciudadano (8 dígitos)  
+• tipoDocumento (string, query): Filtro por tipo de documento (opcional).  
+• fechaDesde (string, query): Fecha inicio (ISO 8601).  
+• fechaHasta (string, query): Fecha fin (ISO 8601).  
+• estadoDocumento (string, query): Filtro por estado del documento.  
+• page (integer, query): Número de página solicitado para la paginación.  
+• size (integer, query): Cantidad de registros por página.  
+Respuesta  { 
+  "ciudadano": {  
+    "dni": "string",  
+    "nombreCompleto": "string"  
+
+=== PAGE 19 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  19 
+  }, 
+  "page": {  
+    "number": "integer",  
+    "size": "integer",  
+    "totalElements": "integer",  
+    "totalPages": "integer",  
+    "hasNext": "boolean",  
+    "hasPrevious": "boolean"  
+  }, 
+  "content": {  
+    "ArrayObject": "",  
+    "estructura": [  
+      { 
+        "documentoId": "string",  
+        "nombreDocumento": "string",  
+        "tipoDocumento": "string",  
+        "rutaDocumento": "string",  
+        "carpetaId": "string",  
+        "estadoDocumento": "string",  
+        "mimeType": "string",  
+        "tamanioBytes": "integer",  
+        "createdAt": {  
+          "string": "",  
+          "format": "date -time",  
+          "description": " YYYY -MM-DDThh:mm:ssZ " 
+        }, 
+        "updatedAt": {  
+          "string": "",  
+          "format": "date -time",  
+          "description": " YYYY -MM-DDThh:mm:ssZ " 
+        } 
+      } 
+    ] 
+  } 
+} 
+Error Response       "error": {  
+      "tipo": "string",  
+      "titulo": "string",  
+      "estado": "integer",  
+ 
+      "errores": [  
+        { 
+         "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.8.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+mínima  Longitud 
+máxima  
+dni Ciudadano.dni  String  Sí 8 8 
+tipoDocumento  Documento.tipoDocumento  String  No 1 30 
+fechaDesde  filterFechaDesde  String (Date 
+ISO 8601)  No N/A N/A 
+fechaHasta  filterFechaHasta  String (Date 
+ISO 8601)  No N/A N/A 
+estadoDocumento  Documento.estado  String  No 1 20 
+
+=== PAGE 20 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  20 
+page  page  Integer  Sí 1 - 
+size size Integer  Sí 1 100 
+ 
+3.1.8.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+ciudadano  Object  Sí Objeto con información básica del 
+ciudadano consultado  
+ciudadano.dni  String  Sí Número de DNI del ciudadano  
+ciudadano.nombreCompleto  String  No Nombres y apellidos del ciudadano  
+page.number  Integer  Sí Número de la página actual  
+page.size  Integer  Sí Tamaño de la página actual  
+page.totalElements  Long  Sí Cantidad total de documentos 
+encontrados  
+page.totalPages  Integer  Sí Número total de páginas disponibles  
+page.hasNext  Boolean  Sí Indica si existen páginas posteriores  
+page.hasPrevious  Boolean  Sí Indica si existen páginas anteriores  
+content  Array (Object)  Sí Colección de documentos 
+encontrados  
+content[].documentoId  String  Sí Identificador único del documento en 
+Alfresco  
+content[].nombreDocumento  String  Sí Nombre del archivo del documento  
+content[].tipoDocumento  String  Sí Tipo o categoría del documento  
+content[].rutaDocumento  String  Sí Ruta completa del documento en el 
+repositorio documental  
+content[].carpetaId  String  Sí Identificador de la carpeta donde se 
+almacena  
+content[].estadoDocumento  String  Sí Estado del documento  
+content[].mimeType  String  Sí Tipo MIME del documento  
+content[].tamanioBytes  Integer  No Tamaño del documento en bytes  
+content[].createdAt  String  Sí Fecha de creación del documento  
+content[].updatedAt  String  No Fecha de última actualización del 
+documento  
+error  Object  No Objeto de error cuando ocurre una 
+incidencia  
+error.tipo  String  No Path o ubicación donde ocurrió el 
+error  
+error.titulo  String  No Descripción corta del error  
+error.status  Integer  No Código numérico del estado del error  
+error.errores  Array (Object)  No Listado de errores detallados  
+ 
+
+=== PAGE 21 ===
+
+ 
+ 
+Microservicio MsDatosRepositorioDocumental  21 
+3.1.8.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Consulta realizada  exitosamente  
+400 Bad Request  Parámetros inválidos o estructura incorrecta  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar el análisis de redacción  
+404 Not Found  No se encontraron documentos para el DNI especificado  
+408 Request Timeout  Tiempo de espera agotado  
+422 Unprocessable Entity  Datos válidos, pero no procesables  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  Servicio de Alfresco no responde  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Error tiempo de espera en la puerta de enlace  
+ 

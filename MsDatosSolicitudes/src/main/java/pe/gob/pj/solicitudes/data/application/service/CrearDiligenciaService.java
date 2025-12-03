@@ -7,14 +7,13 @@ import pe.gob.pj.solicitudes.data.domain.ports.out.DiligenciaRepositoryPort;
 public class CrearDiligenciaService implements CrearDiligenciaUseCase {
     
     private final DiligenciaRepositoryPort diligenciaRepositoryPort;
-    
+
     public CrearDiligenciaService(DiligenciaRepositoryPort diligenciaRepositoryPort) {
         this.diligenciaRepositoryPort = diligenciaRepositoryPort;
     }
-    
+
     @Override
-    public Diligencia crear(Long solicitudId, Diligencia diligencia) {
-        diligencia.setSolicitudId(solicitudId);
+    public Diligencia ejecutar(Diligencia diligencia) {
         return diligenciaRepositoryPort.guardar(diligencia);
     }
 }

@@ -1,90 +1,96 @@
-# Microservicio MsDatosRepositorioDocumental
+# MsDatosRepositorioDocumental
 
 ## Resumen
 
-**Nombre:** MsDatosRepositorioDocumental  
-**Contexto:** Gestión centralizada de documentos digitales dentro de la plataforma SIIRC, integrándose con Alfresco como sistema de gestión documental (ECM).  
+**Nombre del Microservicio:** MsDatosRepositorioDocumental  
+**Tipo:** MsData (Microservicio de Datos)  
+**Contexto de Negocio:** Gestión centralizada de documentos digitales dentro de la plataforma SIIRC de RENIEC, integrándose con Alfresco como sistema de gestión documental (ECM).  
 **Versión API:** v1  
-**Paquete Base:** `pe.gob.reniec.msdatos.repositoriodocumental`  
-**Tipo de Microservicio:** **MsData** (Microservicio de Datos)
+**Paquete Base Java:** `pe.gob.reniec.msdatos.repositoriodocumental`  
 
-Como microservicio de tipo **MsData**, este proyecto:
-- Define `RepositoryPort` para documentos y carpetas
-- Contiene `Entities` (POJOs sin anotaciones JPA)
-- Implementa `RepositoryAdapter` que conecta con el sistema de persistencia
-- NO depende de componentes externos tipo MsDataXXXX
+## Descripción
 
-## Contexto de Negocio
+Este microservicio se encarga de la gestión centralizada de documentos digitales, permitiendo:
+- Carga, consulta, actualización y recuperación de documentos
+- Gestión de carpetas en el repositorio documental
+- Consulta de documentos por DNI de ciudadano
+- Integración con Alfresco como sistema de gestión documental (ECM)
+- Garantía de trazabilidad, seguridad e integridad de la información
 
-El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos vitales. Este microservicio forma parte de la solución de Personalización del DNIe de RENIEC y se encarga de la gestión centralizada de documentos digitales, garantizando la trazabilidad, seguridad e integridad de la información.
+Como microservicio de tipo **MsData**, implementa la capa de persistencia con RepositoryPort y RepositoryAdapter, integrándose directamente con el sistema de gestión documental Alfresco.
 
-## Características de la Arquitectura
-
-### Arquitectura Hexagonal (Puertos y Adaptadores)
-Este proyecto implementa una arquitectura hexagonal estricta sin dependencias de frameworks:
-- **Sin frameworks:** No se utilizan Spring, JAX-RS, JPA ni ninguna librería externa
-- **POJOs puros:** Todas las clases son Java puro sin anotaciones
-- **Puertos y Adaptadores:** Clara separación entre lógica de negocio e infraestructura
-- **Sin protocolo definido:** Los adaptadores no implementan tecnologías específicas (HTTP/SOAP/etc)
+## Arquitectura
 
 ### Estructura del Proyecto
+
+El proyecto sigue los principios de **Arquitectura Hexagonal (Puertos y Adaptadores)** con **Domain-Driven Design (DDD)**:
 
 ```
 src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
 ├── domain/
-│   ├── model/
+│   ├── model/                      # Entidades del dominio (Aggregates y Value Objects)
 │   │   ├── Documento.java
-│   │   └── Carpeta.java
+│   │   ├── Carpeta.java
+│   │   ├── Ciudadano.java
+│   │   └── Pagina.java
 │   └── ports/
-│       ├── in/
+│       ├── in/                     # Puertos de entrada (Use Cases)
 │       │   ├── CrearDocumentoUseCase.java
 │       │   ├── ConsultarDocumentoUseCase.java
 │       │   ├── ActualizarDocumentoUseCase.java
 │       │   ├── ListarDocumentosUseCase.java
+│       │   ├── ConsultarDocumentoPorDniUseCase.java
 │       │   ├── CrearCarpetaUseCase.java
 │       │   ├── ActualizarCarpetaUseCase.java
-│       │   ├── ConsultarCarpetaUseCase.java
-│       │   └── ConsultarDocumentoPorDniUseCase.java
-│       └── out/
+│       │   └── ConsultarCarpetaUseCase.java
+│       └── out/                    # Puertos de salida (Repository Ports)
 │           ├── DocumentoRepositoryPort.java
 │           └── CarpetaRepositoryPort.java
 ├── application/
-│   └── service/
+│   └── service/                    # Servicios de aplicación (implementan Use Cases)
 │       ├── CrearDocumentoService.java
 │       ├── ConsultarDocumentoService.java
 │       ├── ActualizarDocumentoService.java
 │       ├── ListarDocumentosService.java
+│       ├── ConsultarDocumentoPorDniService.java
 │       ├── CrearCarpetaService.java
 │       ├── ActualizarCarpetaService.java
-│       ├── ConsultarCarpetaService.java
-│       └── ConsultarDocumentoPorDniService.java
+│       └── ConsultarCarpetaService.java
 └── infrastructure/
     └── adapters/
         ├── in/
-        │   └── rest/
+        │   └── rest/               # Adaptador REST (Controllers, DTOs, Mappers)
         │       ├── controller/
         │       │   ├── DocumentoController.java
         │       │   └── CarpetaController.java
-        │       ├── dto/
-        │       │   ├── DocumentoRequestDto.java
-        │       │   ├── DocumentoResponseDto.java
+        │       ├── dto/            # DTOs como records de Java
+        │       │   ├── CrearDocumentoRequestDto.java
+        │       │   ├── CrearDocumentoResponseDto.java
+        │       │   ├── ConsultarDocumentoResponseDto.java
         │       │   ├── ActualizarDocumentoRequestDto.java
         │       │   ├── ActualizarDocumentoResponseDto.java
-        │       │   ├── ConsultarDocumentoResponseDto.java
-        │       │   ├── CarpetaRequestDto.java
-        │       │   ├── CarpetaResponseDto.java
+        │       │   ├── ListarDocumentosResponseDto.java
+        │       │   ├── CrearCarpetaRequestDto.java
+        │       │   ├── CrearCarpetaResponseDto.java
         │       │   ├── ActualizarCarpetaRequestDto.java
         │       │   ├── ActualizarCarpetaResponseDto.java
-        │       │   ├── PageDto.java
-        │       │   ├── ListarDocumentosResponseDto.java
+        │       │   ├── ConsultarCarpetaResponseDto.java
+        │       │   ├── ConsultarDocumentoPorDniResponseDto.java
+        │       │   ├── PaginaDto.java
+        │       │   ├── DocumentoItemDto.java
         │       │   ├── DocumentoInfoDto.java
+        │       │   ├── DocumentoDetalleDto.java
+        │       │   ├── CarpetaItemDto.java
+        │       │   ├── FolderDto.java
+        │       │   ├── ContentsDto.java
+        │       │   ├── CiudadanoDto.java
         │       │   ├── ErrorDto.java
         │       │   └── ErrorDetalleDto.java
         │       └── mapper/
         │           ├── DocumentoDtoMapper.java
         │           └── CarpetaDtoMapper.java
         └── out/
-            └── persistence/
+            └── persistence/        # Adaptador de persistencia (Alfresco)
                 ├── entity/
                 │   ├── DocumentoEntity.java
                 │   └── CarpetaEntity.java
@@ -95,59 +101,89 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
                 └── CarpetaRepositoryAdapter.java
 ```
 
-## Endpoints del Microservicio
+### Principios Arquitectónicos
+
+- **Sin frameworks ni anotaciones:** El código es Java puro (POJOs e interfaces)
+- **Sin tecnología específica:** No se usan anotaciones JPA, Spring, JAX-RS, etc.
+- **Separación de responsabilidades:** Clara división entre dominio, aplicación e infraestructura
+- **Inversión de dependencias:** El dominio no depende de la infraestructura
+- **Neutralidad tecnológica:** El código puede integrarse con cualquier framework
+
+## Endpoints
 
 ### 1. Crear Documento
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento`
-- **Método:** `POST`
-- **Headers:**
-  - `Content-Type: application/json`
-  - `Authorization: Bearer {token}`
-  - `X-Correlation-ID: {UUID}`
-  - `X-Office-Code: {código de oficina}`
-- **Request Body:**
+
+**Método:** `POST`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento`  
+**Gateway:** Interno  
+
+#### Headers
+- `Content-Type`: application/json
+- `Authorization`: Bearer token JWT para autenticación
+- `X-Correlation-ID`: UUID para trazabilidad
+- `X-Office-Code`: Código de oficina (formato: ORG-LIMA-CENTRO)
+
+#### Request Body
 ```json
 {
   "archivoBase64": "string",
   "carpetaId": "string",
   "metadata": {
-    "estructura": {
-      "nombreArchivo": "string",
-      "tipoDocumento": "string",
-      "descripcion": "string"
-    }
+    "nombreArchivo": "string",
+    "tipoDocumento": "string",
+    "descripcion": "string"
   }
 }
 ```
-- **Response (201):**
+
+#### Response (201 Created)
 ```json
 {
   "id": "string",
   "metadata": "Documento",
-  "createdAt": "2025-12-01T10:30:00+00:00",
+  "createdAt": "YYYY-MM-DDThh:mm:ssZ",
   "estadoDocumento": "string"
 }
 ```
-- **Status Codes:**
-  - `201 Created` - Documento creado exitosamente
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `408 Request Timeout` - Timeout
-  - `413 Payload Too Large` - Tamaño excedido (50 MB)
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+#### Parámetros de Entrada
+| Campo | Tipo | Obligatorio | Longitud Min | Longitud Max |
+|-------|------|-------------|--------------|--------------|
+| archivoBase64 | String | Sí | N/A | N/A |
+| carpetaId | String | Sí | 1 | 20 |
+| metadata | Object | Sí | - | - |
+| metadata.nombreArchivo | String | Sí | 1 | 30 |
+| metadata.tipoDocumento | String | Sí | 1 | 30 |
+| metadata.descripcion | String | No | 1 | 300 |
+
+#### Status Codes
+| Código | Descripción |
+|--------|-------------|
+| 201 | Documento creado exitosamente |
+| 400 | Parámetros inválidos o estructura incorrecta |
+| 401 | Token JWT inválido, expirado o ausente |
+| 403 | Sin permisos para ejecutar la operación |
+| 408 | Tiempo de espera agotado |
+| 413 | Tamaño del lote excede el límite (50 MB) |
+| 422 | Datos válidos pero no procesables |
+| 429 | Límite de rate limit excedido |
+| 500 | Error interno del servicio |
+| 502 | Servicio de Alfresco no responde |
+| 503 | Servicio temporalmente no disponible |
+| 504 | Error de tiempo de espera de puerta de enlace |
+
+---
 
 ### 2. Obtener Documento Específico
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}/descargar`
-- **Método:** `GET`
-- **Path Parameters:**
-  - `id` (string, obligatorio, 2-36 caracteres)
-- **Response (200):**
+
+**Método:** `GET`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}/descargar`  
+**Gateway:** Interno  
+
+#### Path Parameters
+- `id` (String): Identificador del documento (longitud: 2-36)
+
+#### Response (200 OK)
 ```json
 {
   "archivo": "string",
@@ -156,69 +192,92 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
   "estadoDocumento": "string"
 }
 ```
-- **Status Codes:**
-  - `200 OK` - Documento encontrado
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `404 Not Found` - Documento no encontrado
-  - `408 Request Timeout` - Timeout
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+#### Status Codes
+| Código | Descripción |
+|--------|-------------|
+| 200 | Documento encontrado exitosamente |
+| 400 | Parámetros inválidos o estructura incorrecta |
+| 401 | Token JWT inválido, expirado o ausente |
+| 403 | Sin permisos para ejecutar la operación |
+| 404 | Documento no encontrado |
+| 408 | Tiempo de espera agotado |
+| 422 | Datos válidos pero no procesables |
+| 429 | Límite de rate limit excedido |
+| 500 | Error interno del servicio |
+| 502 | Servicio de Alfresco no responde |
+| 503 | Servicio temporalmente no disponible |
+| 504 | Error de tiempo de espera de puerta de enlace |
+
+---
 
 ### 3. Actualizar Documento
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}`
-- **Método:** `PUT`
-- **Path Parameters:**
-  - `id` (string, obligatorio)
-- **Request Body:**
+
+**Método:** `PUT`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}`  
+**Gateway:** Interno  
+
+#### Path Parameters
+- `id` (String): Identificador del documento
+
+#### Request Body
 ```json
 {
   "archivoBase64": "string",
   "carpetaId": "string",
-  "metadata": {},
+  "metadata": {
+    "nombreArchivo": "string",
+    "tipoDocumento": "string",
+    "descripcion": "string"
+  },
   "estadoDocumento": "string"
 }
 ```
-- **Response (200):**
+
+#### Response (200 OK)
 ```json
 {
   "id": "string",
-  "camposActualizados": [],
-  "updatedAt": "2025-12-01T10:30:00+00:00",
+  "camposActualizados": ["array"],
+  "updatedAt": "YYYY-MM-DDThh:mm:ssZ",
   "estadoDocumento": "string"
 }
 ```
-- **Status Codes:**
-  - `200 OK` - Documento actualizado
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `404 Not Found` - Documento no existe
-  - `408 Request Timeout` - Timeout
-  - `409 Conflict` - Conflicto de versión
-  - `413 Payload Too Large` - Tamaño excedido (50 MB)
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+#### Status Codes
+| Código | Descripción |
+|--------|-------------|
+| 200 | Documento actualizado exitosamente |
+| 400 | Parámetros inválidos o estructura incorrecta |
+| 401 | Token JWT inválido, expirado o ausente |
+| 403 | Sin permisos para ejecutar el análisis de redacción |
+| 404 | El documento no existe |
+| 408 | Tiempo de espera agotado |
+| 409 | Conflictos de versión/estado |
+| 413 | Tamaño del lote excede el límite (50 MB) |
+| 422 | Datos válidos pero no procesables |
+| 429 | Límite de rate limit excedido (100 req/hora) |
+| 500 | Error interno del servicio |
+| 502 | Servicio de Alfresco no responde |
+| 503 | Servicio temporalmente no disponible |
+| 504 | Error de tiempo de espera de puerta de enlace |
+
+---
 
 ### 4. Consultar Varios Documentos
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento`
-- **Método:** `GET`
-- **Query Parameters:**
-  - `queryParam1` (string, opcional, 1-20 caracteres)
-  - `queryParam2` (string, opcional, 1-20 caracteres)
-  - `queryParam3` (string, opcional, 1-20 caracteres)
-  - `page` (integer, obligatorio, mínimo 1)
-  - `size` (integer, obligatorio, mínimo 1)
-- **Response (200):**
+
+**Método:** `GET`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento`  
+**Gateway:** Interno  
+
+#### Query Parameters
+- `queryParam1` (String, opcional): Parámetro de filtrado 1 (longitud: 1-20)
+- `queryParam2` (String, opcional): Parámetro de filtrado 2 (longitud: 1-20)
+- `queryParam3` (String, opcional): Parámetro de filtrado 3 (longitud: 1-20)
+- `page` (Integer, obligatorio): Número de página (mínimo: 1)
+- `size` (Integer, obligatorio): Tamaño de página (mínimo: 1)
+
+#### Response (200 OK)
 ```json
 {
   "page": {
@@ -237,23 +296,16 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
   ]
 }
 ```
-- **Status Codes:**
-  - `200 OK` - Consulta exitosa
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `408 Request Timeout` - Timeout
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+---
 
 ### 5. Crear Carpeta
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/carpeta`
-- **Método:** `POST`
-- **Request Body:**
+
+**Método:** `POST`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/carpeta`  
+**Gateway:** Interno  
+
+#### Request Body
 ```json
 {
   "nombre": "string",
@@ -261,35 +313,52 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
   "descripcion": "string"
 }
 ```
-- **Response (201):**
+
+#### Parámetros de Entrada
+| Campo | Tipo | Obligatorio | Longitud Min | Longitud Max |
+|-------|------|-------------|--------------|--------------|
+| nombre | String | Sí | 1 | 30 |
+| parentId | String | Sí | - | - |
+| descripcion | String | No | 1 | 300 |
+
+#### Response (201 Created)
 ```json
 {
   "id": "string",
-  "createdAt": "2025-12-01T10:30:00+00:00",
+  "createdAt": "YYYY-MM-DDThh:mm:ssZ",
   "estadoCarpeta": "string",
   "ruta": "string"
 }
 ```
-- **Status Codes:**
-  - `201 Created` - Carpeta creada exitosamente
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `408 Request Timeout` - Timeout
-  - `409 Conflict` - Carpeta con mismo nombre ya existe
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+#### Status Codes
+| Código | Descripción |
+|--------|-------------|
+| 201 | Carpeta creada exitosamente |
+| 400 | Parámetros inválidos o estructura incorrecta |
+| 401 | Token JWT inválido, expirado o ausente |
+| 403 | Sin permisos para crear carpeta |
+| 408 | Tiempo de espera agotado |
+| 409 | Carpeta con el mismo nombre ya existe |
+| 422 | Datos válidos pero no procesables |
+| 429 | Límite de rate limit excedido |
+| 500 | Error interno del servicio |
+| 502 | Servicio de Alfresco no responde |
+| 503 | Servicio temporalmente no disponible |
+| 504 | Error tiempo de espera en la puerta de enlace |
+
+---
 
 ### 6. Actualizar Carpeta
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/carpeta/{id}`
-- **Método:** `PUT`
-- **Path Parameters:**
-  - `id` (string, obligatorio)
-- **Request Body:**
+
+**Método:** `PUT`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/carpeta/{id}`  
+**Gateway:** Interno  
+
+#### Path Parameters
+- `id` (String): Identificador de la carpeta
+
+#### Request Body
 ```json
 {
   "nombre": "string",
@@ -298,41 +367,33 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
   "descripcion": "string"
 }
 ```
-- **Response (200):**
+
+#### Response (200 OK)
 ```json
 {
   "id": "string",
-  "updateAt": "2025-12-01T10:30:00+00:00",
-  "camposActualizados": []
+  "updatedAt": "YYYY-MM-DDThh:mm:ssZ",
+  "camposActualizados": ["array"]
 }
 ```
-- **Status Codes:**
-  - `200 OK` - Carpeta actualizada exitosamente
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `404 Not Found` - Carpeta no existe
-  - `408 Request Timeout` - Timeout
-  - `409 Conflict` - Carpeta con mismo nombre ya existe
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+---
 
 ### 7. Consultar Contenido de Carpeta
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/carpeta/{id}`
-- **Método:** `GET`
-- **Path Parameters:**
-  - `id` (string, obligatorio, 1-20 caracteres)
-- **Query Parameters:**
-  - `queryParam1` (string, opcional, 1-20 caracteres)
-  - `queryParam2` (string, opcional, 1-20 caracteres)
-  - `queryParam3` (string, opcional, 1-20 caracteres)
-  - `page` (integer, obligatorio, mínimo 1)
-  - `size` (integer, obligatorio, mínimo 1)
-- **Response (200):**
+
+**Método:** `GET`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/carpeta/{id}`  
+**Gateway:** Interno  
+
+#### Path Parameters
+- `id` (String): Identificador de la carpeta (longitud: 1-20)
+
+#### Query Parameters
+- `queryParam1`, `queryParam2`, `queryParam3` (String, opcional): Filtros
+- `page` (Integer, obligatorio): Número de página
+- `size` (Integer, obligatorio): Tamaño de página
+
+#### Response (200 OK)
 ```json
 {
   "folder": {
@@ -340,14 +401,14 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
     "metadata": {},
     "path": "string",
     "estadoCarpeta": "string",
-    "createdAt": "2025-12-01T10:30:00+00:00",
-    "updateAt": "2025-12-01T10:30:00+00:00"
+    "createdAt": "YYYY-MM-DDThh:mm:ssZ",
+    "updatedAt": "YYYY-MM-DDThh:mm:ssZ"
   },
   "page": {
     "number": 1,
     "size": 10,
-    "totalElements": 100,
-    "totalPages": 10,
+    "totalElements": 50,
+    "totalPages": 5,
     "hasNext": true
   },
   "contents": {
@@ -355,44 +416,40 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
       {
         "id": "string",
         "metadata": {},
-        "createdAt": "2025-12-01T10:30:00+00:00"
+        "createdAt": "YYYY-MM-DDThh:mm:ssZ"
       }
     ],
     "documents": [
       {
         "id": "string",
         "metadata": {},
-        "createdAt": "2025-12-01T10:30:00+00:00"
+        "createdAt": "YYYY-MM-DDThh:mm:ssZ"
       }
     ]
   }
 }
 ```
-- **Status Codes:**
-  - `200 OK` - Consulta exitosa
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `404 Not Found` - Carpeta no existe
-  - `408 Request Timeout` - Timeout
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
 
-### 8. Consultar Documentos por DNI del Ciudadano
-- **Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento/{id}/descargar`
-- **Método:** `GET`
-- **Query Parameters:**
-  - `dni` (string, obligatorio, 8 caracteres)
-  - `tipoDocumento` (string, opcional, 1-30 caracteres)
-  - `fechaDesde` (string ISO 8601, opcional)
-  - `fechaHasta` (string ISO 8601, opcional)
-  - `estadoDocumento` (string, opcional, 1-20 caracteres)
-  - `page` (integer, obligatorio, mínimo 1)
-  - `size` (integer, obligatorio, 1-100)
-- **Response (200):**
+---
+
+### 8. Consultar Documentos por DNI de Ciudadano
+
+**Método:** `GET`  
+**Path:** `/api/v1/documentos/MsDatosRepositorioDocumental/documento/{dni}`  
+**Gateway:** Interno  
+
+#### Path Parameters
+- `dni` (String): Número de DNI del ciudadano (8 dígitos)
+
+#### Query Parameters
+- `tipoDocumento` (String, opcional): Filtro por tipo de documento (longitud: 1-30)
+- `fechaDesde` (String, opcional): Fecha inicio en formato ISO 8601
+- `fechaHasta` (String, opcional): Fecha fin en formato ISO 8601
+- `estadoDocumento` (String, opcional): Filtro por estado (longitud: 1-20)
+- `page` (Integer, obligatorio): Número de página (mínimo: 1)
+- `size` (Integer, obligatorio): Tamaño de página (1-100)
+
+#### Response (200 OK)
 ```json
 {
   "ciudadano": {
@@ -402,8 +459,8 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
   "page": {
     "number": 1,
     "size": 10,
-    "totalElements": 100,
-    "totalPages": 10,
+    "totalElements": 25,
+    "totalPages": 3,
     "hasNext": true,
     "hasPrevious": false
   },
@@ -416,147 +473,195 @@ src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/
       "carpetaId": "string",
       "estadoDocumento": "string",
       "mimeType": "string",
-      "tamanioBytes": 1024,
-      "createdAt": "2025-12-01T10:30:00+00:00",
-      "updatedAt": "2025-12-01T10:30:00+00:00"
+      "tamanioBytes": 12345,
+      "createdAt": "YYYY-MM-DDThh:mm:ssZ",
+      "updatedAt": "YYYY-MM-DDThh:mm:ssZ"
     }
   ]
 }
 ```
-- **Status Codes:**
-  - `200 OK` - Consulta exitosa
-  - `400 Bad Request` - Parámetros inválidos
-  - `401 Unauthorized` - Token inválido
-  - `403 Forbidden` - Sin permisos
-  - `404 Not Found` - No se encontraron documentos para el DNI
-  - `408 Request Timeout` - Timeout
-  - `422 Unprocessable Entity` - Datos no procesables
-  - `429 Too Many Requests` - Rate limit excedido
-  - `500 Internal Server Error` - Error interno
-  - `502 Bad Gateway` - Alfresco no responde
-  - `503 Service Unavailable` - Servicio no disponible
-  - `504 Gateway Timeout` - Timeout de gateway
+
+#### Status Codes
+| Código | Descripción |
+|--------|-------------|
+| 200 | Consulta realizada exitosamente |
+| 400 | Parámetros inválidos o estructura incorrecta |
+| 401 | Token JWT inválido, expirado o ausente |
+| 403 | Sin permisos para ejecutar el análisis de redacción |
+| 404 | No se encontraron documentos para el DNI especificado |
+| 408 | Tiempo de espera agotado |
+| 422 | Datos válidos, pero no procesables |
+| 429 | Límite de rate limit excedido |
+| 500 | Error interno del servicio |
+| 502 | Servicio de Alfresco no responde |
+| 503 | Servicio temporalmente no disponible |
+| 504 | Error tiempo de espera en la puerta de enlace |
+
+---
 
 ## Entidades del Dominio
 
-### Documento
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| id | String | Identificador único del documento |
-| archivoBase64 | String | Contenido del documento en Base64 |
-| carpetaId | String | Identificador de la carpeta contenedora |
-| metadata | Map<String, Object> | Metadatos del documento |
-| estadoDocumento | String | Estado actual del documento |
-| createdAt | LocalDateTime | Fecha de creación |
-| updatedAt | LocalDateTime | Fecha de última actualización |
+### Documento (Aggregate Root)
+Representa un documento digital almacenado en el repositorio.
 
-### Carpeta
-| Atributo | Tipo Java | Descripción |
-|----------|-----------|-------------|
-| id | String | Identificador único de la carpeta |
-| nombre | String | Nombre de la carpeta (1-30 caracteres) |
-| parentId | String | Identificador de la carpeta padre |
-| descripcion | String | Descripción de la carpeta (opcional, 1-300 caracteres) |
-| estadoCarpeta | String | Estado actual de la carpeta |
-| ruta | String | Ruta completa en el sistema |
-| metadata | Map<String, Object> | Metadatos de la carpeta |
-| createdAt | LocalDateTime | Fecha de creación |
-| updatedAt | LocalDateTime | Fecha de última actualización |
+**Atributos:**
+- `id` (String): Identificador único
+- `archivoBase64` (String): Contenido del archivo en Base64
+- `carpetaId` (String): Identificador de la carpeta contenedora
+- `metadata` (Map<String, Object>): Metadata adicional del documento
+- `estadoDocumento` (String): Estado actual
+- `createdAt` (LocalDateTime): Fecha de creación
+- `updatedAt` (LocalDateTime): Fecha de última actualización
 
-## Reglas de Mapeo de Tipos
+### Carpeta (Aggregate Root)
+Representa una carpeta en el sistema de gestión documental.
 
-Según la especificación del PDF, se aplicaron las siguientes conversiones de tipos:
+**Atributos:**
+- `id` (String): Identificador único
+- `nombre` (String): Nombre de la carpeta
+- `parentId` (String): Identificador de la carpeta padre
+- `descripcion` (String): Descripción opcional
+- `estadoCarpeta` (String): Estado actual
+- `ruta` (String): Ruta completa en el sistema
+- `metadata` (Map<String, Object>): Metadata adicional
+- `createdAt` (LocalDateTime): Fecha de creación
+- `updatedAt` (LocalDateTime): Fecha de última actualización
 
-| Tipo en Especificación | Tipo Java |
-|------------------------|-----------|
+### Ciudadano (Value Object)
+Representa información básica de un ciudadano.
+
+**Atributos:**
+- `dni` (String): DNI del ciudadano (8 dígitos)
+- `nombreCompleto` (String): Nombres y apellidos
+
+### Pagina (Value Object)
+Representa información de paginación.
+
+**Atributos:**
+- `number` (Integer): Número de página actual
+- `size` (Integer): Tamaño de página
+- `totalElements` (Long): Total de elementos encontrados
+- `totalPages` (Integer): Total de páginas disponibles
+- `hasNext` (Boolean): Indica si hay página siguiente
+- `hasPrevious` (Boolean): Indica si hay página anterior
+
+---
+
+## Mapeo de Tipos de Datos
+
+La especificación utiliza los siguientes tipos de datos según las convenciones de Java:
+
+| Tipo en Especificación | Tipo en Java |
+|------------------------|--------------|
 | string | String |
-| integer/int | Integer |
+| integer / int | Integer |
 | long | Long |
-| number/decimal/double | Double |
+| double / decimal / number | Double |
 | boolean | Boolean |
 | date | LocalDate |
-| datetime/timestamp/ISO 8601 | LocalDateTime |
-| array/list | List<T> |
+| datetime / timestamp | LocalDateTime |
+| array / list | List<T> |
 | object | Map<String, Object> o POJO |
+
+---
+
+## Estructura de Errores
+
+Todos los endpoints siguen una estructura de error estándar:
+
+```json
+{
+  "error": {
+    "tipo": "string",
+    "titulo": "string",
+    "estado": 400,
+    "errores": [
+      {
+        "detalleError": "string"
+      }
+    ]
+  }
+}
+```
+
+---
 
 ## Tipo de Microservicio: MsData
 
-Este es un microservicio de tipo **MsData** (Microservicio de Datos), lo cual implica:
+Este es un **microservicio de datos (MsData)**, lo que implica:
 
-### Características:
-- **Define RepositoryPort:** Interfaces `DocumentoRepositoryPort` y `CarpetaRepositoryPort` en `domain/ports/out/`
-- **Contiene Entities:** POJOs `DocumentoEntity` y `CarpetaEntity` en `infrastructure/adapters/out/persistence/entity/`
-- **Implementa RepositoryAdapter:** `DocumentoRepositoryAdapter` y `CarpetaRepositoryAdapter` en `infrastructure/adapters/out/persistence/`
-- **Responsabilidad:** Gestión directa de datos en el repositorio documental (Alfresco)
+### Características de MsData:
+- ✅ **Define RepositoryPort**: Interfaces de persistencia en `domain/ports/out/`
+- ✅ **Define Entities**: POJOs de persistencia en `infrastructure/adapters/out/persistence/entity/`
+- ✅ **Implementa RepositoryAdapter**: Adaptadores que implementan los puertos de repositorio
+- ✅ **Integración directa con Alfresco**: Como sistema de gestión documental (ECM)
+- ❌ **No depende de otros microservicios de datos**: Gestiona directamente la persistencia
 
-### Diferencias con MsDominio:
-- **MsData:** Gestiona la persistencia directamente
-- **MsDominio:** Se integraría con MsData a través de puertos de salida tipo `DataPort` y adaptadores cliente
+### Diferencia con MsDominio:
+Los microservicios de tipo **MsDominio** NO definen RepositoryPort, sino que se integran con microservicios MsData a través de puertos de salida. En este caso, como es MsData, la integración con Alfresco se realiza directamente en los adaptadores de repositorio.
+
+---
 
 ## Limitaciones y Consideraciones
 
 ### Neutralidad Tecnológica
-- **Sin frameworks:** No se incluyen Spring, JAX-RS, JPA, Hibernate, MapStruct ni similares
-- **Sin anotaciones:** Código 100% Java puro sin anotaciones de frameworks
-- **Sin protocolo definido:** Los adaptadores no implementan HTTP, SOAP ni otros protocolos específicos
-- **Sin drivers:** No se incluyen drivers de base de datos ni conectores específicos
+- ✅ **Sin frameworks**: No se utilizan Spring, JAX-RS, ni otros frameworks
+- ✅ **Sin anotaciones**: No hay anotaciones JPA, Jakarta, ni de frameworks
+- ✅ **Java puro**: Solo POJOs, interfaces y clases
+- ✅ **Sin dependencias externas**: El código es compilable como Java estándar
 
-### Implementación de Adaptadores
-Los adaptadores (`DocumentoRepositoryAdapter` y `CarpetaRepositoryAdapter`) contienen métodos stub que lanzan `UnsupportedOperationException`. Esto es intencional porque:
-- El prompt requiere no asumir tecnologías específicas
-- La conexión con Alfresco debe implementarse según las decisiones arquitectónicas del equipo
-- Se mantiene la estructura correcta para futuras implementaciones
+### Integración con Alfresco
+- ⚠️ **Protocolo no definido**: Los adaptadores de repositorio tienen métodos stub que lanzan `UnsupportedOperationException`
+- ⚠️ **API de Alfresco pendiente**: Se debe implementar la integración específica con la API REST o CMIS de Alfresco
+- ⚠️ **Autenticación no implementada**: Se debe configurar la autenticación con Alfresco
 
-### Build y Dependencias
-- **No se genera pom.xml:** Mantiene neutralidad respecto a la herramienta de build (Maven, Gradle, etc.)
-- **No se definen dependencias:** Cada equipo decide qué librerías usar para implementar los adaptadores
-- **Código compilable:** Todo el código es Java puro y compilable sin dependencias externas
+### Gestión de Errores
+- ⚠️ **Sin manejo HTTP real**: Los controladores no tienen lógica de manejo de códigos de estado HTTP
+- ⚠️ **Sin validaciones implementadas**: Las validaciones de negocio están comentadas como "debería implementarse"
 
-### Manejo de Errores
-- Los códigos de error HTTP están documentados en este README
-- No se implementa lógica HTTP real en los controladores (POJOs sin anotaciones)
-- Los detalles de error se representan mediante DTOs (`ErrorDto`, `ErrorDetalleDto`)
-
-### Operaciones Definidas
-Solo se crearon los casos de uso y endpoints que están **explícitamente documentados en el PDF**:
-1. Crear Documento (POST)
-2. Obtener Documento Específico (GET)
-3. Actualizar Documento (PUT)
-4. Consultar Varios Documentos (GET con filtros)
-5. Crear Carpeta (POST)
-6. Actualizar Carpeta (PUT)
-7. Consultar Contenido de Carpeta (GET)
-8. Consultar Documentos por DNI (GET)
-
-**No se implementó DELETE** porque no aparece en la especificación del PDF.
-
-## Próximos Pasos para Implementación
-
-Para completar la implementación de este microservicio:
-
-1. **Seleccionar Framework Web:** Spring Boot, Quarkus, Micronaut, etc.
-2. **Agregar Anotaciones:** `@RestController`, `@Service`, `@Repository`, según el framework
-3. **Implementar Conexión con Alfresco:** Cliente HTTP, SDK de Alfresco, etc.
-4. **Configurar Persistencia:** Si se requiere BD adicional a Alfresco
-5. **Implementar Seguridad:** Validación JWT, autorización
-6. **Agregar Observabilidad:** Logging, métricas, tracing distribuido
-7. **Configurar Build:** pom.xml o build.gradle con dependencias
-8. **Pruebas:** Unitarias, de integración y end-to-end
-
-## Compilación
-
-El código generado es Java puro y puede compilarse con:
-```bash
-javac -d out -sourcepath src/main/java src/main/java/pe/gob/reniec/msdatos/repositoriodocumental/**/*.java
-```
-
-## Documentación de Referencia
-
-- **Especificación Original:** `Microservicio MsDatosRepositorioDocumental V1.3.pdf`
-- **Versión del Documento:** 1.3 (01/12/2025)
-- **Organización:** RENIEC - Registro Nacional de Identificación y Estado Civil
-- **Contexto:** Gestión de Seguridad Electrónica - Personalización del DNIe
+### Infraestructura
+- ⚠️ **Sin configuración de build**: No se incluye `pom.xml` ni `build.gradle`
+- ⚠️ **Sin configuración de despliegue**: No hay archivos de configuración de aplicación
 
 ---
 
-**Nota:** Este proyecto sigue estrictamente la especificación del PDF sin inferencias adicionales, manteniendo neutralidad tecnológica y permitiendo flexibilidad en la implementación futura.
+## Próximos Pasos
+
+Para completar la implementación, se debe:
+
+1. **Implementar integración con Alfresco**:
+   - Configurar cliente HTTP o CMIS para Alfresco
+   - Implementar métodos en `DocumentoRepositoryAdapter` y `CarpetaRepositoryAdapter`
+   - Gestionar autenticación y sesiones con Alfresco
+
+2. **Agregar framework de aplicación**:
+   - Configurar Spring Boot, Quarkus, Micronaut u otro framework
+   - Agregar anotaciones REST (`@RestController`, `@GetMapping`, etc.)
+   - Configurar inyección de dependencias
+
+3. **Implementar validaciones**:
+   - Validar formatos (DNI, Base64, tamaños de archivo)
+   - Aplicar reglas de negocio en los servicios
+
+4. **Gestión de errores**:
+   - Implementar `@ExceptionHandler` o mecanismo similar
+   - Mapear excepciones a códigos de estado HTTP
+
+5. **Configuración**:
+   - Crear `application.properties` o `application.yml`
+   - Configurar URLs de Alfresco, credenciales, timeouts
+   - Configurar logging y trazabilidad
+
+6. **Testing**:
+   - Tests unitarios para servicios y mappers
+   - Tests de integración con Alfresco (mock o real)
+   - Tests de contrato con consumidores
+
+---
+
+## Autor
+
+Generado según especificación PDF: **Microservicio MsDatosRepositorioDocumental V1.3**  
+Fecha de generación: 02/12/2025  
+Arquitectura: **Hexagonal + DDD**  
+Tipo: **MsData (Microservicio de Datos)**
