@@ -4,229 +4,187 @@ import pe.gob.reniec.dominioparentesco.domain.model.*;
 import pe.gob.reniec.dominioparentesco.infrastructure.adapters.in.rest.dto.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Mapper para convertir entre DTOs y objetos del dominio.
+ * Mapper para convertir entre DTOs y objetos del dominio rico.
  */
 public class AnalisisParentescoDtoMapper {
     
     /**
-     * Convierte un DTO de request a un objeto del dominio.
+     * Convierte un DTO de request a objetos del dominio.
      */
-    public SolicitudAnalisisParentesco toDomain(EjecutarAnalisisRequestDto dto) {
-        DatosCiudadano datosCiudadano = new DatosCiudadano(
-            dto.datosCiudadano().nombre(),
-            dto.datosCiudadano().fechaNacimiento()
-        );
-        
-        CriteriosBusqueda criterios = dto.criteriosBusqueda() != null ?
-            new CriteriosBusqueda(
-                dto.criteriosBusqueda().rangoAniosPadres() != null ?
-                    new RangoAnios(
-                        dto.criteriosBusqueda().rangoAniosPadres().anioInicio(),
-                        dto.criteriosBusqueda().rangoAniosPadres().anioFin()
-                    ) : null,
-                dto.criteriosBusqueda().rangoAniosHijos() != null ?
-                    new RangoAnios(
-                        dto.criteriosBusqueda().rangoAniosHijos().anioInicio(),
-                        dto.criteriosBusqueda().rangoAniosHijos().anioFin()
-                    ) : null,
-                dto.criteriosBusqueda().variacionesNombre(),
-                dto.criteriosBusqueda().incluirFallecidos(),
-                dto.criteriosBusqueda().incluirActasAnuladas()
-            ) : null;
-        
-        OpcionesAnalisis opciones = dto.opcionesAnalisis() != null ?
-            new OpcionesAnalisis(
-                dto.opcionesAnalisis().generarArbolGenealogico(),
-                dto.opcionesAnalisis().validarContraAPD(),
-                dto.opcionesAnalisis().incluirActasSustento(),
-                dto.opcionesAnalisis().detectarInconsistencias()
-            ) : null;
-        
-        return SolicitudAnalisisParentesco.builder()
-            .idSolicitud(dto.idSolicitud())
-            .idCiudadanoConsultado(dto.idCiudadanoConsultado())
-            .datosCiudadano(datosCiudadano)
-            .codTipoVinculo(dto.codTipoVinculo())
-            .nivelComplejidad(dto.nivelComplejidad())
-            .criteriosBusqueda(criterios)
-            .opcionesAnalisis(opciones)
-            .usuarioTecnico(dto.usuarioTecnico())
-            .observaciones(dto.observaciones())
-            .build();
+    public DNI extractDNI(EjecutarAnalisisRequestDto dto) {
+        return DNI.of(dto.getIdCiudadanoConsultado());
+    }
+    
+    public TipoVinculo extractTipoVinculo(EjecutarAnalisisRequestDto dto) {
+        return TipoVinculo.fromCodigo(dto.getCodTipoVinculo());
+    }
+    
+    public int extractProfundidad(EjecutarAnalisisRequestDto dto) {
+        return dto.getNivelComplejidad() != null ? dto.getNivelComplejidad() : 2;
+    }
+    
+    public String extractUsuario(EjecutarAnalisisRequestDto dto) {
+        return dto.getUsuarioTecnico();
     }
     
     /**
-     * Convierte un objeto del dominio a DTO de response.
+     * Convierte un AnalisisParentesco (modelo rico) a DTO de response.
      */
-    public EjecutarAnalisisResponseDto toDto(ResultadoAnalisisParentesco resultado, String correlationId) {
-        EjecutarAnalisisDataDto data = new EjecutarAnalisisDataDto(
-            resultado.getIdSolicitud(),
-            resultado.getIdCiudadanoConsultado(),
-            resultado.getCodTipoVinculo(),
-            resultado.getNivelComplejidad(),
-            resultado.getEstadoSolicitud(),
-            mapCiudadanoAnalizado(resultado.getCiudadanoAnalizado()),
-            mapPoblacionVinculos(resultado.getPoblacionVinculosPosibles()),
-            mapResumenAnalisis(resultado.getResumenAnalisis()),
-            mapInconsistencias(resultado.getInconsistencias()),
-            mapActasPendientes(resultado.getActasPendientesDigitalizacion()),
-            resultado.getFechaSolicitud(),
-            resultado.getTiempoProcesamientoMs(),
-            resultado.getUsuarioTecnico()
-        );
+    public EjecutarAnalisisResponseDto toDto(AnalisisParentesco analisis, String correlationId) {
+        EjecutarAnalisisDataDto data = new EjecutarAnalisisDataDto();
+        data.setIdSolicitud(analisis.getIdAnalisis());
+        data.setIdCiudadanoConsultado(analisis.getCiudadanoAnalizado().getDni().valor());
+        data.setCodTipoVinculo(analisis.getTipoVinculoBuscado().getCodigo());
+        data.setNivelComplejidad(analisis.getProfundidadAnalisis());
+        data.setEstadoSolicitud(analisis.getEstado().name());
+        data.setCiudadanoAnalizado(mapCiudadanoAnalizado(analisis.getCiudadanoAnalizado()));
+        data.setPoblacionVinculosPosibles(mapPoblacionVinculos(analisis));
+        data.setResumenAnalisis(mapResumenAnalisis(analisis.calcularEstadisticas()));
+        data.setInconsistencias(mapInconsistencias(analisis.getInconsistencias()));
+        data.setActasPendientesDigitalizacion(new ArrayList<>());
+        data.setFechaSolicitud(analisis.getFechaInicio());
+        data.setTiempoProcesamientoMs(analisis.calcularTiempoProcesamiento());
+        data.setUsuarioTecnico(analisis.getUsuarioSolicitante());
         
-        MetadataDto metadata = new MetadataDto(
-            LocalDateTime.now(),
-            correlationId,
-            "1.0",
-            new ServiciosConsultadosDto(true, true, true)
-        );
+        MetadataDto metadata = new MetadataDto();
+        metadata.setTimestamp(LocalDateTime.now());
+        metadata.setCorrelationId(correlationId);
+        metadata.setVersion("1.0");
         
-        return new EjecutarAnalisisResponseDto(true, data, metadata);
+        ServiciosConsultadosDto servicios = new ServiciosConsultadosDto();
+        servicios.setMsSagaAPD(true);
+        servicios.setMsDatosActas(true);
+        servicios.setMsDatosParentesco(true);
+        metadata.setServiciosConsultados(servicios);
+        
+        EjecutarAnalisisResponseDto response = new EjecutarAnalisisResponseDto();
+        response.setSuccess(true);
+        response.setData(data);
+        response.setMetadata(metadata);
+        
+        return response;
     }
     
-    private CiudadanoAnalizadoDto mapCiudadanoAnalizado(CiudadanoAnalizado ciudadano) {
-        DatosAPDDto apdDto = ciudadano.getDatosAPD() != null ?
-            new DatosAPDDto(
-                ciudadano.getDatosAPD().getVersion(),
-                ciudadano.getDatosAPD().getUltimaActualizacion(),
-                ciudadano.getDatosAPD().getEstadoAPD()
-            ) : null;
+    private CiudadanoAnalizadoDto mapCiudadanoAnalizado(Ciudadano ciudadano) {
+        CiudadanoAnalizadoDto dto = new CiudadanoAnalizadoDto();
+        dto.setIdCiudadano(ciudadano.getDni().valor());
+        dto.setNombre(ciudadano.getNombreCompleto());
+        dto.setFechaNacimiento(ciudadano.getFechaNacimiento());
         
-        return new CiudadanoAnalizadoDto(
-            ciudadano.getIdCiudadano(),
-            ciudadano.getNombre(),
-            ciudadano.getFechaNacimiento(),
-            apdDto
-        );
+        DatosAPDDto apdDto = new DatosAPDDto();
+        apdDto.setVersion("1.0");
+        apdDto.setUltimaActualizacion(LocalDateTime.now());
+        apdDto.setEstadoAPD("VIGENTE");
+        dto.setDatosAPD(apdDto);
+        
+        return dto;
     }
     
-    private PoblacionVinculosPosiblesDto mapPoblacionVinculos(PoblacionVinculosPosibles poblacion) {
-        List<VinculoConsanguineoDto> consanguineos = poblacion.getVinculosConsanguineos().stream()
+    private PoblacionVinculosPosiblesDto mapPoblacionVinculos(AnalisisParentesco analisis) {
+        List<VinculoConsanguineoDto> consanguineos = analisis.getVinculosEncontrados().stream()
+            .filter(v -> v.getTipo().esConsanguineo())
             .map(this::mapVinculoConsanguineo)
             .collect(Collectors.toList());
         
-        List<VinculoAfinidadDto> afinidad = poblacion.getVinculosAfinidad().stream()
+        List<VinculoAfinidadDto> afinidad = analisis.getVinculosEncontrados().stream()
+            .filter(v -> v.getTipo().esAfinidad())
             .map(this::mapVinculoAfinidad)
             .collect(Collectors.toList());
         
-        return new PoblacionVinculosPosiblesDto(
-            poblacion.getTotalEncontrados(),
-            consanguineos,
-            afinidad
-        );
-    }
-    
-    private VinculoConsanguineoDto mapVinculoConsanguineo(VinculoConsanguineo vinculo) {
-        ActaSustentoDto actaDto = vinculo.getActaSustento() != null ?
-            new ActaSustentoDto(
-                vinculo.getActaSustento().getIdActa(),
-                vinculo.getActaSustento().getTipoActa(),
-                vinculo.getActaSustento().getFechaActa(),
-                vinculo.getActaSustento().getLugarActa()
-            ) : null;
+        PoblacionVinculosPosiblesDto dto = new PoblacionVinculosPosiblesDto();
+        dto.setTotalEncontrados(analisis.getVinculosEncontrados().size());
+        dto.setVinculosConsanguineos(consanguineos);
+        dto.setVinculosAfinidad(afinidad);
         
-        return new VinculoConsanguineoDto(
-            vinculo.getIdRelacion(),
-            vinculo.getIdCiudadanoOrigen(),
-            vinculo.getIdCiudadanoDestino(),
-            vinculo.getNombreCiudadanoDestino(),
-            vinculo.getCodTipo(),
-            vinculo.getDescripcionTipo(),
-            vinculo.getCategoria(),
-            vinculo.getGradoMinimo(),
-            vinculo.getEsSimetrico(),
-            vinculo.getCodInverso(),
-            vinculo.getFechaInicio(),
-            vinculo.getFechaFin(),
-            vinculo.getIdActaSustento(),
-            actaDto,
-            vinculo.getIdDocumentoSustento(),
-            vinculo.getNivelConfianza(),
-            vinculo.getEstadoConfirmacion(),
-            vinculo.getRequiereValidacionManual(),
-            vinculo.getObservacion()
-        );
+        return dto;
     }
     
-    private VinculoAfinidadDto mapVinculoAfinidad(VinculoAfinidad vinculo) {
-        ConyugeIntermedioDto conyugeDto = vinculo.getConyugeIntermedio() != null ?
-            new ConyugeIntermedioDto(
-                vinculo.getConyugeIntermedio().getIdCiudadano(),
-                vinculo.getConyugeIntermedio().getNombre()
-            ) : null;
+    private VinculoConsanguineoDto mapVinculoConsanguineo(Vinculo vinculo) {
+        VinculoConsanguineoDto dto = new VinculoConsanguineoDto();
+        dto.setIdRelacion(null);
+        dto.setIdCiudadanoOrigen(vinculo.getOrigen().getDni().valor());
+        dto.setIdCiudadanoDestino(vinculo.getDestino().getDni().valor());
+        dto.setNombreCiudadanoDestino(vinculo.getDestino().getNombreCompleto());
+        dto.setCodTipo(vinculo.getTipo().getCodigo());
+        dto.setDescripcionTipo(vinculo.getTipo().getDescripcion());
+        dto.setCategoria(vinculo.getTipo().getCategoria().name());
+        dto.setGradoMinimo(vinculo.getTipo().getGrado());
+        dto.setEsSimetrico("N");
+        dto.setCodInverso(null);
+        dto.setFechaInicio(null);
+        dto.setFechaFin(null);
+        dto.setIdActaSustento(null);
+        dto.setActaSustento(null);
+        dto.setIdDocumentoSustento(null);
+        dto.setNivelConfianza(vinculo.getNivelConfianza().getRangoMinimo());
+        dto.setEstadoConfirmacion(vinculo.isActaValidada() ? "CONFIRMADO" : "PENDIENTE");
+        dto.setRequiereValidacionManual(vinculo.requiereValidacionManual());
+        dto.setObservacion(null);
         
-        ActaSustentoDto actaDto = vinculo.getActaSustento() != null ?
-            new ActaSustentoDto(
-                vinculo.getActaSustento().getIdActa(),
-                vinculo.getActaSustento().getTipoActa(),
-                vinculo.getActaSustento().getFechaActa(),
-                vinculo.getActaSustento().getLugarActa()
-            ) : null;
+        return dto;
+    }
+    
+    private VinculoAfinidadDto mapVinculoAfinidad(Vinculo vinculo) {
+        VinculoAfinidadDto dto = new VinculoAfinidadDto();
+        dto.setIdRelacion(null);
+        dto.setIdCiudadanoOrigen(vinculo.getOrigen().getDni().valor());
+        dto.setIdCiudadanoDestino(vinculo.getDestino().getDni().valor());
+        dto.setNombreCiudadanoDestino(vinculo.getDestino().getNombreCompleto());
+        dto.setCodTipo(vinculo.getTipo().getCodigo());
+        dto.setDescripcionTipo(vinculo.getTipo().getDescripcion());
+        dto.setCategoria(vinculo.getTipo().getCategoria().name());
+        dto.setGradoMinimo(vinculo.getTipo().getGrado());
+        dto.setEsSimetrico("N");
+        dto.setCodInverso(null);
+        dto.setConyugeIntermedio(null);
+        dto.setFechaInicio(null);
+        dto.setFechaFin(null);
+        dto.setIdActaSustento(null);
+        dto.setActaSustento(null);
+        dto.setIdDocumentoSustento(null);
+        dto.setNivelConfianza(vinculo.getNivelConfianza().getRangoMinimo());
+        dto.setEstadoConfirmacion(vinculo.isActaValidada() ? "CONFIRMADO" : "PENDIENTE");
+        dto.setRequiereValidacionManual(vinculo.requiereValidacionManual());
+        dto.setObservacion(null);
         
-        return new VinculoAfinidadDto(
-            vinculo.getIdRelacion(),
-            vinculo.getIdCiudadanoOrigen(),
-            vinculo.getIdCiudadanoDestino(),
-            vinculo.getNombreCiudadanoDestino(),
-            vinculo.getCodTipo(),
-            vinculo.getDescripcionTipo(),
-            vinculo.getCategoria(),
-            vinculo.getGradoMinimo(),
-            vinculo.getEsSimetrico(),
-            vinculo.getCodInverso(),
-            conyugeDto,
-            vinculo.getFechaInicio(),
-            vinculo.getFechaFin(),
-            vinculo.getIdActaSustento(),
-            actaDto,
-            vinculo.getIdDocumentoSustento(),
-            vinculo.getNivelConfianza(),
-            vinculo.getEstadoConfirmacion(),
-            vinculo.getRequiereValidacionManual(),
-            vinculo.getObservacion()
-        );
+        return dto;
     }
     
-    private ResumenAnalisisDto mapResumenAnalisis(ResumenAnalisis resumen) {
-        return new ResumenAnalisisDto(
-            resumen.getVinculosGrado1(),
-            resumen.getVinculosGrado2(),
-            resumen.getVinculosGrado3(),
-            resumen.getVinculosGrado4(),
-            resumen.getVinculosAfinidad(),
-            resumen.getActasConsultadas(),
-            resumen.getActasNoDigitalizadas(),
-            resumen.getInconsistenciasDetectadas()
-        );
+    private ResumenAnalisisDto mapResumenAnalisis(EstadisticasAnalisis stats) {
+        ResumenAnalisisDto dto = new ResumenAnalisisDto();
+        dto.setVinculosGrado1(stats.getVinculosPrimerGrado());
+        dto.setVinculosGrado2(stats.getVinculosSegundoGrado());
+        dto.setVinculosGrado3(stats.getVinculosTercerGrado());
+        dto.setVinculosGrado4(stats.getVinculosCuartoGrado());
+        dto.setVinculosAfinidad(0);
+        dto.setActasConsultadas(stats.getTotalVinculosEncontrados());
+        dto.setActasNoDigitalizadas(0);
+        dto.setInconsistenciasDetectadas(stats.getInconsistenciasDetectadas());
+        
+        return dto;
     }
     
-    private List<InconsistenciaDto> mapInconsistencias(List<Inconsistencia> inconsistencias) {
+    private List<InconsistenciaDto> mapInconsistencias(List<DeteccionInconsistencia> inconsistencias) {
         return inconsistencias.stream()
-            .map(i -> new InconsistenciaDto(
-                i.getTipo(),
-                i.getDescripcion(),
-                i.getCiudadanosInvolucrados(),
-                i.getSeveridad(),
-                i.getAccionRecomendada()
-            ))
-            .collect(Collectors.toList());
-    }
-    
-    private List<ActaPendienteDigitalizacionDto> mapActasPendientes(
-            List<ActaPendienteDigitalizacion> actas) {
-        return actas.stream()
-            .map(a -> new ActaPendienteDigitalizacionDto(
-                a.getTipoActa(),
-                a.getReferenciaActa(),
-                a.getLugarActa(),
-                a.getObservacion()
-            ))
+            .map(i -> {
+                InconsistenciaDto dto = new InconsistenciaDto();
+                dto.setTipo(i.getTipo().name());
+                dto.setDescripcion(i.getDescripcion());
+                dto.setCiudadanosInvolucrados(
+                    i.getCiudadanosAfectados().stream()
+                        .map(c -> c.getDni().valor())
+                        .collect(Collectors.toList())
+                );
+                dto.setSeveridad(i.getTipo().esCritica() ? "CRITICA" : "MEDIA");
+                dto.setAccionRecomendada(i.getTipo().requiereRevision() ? "REVISION_MANUAL" : "INFORMATIVA");
+                return dto;
+            })
             .collect(Collectors.toList());
     }
 }
