@@ -1,324 +1,585 @@
-# MsAdaptadorPKI - Microservicio Adaptador PKI
+# MsAdaptadorPKI
 
-## Información General
+## Resumen
 
-- **Nombre del Microservicio**: MsAdaptadorPKI
-- **Versión del API**: v1.0
-- **Contexto de Negocio**: Microservicio adaptador para integración con infraestructura de clave pública (PKI - Public Key Infrastructure). Proporciona servicios de firma digital de documentos, validación de certificados digitales y consulta de información de certificados.
-- **Paquete Base**: `pe.gob.sunat.sol.adaptadorpki`
-- **Tipo de Arquitectura**: Hexagonal (Ports & Adapters)
+**MsAdaptadorPKI** (Microservicio Adaptador PKI) es un componente adaptador dentro de la plataforma SIIRC de RENIEC que actúa como fachada/puente entre microservicios internos y el servicio PKI externo de RENIEC. Es parte de la iniciativa de transformación digital DNI Electrónico (DNIe) de Perú.
 
-## Tipo de Microservicio
+### Información General
 
-Este es un **microservicio adaptador** que:
-- NO es un MsDominioXXXX tradicional
-- NO es un MsDataXXXX (no maneja persistencia directa)
-- Actúa como **adaptador/integrador** con sistema PKI externo
-- Define puerto de salida `PKIPort` hacia sistema PKI externo
-- NO define `RepositoryPort` (no maneja datos persistentes)
-- Implementa `PKIAdapter` sin protocolo de comunicación específico (sin asumir HTTP/SOAP/colas)
+- **Nombre**: MsAdaptadorPKI
+- **Tipo**: Microservicio de Dominio (MsDominio)
+- **Versión API**: v1
+- **Paquete Base**: `pe.gob.reniec.siirc.msadaptadorpki`
 
-## Endpoints Documentados
+### Contexto de Negocio
 
-### 1. Firmar Documento
-**Endpoint**: `POST /api/v1/firma/firmar`  
-**Descripción**: Firma digitalmente un documento utilizando un certificado digital.
-
-**Request**:
-```json
-{
-  "documento": "string (base64 encoded)",
-  "certificado": "string",
-  "password": "string",
-  "tipoFirma": "string"
-}
-```
-
-**Response**:
-```json
-{
-  "documentoFirmado": "string (base64 encoded)",
-  "fechaFirma": "datetime (ISO 8601)",
-  "codigoRespuesta": "string",
-  "mensaje": "string"
-}
-```
-
-**Status Codes**:
-- `200 OK`: Documento firmado exitosamente
-- `400 Bad Request`: Solicitud inválida (datos incorrectos o incompletos)
-- `500 Internal Server Error`: Error interno del servidor
+El microservicio abstrae los detalles del servicio PKI externo de los microservicios de dominio, proporcionando una interfaz simplificada para:
+- Generar certificados digitales para DNI Electrónico (autenticación, firma y cifrado)
+- Generar números de solicitud únicos para cada tipo de certificado
 
 ---
 
-### 2. Validar Certificado
-**Endpoint**: `POST /api/v1/certificado/validar`  
-**Descripción**: Valida un certificado digital verificando su vigencia y autenticidad.
+## Arquitectura
 
-**Request**:
-```json
-{
-  "certificado": "string",
-  "fechaValidacion": "datetime (ISO 8601)"
-}
+### Tipo de Microservicio: MsDominio
+
+Como microservicio de dominio:
+- **NO define** `RepositoryPort` (no accede directamente a bases de datos)
+- **SÍ define** `PKIDataPort` como puerto de salida para integración con el servicio PKI externo
+- **SÍ implementa** `PKIDataAdapter` que implementa `PKIDataPort`
+- **NO asume** protocolo de conexión específico (HTTP/SOAP/colas quedan sin definir)
+
+### Arquitectura Hexagonal
+
+El proyecto sigue estrictamente los principios de Arquitectura Hexagonal:
+
+```
+src/main/java/pe/gob/reniec/siirc/msadaptadorpki/
+├── domain/                          # Capa de Dominio
+│   ├── model/                       # Entidades de dominio (POJOs puros)
+│   │   ├── CertificadoDigital.java
+│   │   ├── SolicitudCertificado.java
+│   │   ├── DatosAdicionales.java
+│   │   ├── SolicitudNumerosSecuencia.java
+│   │   ├── NumerosSolicitud.java
+│   │   ├── RespuestaPKI.java
+│   │   ├── MetadataRespuesta.java
+│   │   ├── ErrorResponse.java
+│   │   └── DetalleError.java
+│   └── ports/                       # Puertos (interfaces)
+│       ├── in/                      # Puertos de entrada (casos de uso)
+│       │   ├── GenerarCertificadoDigitalDnieUseCase.java
+│       │   └── GenerarNumerosSolicitudUseCase.java
+│       └── out/                     # Puertos de salida
+│           └── PKIDataPort.java     # Integración con servicio PKI externo
+├── application/                     # Capa de Aplicación
+│   └── service/                     # Servicios que implementan casos de uso
+│       ├── GenerarCertificadoDigitalDnieService.java
+│       └── GenerarNumerosSolicitudService.java
+└── infrastructure/                  # Capa de Infraestructura
+    └── adapters/
+        ├── in/                      # Adaptadores de entrada
+        │   └── rest/
+        │       ├── controller/
+        │       │   └── CertificadoDigitalController.java
+        │       ├── dto/             # DTOs de request/response
+        │       │   ├── GenerarCertificadoDigitalRequestDto.java
+        │       │   ├── GenerarCertificadoDigitalResponseDto.java
+        │       │   ├── GenerarNumerosSolicitudRequestDto.java
+        │       │   ├── GenerarNumerosSolicitudResponseDto.java
+        │       │   ├── CertificadoDigitalRequestDto.java
+        │       │   ├── CertificadoDigitalResponseDto.java
+        │       │   ├── DatosAdicionalesDto.java
+        │       │   ├── NumerosSolicitudDto.java
+        │       │   ├── RespuestaPKIDto.java
+        │       │   └── MetadataRespuestaDto.java
+        │       └── mapper/
+        │           └── CertificadoDigitalDtoMapper.java
+        └── out/                     # Adaptadores de salida
+            └── pki/
+                └── client/
+                    └── PKIDataAdapter.java  # Adaptador al servicio PKI externo
 ```
 
-**Response**:
-```json
-{
-  "esValido": "boolean",
-  "fechaExpiracion": "datetime (ISO 8601)",
-  "emisor": "string",
-  "titular": "string",
-  "codigoRespuesta": "string",
-  "mensaje": "string"
-}
-```
+### Flujo de Datos
 
-**Status Codes**:
-- `200 OK`: Validación ejecutada exitosamente
-- `400 Bad Request`: Solicitud inválida
-- `500 Internal Server Error`: Error interno del servidor
+1. **Request** → Controller (REST Adapter) → DTO → Mapper → Domain Model
+2. **Domain Model** → Use Case (Port In) → Service → PKI Port (Port Out)
+3. **PKI Adapter** → Servicio PKI Externo (sin protocolo definido)
+4. **Response** ← Domain Model ← Service ← Mapper ← DTO ← Controller
 
 ---
 
-### 3. Consultar Certificado
-**Endpoint**: `GET /api/v1/certificado/{numCertificado}`  
-**Descripción**: Consulta la información detallada de un certificado digital por su número.
+## Endpoints
 
-**Path Parameters**:
-- `numCertificado`: String - Número identificador del certificado
+### 1. Generar Certificado Digital DNIe
 
-**Response**:
+Genera certificados digitales para autenticación, firma y cifrado del DNI Electrónico.
+
+**Endpoint**: `POST /api/v1/certificadosDigitales/MsAdaptadorPKI/generarCertificadoDigitalDniE`
+
+**Headers**:
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+X-Correlation-ID: {UUID}
+X-Request-ID: {UUID}
+X-Office-Code: {código de 5 caracteres}
+X-PKI-Transaction-ID: {ID transacción PKI}
+```
+
+**Request Body**:
 ```json
 {
-  "numeroCertificado": "string",
-  "titular": "string",
-  "emisor": "string",
-  "fechaEmision": "datetime (ISO 8601)",
-  "fechaExpiracion": "datetime (ISO 8601)",
-  "estado": "string",
-  "codigoRespuesta": "string",
-  "mensaje": "string"
+  "numeroCertificados": "string (10 caracteres)",
+  "certificadoAutenticacion": {
+    "numeroSolicitud": "string (10 caracteres)",
+    "numeroDni": "string (8 dígitos)",
+    "tipoDocumento": "string (ej: DNI)",
+    "apellidoPaterno": "string",
+    "apellidoMaterno": "string",
+    "nombres": "string",
+    "fechaNacimiento": "string (dd/MM/yyyy)",
+    "codigoOficina": "string (5 caracteres)",
+    "numeroSerie": "string",
+    "fechaEmision": "string (dd/MM/yyyy HH:mm:ss)",
+    "fechaExpiracion": "string (dd/MM/yyyy HH:mm:ss)",
+    "estadoCertificado": "string (VIGENTE, REVOCADO, EXPIRADO)",
+    "motivoRevocacion": "string (opcional)",
+    "publicKey": "string (Base64)",
+    "certificadoPEM": "string (formato PEM)"
+  },
+  "certificadoFirma": { /* misma estructura */ },
+  "certificadoCifrado": { /* misma estructura */ },
+  "datosAdicionales": {
+    "emailCiudadano": "string",
+    "telefonoCiudadano": "string",
+    "direccionCiudadano": "string",
+    "usuarioRegistro": "string",
+    "observaciones": "string"
+  }
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "resultado": "EXITOSO",
+  "mensaje": "Certificados generados exitosamente",
+  "certificados": [
+    {
+      "tipo": "AUTENTICACION | FIRMA | CIFRADO",
+      "numeroSolicitud": "string",
+      "numeroCertificado": "string",
+      "estadoCertificado": "VIGENTE",
+      "fechaEmision": "string (dd/MM/yyyy HH:mm:ss)",
+      "fechaExpiracion": "string (dd/MM/yyyy HH:mm:ss)",
+      "certificadoPEM": "string"
+    }
+  ],
+  "pkiExterno": {
+    "codigoRespuesta": "string",
+    "mensajeRespuesta": "string",
+    "idTransaccionPKI": "string",
+    "timestampPKI": "string (ISO-8601)"
+  },
+  "metadata": {
+    "correlationId": "string",
+    "requestId": "string",
+    "timestamp": "string (ISO-8601)",
+    "version": "v1"
+  }
 }
 ```
 
 **Status Codes**:
-- `200 OK`: Consulta exitosa
-- `404 Not Found`: Certificado no encontrado
-- `500 Internal Server Error`: Error interno del servidor
+- `201`: Certificados generados exitosamente
+- `400`: Datos de entrada inválidos
+- `401`: No autorizado (token inválido)
+- `403`: Prohibido (permisos insuficientes)
+- `404`: Ciudadano no encontrado en APD
+- `409`: Conflicto (certificado ya existe)
+- `422`: Error de validación de negocio
+- `429`: Too Many Requests (rate limiting)
+- `500`: Error interno del servidor
+- `502`: Error en servicio PKI externo
+- `503`: Servicio no disponible
+- `504`: Timeout (> 30 segundos)
+
+---
+
+### 2. Generar Números de Solicitud
+
+Genera números de solicitud únicos para los tres tipos de certificados.
+
+**Endpoint**: `POST /api/v1/certificadosDigitales/MsAdaptadorPKI/generarNumerosSolicitud2`
+
+**Headers**:
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+X-Correlation-ID: {UUID}
+X-Office-Code: {código de 5 caracteres}
+```
+
+**Request Body**:
+```json
+{
+  "dni": "string (8 dígitos, requerido)",
+  "nombres": "string (max 100, requerido)",
+  "apellidoPaterno": "string (max 50, requerido)",
+  "apellidoMaterno": "string (max 50, requerido)",
+  "email": "string (formato email, requerido)",
+  "telefono": "string (max 15)",
+  "direccion": "string (max 200)",
+  "codigoOficina": "string (5 caracteres, requerido)",
+  "tipoDocumento": "string (default: DNI)",
+  "fechaNacimiento": "string (dd/MM/yyyy)",
+  "lugarNacimiento": "string",
+  "nacionalidad": "string (default: PERUANA)",
+  "sexo": "string (M/F)",
+  "estadoCivil": "string",
+  "observaciones": "string"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "resultado": "EXITOSO",
+  "mensaje": "Números de solicitud generados exitosamente",
+  "solicitudes": {
+    "numeroSolicitudAutenticacion": "string (10 caracteres)",
+    "numeroSolicitudFirma": "string (10 caracteres)",
+    "numeroSolicitudCifrado": "string (10 caracteres)"
+  },
+  "metadata": {
+    "correlationId": "string",
+    "requestId": "string",
+    "timestamp": "string (ISO-8601)",
+    "version": "v1"
+  }
+}
+```
+
+**Status Codes**:
+- `201`: Números generados exitosamente
+- `400`: Datos de entrada inválidos
+- `401`: No autorizado
+- `403`: Prohibido
+- `422`: Error de validación de negocio
+- `429`: Too Many Requests
+- `500`: Error interno
+- `502`: Error en servicio PKI externo
+- `503`: Servicio no disponible
+- `504`: Timeout
 
 ---
 
 ## Entidades del Dominio
 
-### Firma
-Representa una operación de firma digital sobre un documento.
+### CertificadoDigital (Aggregate Root)
+Representa un certificado digital del DNIe.
 
 **Atributos**:
-- `documento`: String - Documento original en formato base64
-- `certificado`: String - Certificado digital utilizado
-- `password`: String - Contraseña del certificado
-- `tipoFirma`: String - Tipo de firma a aplicar
-- `documentoFirmado`: String - Documento firmado en formato base64
-- `fechaFirma`: LocalDateTime - Fecha y hora de la firma
-- `codigoRespuesta`: String - Código de respuesta de la operación
-- `mensaje`: String - Mensaje descriptivo del resultado
+- `tipo`: String (AUTENTICACION, FIRMA, CIFRADO)
+- `numeroSolicitud`: String (10 caracteres)
+- `numeroCertificado`: String (10 caracteres)
+- `numeroDni`: String (8 dígitos)
+- `tipoDocumento`: String
+- `apellidoPaterno`: String
+- `apellidoMaterno`: String
+- `nombres`: String
+- `fechaNacimiento`: LocalDate
+- `codigoOficina`: String (5 caracteres)
+- `numeroSerie`: String
+- `fechaEmision`: LocalDateTime
+- `fechaExpiracion`: LocalDateTime
+- `estadoCertificado`: String (VIGENTE, REVOCADO, EXPIRADO)
+- `motivoRevocacion`: String (opcional)
+- `publicKey`: String (Base64)
+- `certificadoPEM`: String
 
-### Certificado
-Representa un certificado digital y su información asociada.
+### SolicitudCertificado
+Agrupa la solicitud de los tres certificados.
 
 **Atributos**:
-- `numeroCertificado`: String - Número identificador único del certificado
-- `certificado`: String - Contenido del certificado
-- `titular`: String - Titular del certificado
-- `emisor`: String - Entidad emisora del certificado
-- `fechaEmision`: LocalDateTime - Fecha de emisión del certificado
-- `fechaExpiracion`: LocalDateTime - Fecha de expiración del certificado
-- `fechaValidacion`: LocalDateTime - Fecha en que se realizó la validación
-- `estado`: String - Estado actual del certificado
-- `esValido`: Boolean - Indicador de validez del certificado
-- `codigoRespuesta`: String - Código de respuesta de la operación
-- `mensaje`: String - Mensaje descriptivo del resultado
+- `numeroCertificados`: String
+- `certificadoAutenticacion`: CertificadoDigital
+- `certificadoFirma`: CertificadoDigital
+- `certificadoCifrado`: CertificadoDigital
+- `datosAdicionales`: DatosAdicionales
+
+### DatosAdicionales
+Información adicional del ciudadano.
+
+**Atributos**:
+- `emailCiudadano`: String
+- `telefonoCiudadano`: String
+- `direccionCiudadano`: String
+- `usuarioRegistro`: String
+- `observaciones`: String
+
+### SolicitudNumerosSecuencia
+Datos para generar números de solicitud.
+
+**Atributos**:
+- `dni`: String (8 dígitos)
+- `nombres`: String
+- `apellidoPaterno`: String
+- `apellidoMaterno`: String
+- `email`: String
+- `telefono`: String
+- `direccion`: String
+- `codigoOficina`: String
+- `tipoDocumento`: String
+- `fechaNacimiento`: LocalDate
+- `lugarNacimiento`: String
+- `nacionalidad`: String
+- `sexo`: String
+- `estadoCivil`: String
+- `observaciones`: String
+
+### NumerosSolicitud
+Números de solicitud generados.
+
+**Atributos**:
+- `numeroSolicitudAutenticacion`: String
+- `numeroSolicitudFirma`: String
+- `numeroSolicitudCifrado`: String
+
+### RespuestaPKI
+Respuesta del servicio PKI externo.
+
+**Atributos**:
+- `codigoRespuesta`: String
+- `mensajeRespuesta`: String
+- `idTransaccionPKI`: String
+- `timestampPKI`: LocalDateTime
+
+### MetadataRespuesta
+Metadatos de trazabilidad.
+
+**Atributos**:
+- `correlationId`: String
+- `requestId`: String
+- `timestamp`: LocalDateTime
+- `version`: String
+
+### ErrorResponse
+Estructura estándar de error.
+
+**Atributos**:
+- `tipo`: String
+- `titulo`: String
+- `estado`: Integer
+- `detalle`: String
+- `instancia`: String
+- `errores`: List<DetalleError>
+- `timestamp`: LocalDateTime
+- `correlationId`: String
+
+### DetalleError
+Detalle individual de error.
+
+**Atributos**:
+- `campo`: String
+- `mensaje`: String
+- `codigo`: String
 
 ---
 
-## Mapeo de Tipos de Datos
+## Reglas de Mapeo de Tipos
 
-La arquitectura utiliza los siguientes tipos de datos Java según las especificaciones:
-
-| Tipo en Especificación | Tipo en Java |
-|------------------------|--------------|
+| Tipo en Especificación | Tipo Java |
+|------------------------|-----------|
 | string | String |
-| integer/int/long | Long |
+| integer/int | Integer |
+| long | Long |
 | number/decimal/double | Double |
 | boolean | Boolean |
-| date | LocalDate |
+| date (dd/MM/yyyy) | LocalDate |
 | datetime/timestamp | LocalDateTime |
 | array/list | List<T> |
 
 ---
 
-## Estructura del Proyecto
+## Reglas de Negocio
 
-El proyecto sigue estrictamente la **Arquitectura Hexagonal** con la siguiente estructura:
+### Validaciones
 
-```
-src/main/java/pe/gob/sunat/sol/adaptadorpki/
-├── domain/
-│   ├── model/
-│   │   ├── Firma.java
-│   │   └── Certificado.java
-│   └── ports/
-│       ├── in/
-│       │   ├── FirmarDocumentoUseCase.java
-│       │   ├── ValidarCertificadoUseCase.java
-│       │   └── ConsultarCertificadoUseCase.java
-│       └── out/
-│           └── PKIPort.java
-├── application/
-│   └── service/
-│       ├── FirmarDocumentoService.java
-│       ├── ValidarCertificadoService.java
-│       └── ConsultarCertificadoService.java
-└── infrastructure/
-    └── adapters/
-        ├── in/
-        │   └── rest/
-        │       ├── controller/
-        │       │   ├── FirmaController.java
-        │       │   └── CertificadoController.java
-        │       ├── dto/
-        │       │   ├── FirmarDocumentoRequestDto.java
-        │       │   ├── FirmarDocumentoResponseDto.java
-        │       │   ├── ValidarCertificadoRequestDto.java
-        │       │   ├── ValidarCertificadoResponseDto.java
-        │       │   └── ConsultarCertificadoResponseDto.java
-        │       └── mapper/
-        │           ├── FirmaDtoMapper.java
-        │           └── CertificadoDtoMapper.java
-        └── out/
-            └── pki/
-                └── client/
-                    └── PKIAdapter.java
-```
+1. **Autenticación obligatoria**: Todos los endpoints requieren JWT válido en header `Authorization`
+2. **Unicidad de certificados**: No se pueden generar certificados duplicados para un ciudadano/tipo
+3. **Validación de existencia**: El ciudadano debe existir en APD antes de generar certificados
+4. **Formato DNI**: Debe ser exactamente 8 dígitos numéricos
+5. **Formato email**: Debe cumplir formato estándar RFC 5322
+6. **Longitud campos**: Respetar longitudes máximas definidas
+7. **Fechas**: 
+   - Formato `dd/MM/yyyy` para fechas
+   - Formato `dd/MM/yyyy HH:mm:ss` para timestamps en request/response
+   - Formato ISO-8601 para metadata y respuestas PKI
+8. **Códigos de oficina**: Exactamente 5 caracteres
+
+### Políticas Operacionales
+
+#### Timeout
+- **Timeout máximo**: 30 segundos
+- Si se excede, retornar `504 Gateway Timeout`
+
+#### Rate Limiting
+- Implementar límites de peticiones por minuto
+- Retornar `429 Too Many Requests` cuando se exceda
+
+#### Circuit Breaker
+- Aplicar patrón circuit breaker para llamadas al servicio PKI externo
+- Prevenir cascada de fallos
+- Retornar `503 Service Unavailable` cuando el circuit esté abierto
+
+#### Trazabilidad
+- Todos los endpoints requieren headers `X-Correlation-ID` y `X-Request-ID`
+- Propagar estos IDs a través de toda la cadena de llamadas
+- Incluir en logs y respuestas de error
 
 ---
 
-## Componentes Principales
+## Casos de Uso (Puertos de Entrada)
 
-### Capa de Dominio (`domain/`)
-Contiene la lógica de negocio pura, independiente de tecnología:
-- **Modelos**: `Firma`, `Certificado` (POJOs sin anotaciones)
-- **Puertos de Entrada (in)**: Interfaces que definen los casos de uso
-- **Puertos de Salida (out)**: Interface `PKIPort` para comunicación con sistema PKI externo
+### GenerarCertificadoDigitalDnieUseCase
+Genera certificados digitales para el DNIe.
 
-### Capa de Aplicación (`application/`)
-Contiene los servicios que implementan los casos de uso:
-- `FirmarDocumentoService`: Implementa `FirmarDocumentoUseCase`
-- `ValidarCertificadoService`: Implementa `ValidarCertificadoUseCase`
-- `ConsultarCertificadoService`: Implementa `ConsultarCertificadoUseCase`
+**Método**: `ejecutar(SolicitudCertificado, correlationId, requestId, officeCode, pkiTransactionId)`
 
-Estos servicios orquestan las llamadas al puerto de salida `PKIPort`.
+**Retorna**: `GenerarCertificadoDigitalDnieResponse`
 
-### Capa de Infraestructura (`infrastructure/`)
+### GenerarNumerosSolicitudUseCase
+Genera números de solicitud únicos.
 
-#### Adaptadores de Entrada (in)
-- **Controllers**: Clases POJO que representan endpoints REST (sin anotaciones de frameworks)
-- **DTOs**: Records de Java para Request/Response
-- **Mappers**: Conversión entre DTOs y modelos de dominio
+**Método**: `ejecutar(SolicitudNumerosSecuencia, correlationId, requestId, officeCode)`
 
-#### Adaptadores de Salida (out)
-- **PKIAdapter**: Implementa `PKIPort` para comunicación con sistema PKI externo
-  - Métodos lanzan `UnsupportedOperationException` (implementación stub)
-  - NO define protocolo de comunicación específico (ni HTTP, ni SOAP, ni colas)
+**Retorna**: `GenerarNumerosSolicitudResponse`
 
 ---
 
-## Casos de Uso Implementados
+## Puerto de Salida
 
-1. **FirmarDocumentoUseCase**: Firma un documento digital
-   - Input: Objeto `Firma` con documento, certificado, password y tipo de firma
-   - Output: Objeto `Firma` con documento firmado y fecha de firma
+### PKIDataPort
+Interface para integración con el servicio PKI externo de RENIEC.
 
-2. **ValidarCertificadoUseCase**: Valida un certificado digital
-   - Input: Objeto `Certificado` con certificado y fecha de validación
-   - Output: Objeto `Certificado` con resultado de validación
+**Métodos**:
+- `generarCertificados(SolicitudCertificado, pkiTransactionId)`: GenerarCertificadosResult
+- `generarNumerosSolicitud(SolicitudNumerosSecuencia)`: GenerarNumerosSolicitudResult
 
-3. **ConsultarCertificadoUseCase**: Consulta información de un certificado
-   - Input: String con número de certificado
-   - Output: Objeto `Certificado` con información completa
+**Implementado por**: `PKIDataAdapter` (sin tecnología específica)
 
 ---
 
-## Limitaciones y Consideraciones
+## Limitaciones y Aclaraciones
 
 ### Neutralidad Tecnológica
-- **Sin Frameworks**: No se utilizan Spring, JAX-RS, JPA ni ningún framework
-- **Sin Anotaciones**: Todo el código es Java puro (POJOs e interfaces)
-- **Sin Protocolo Definido**: El adaptador PKI no especifica cómo se conecta (HTTP, SOAP, colas, etc.)
-- **Implementación Stub**: Los adaptadores lanzan `UnsupportedOperationException` por defecto
 
-### Sin Gestión de Persistencia
-- Este microservicio NO define `RepositoryPort` ni maneja persistencia de datos
-- NO existen Entities de persistencia ni mappers de persistencia
-- Es un adaptador puro hacia sistema PKI externo
+Este proyecto está diseñado siguiendo el principio de **neutralidad tecnológica**:
 
-### Sin Build Configuration
-- NO se genera `pom.xml` ni configuraciones de build
-- Mantiene neutralidad respecto a herramientas de construcción (Maven, Gradle, etc.)
+- **Sin frameworks**: No usa Spring, JAX-RS, JPA, ni ningún framework específico
+- **Sin anotaciones**: Código Java puro (POJOs e interfaces)
+- **Sin protocolo definido**: La conexión con el servicio PKI externo no especifica HTTP, SOAP, colas, etc.
+- **Sin build tools**: No se genera `pom.xml` ni configuración de construcción
 
-### Errores y Códigos HTTP
-- Los status codes están documentados pero NO implementados en el código
-- Los controllers no tienen lógica HTTP real (solo métodos simples)
-- La gestión de errores debe implementarse al integrar con un framework web
+### Implementación de Adaptadores
 
----
+Los adaptadores son **stubs** que lanzan `UnsupportedOperationException`:
 
-## Integraciones Externas
+```java
+@Override
+public GenerarCertificadosResult generarCertificados(SolicitudCertificado solicitud, String pkiTransactionId) {
+    throw new UnsupportedOperationException(
+        "Método generarCertificados no implementado. " +
+        "Debe implementar la conexión con el servicio PKI externo de RENIEC."
+    );
+}
+```
 
-### Sistema PKI
-El microservicio se integra con un sistema PKI externo a través de:
-- **Puerto de Salida**: `PKIPort` (interface)
-- **Adaptador**: `PKIAdapter` (implementación stub)
-- **Operaciones**:
-  - Firmar documento
-  - Validar certificado
-  - Consultar certificado por número
+La implementación real debe:
+1. Definir el protocolo de comunicación (HTTP REST, SOAP, etc.)
+2. Manejar conexiones y timeouts
+3. Implementar Circuit Breaker
+4. Manejar serialización/deserialización
+5. Gestionar errores del servicio externo
 
-**Nota**: La implementación real del `PKIAdapter` debe definirse según el protocolo y tecnología del sistema PKI específico.
+### No Repository
 
----
-
-## Próximos Pasos para Implementación Completa
-
-1. **Elegir Framework Web**: Spring Boot, Quarkus, Micronaut, etc.
-2. **Añadir Anotaciones REST**: @RestController, @RequestMapping, @PathVariable, etc.
-3. **Implementar PKIAdapter**: Definir protocolo (HTTP, SOAP, etc.) y conectar con sistema PKI real
-4. **Gestión de Errores**: Implementar exception handlers y mapeo a códigos HTTP
-5. **Validaciones**: Añadir validación de datos de entrada
-6. **Configuración**: Añadir archivos de configuración (application.properties, etc.)
-7. **Build Tool**: Crear pom.xml (Maven) o build.gradle (Gradle)
-8. **Testing**: Añadir pruebas unitarias e integrales
-9. **Seguridad**: Implementar autenticación y autorización
-10. **Logging y Monitoreo**: Añadir trazabilidad y observabilidad
+Como microservicio de dominio (MsDominio):
+- **NO define** `RepositoryPort`
+- **NO accede** directamente a bases de datos
+- **SÍ integra** con servicios externos a través de puertos de salida
 
 ---
 
-## Principios de Diseño Aplicados
+## Manejo de Errores
 
-- **Separación de Responsabilidades**: Cada capa tiene responsabilidades claramente definidas
-- **Inversión de Dependencias**: El dominio no depende de infraestructura
-- **Puertos y Adaptadores**: Comunicación a través de interfaces (puertos)
-- **Independencia de Frameworks**: Código Java puro sin dependencias externas
-- **Trazabilidad**: Mapeo directo entre especificación PDF y artefactos generados
-- **Domain-Driven Design**: Modelos de dominio ricos que representan conceptos de negocio
+### Estructura de Error Estándar
+
+```json
+{
+  "tipo": "string (URI que identifica el tipo de error)",
+  "titulo": "string (resumen corto)",
+  "estado": "integer (código HTTP)",
+  "detalle": "string (explicación detallada)",
+  "instancia": "string (URI de la petición)",
+  "errores": [
+    {
+      "campo": "string",
+      "mensaje": "string",
+      "codigo": "string"
+    }
+  ],
+  "timestamp": "string (ISO-8601)",
+  "correlationId": "string"
+}
+```
+
+### Códigos de Error Comunes
+
+- `400`: Validación de formato/estructura
+- `401`: Autenticación fallida
+- `403`: Sin permisos
+- `404`: Recurso no encontrado
+- `409`: Conflicto de estado
+- `422`: Validación de negocio
+- `429`: Rate limit excedido
+- `500`: Error interno
+- `502`: Error en servicio externo
+- `503`: Servicio no disponible
+- `504`: Timeout
 
 ---
 
-## Autor y Versión
+## Próximos Pasos
 
-- **Generado por**: Arquitecto de Software Senior
-- **Fecha**: Diciembre 2025
-- **Versión del Microservicio**: 1.0
-- **Basado en**: Especificación PDF "Microservicio MsAdaptadorPKI v1.0.pdf"
+Para hacer este microservicio ejecutable:
+
+1. **Elegir tecnología**:
+   - Framework web (Spring Boot, Quarkus, Micronaut, etc.)
+   - Cliente HTTP/SOAP para PKI
+   - Serialización JSON
+
+2. **Agregar dependencias**:
+   - Crear `pom.xml` o `build.gradle`
+   - Dependencias de frameworks elegidos
+
+3. **Implementar PKIDataAdapter**:
+   - Conexión real con servicio PKI externo
+   - Manejo de timeouts y reintentos
+   - Circuit Breaker (Resilience4j, Hystrix, etc.)
+
+4. **Agregar anotaciones**:
+   - Controllers: `@RestController`, `@PostMapping`, etc.
+   - Dependency Injection: `@Service`, `@Component`, etc.
+   - Validation: `@Valid`, `@NotNull`, etc.
+
+5. **Configuración**:
+   - `application.properties` / `application.yml`
+   - URLs del servicio PKI
+   - Timeouts, reintentos, circuit breaker
+
+6. **Seguridad**:
+   - Validación JWT
+   - Autorización por roles
+   - Rate limiting
+
+7. **Observabilidad**:
+   - Logs estructurados
+   - Métricas (Prometheus)
+   - Tracing distribuido (Zipkin, Jaeger)
+
+---
+
+## Documentos Relacionados
+
+- `ESPECIFICACION_EXTRAIDA.md`: Especificación completa extraída del PDF
+- PDF original: `Microservicio MsAdaptadorPKI V1.0.pdf`
+
+---
+
+## Licencia
+
+Este proyecto es propiedad de RENIEC (Registro Nacional de Identificación y Estado Civil) - Perú.
