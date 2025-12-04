@@ -1,116 +1,113 @@
-# MsDominioParentesco - Microservicio Dominio Parentesco
+# Microservicio MsDominioParentesco
 
 ## Información General
 
-**Nombre del Microservicio:** MsDominioParentesco (Microservicio Dominio Parentesco)  
-**Versión del API:** v1  
-**Paquete Base:** pe.gob.reniec.dominio.parentesco  
-**Tipo:** Microservicio de Dominio (MsDominio)  
-**Organización:** RENIEC (Registro Nacional de Identificación y Estado Civil)
+- **Nombre**: MsDominioParentesco
+- **Versión API**: 1.0
+- **Contexto de Negocio**: Componente de lógica de negocio de la plataforma SIIRC especializado en el análisis, validación y certificación de vínculos familiares entre ciudadanos.
+- **Paquete Base**: `pe.gob.reniec.dominioparentesco`
+- **Tipo de Microservicio**: **Dominio** (NO gestiona persistencia directa)
 
-## Contexto de Negocio
+## Descripción
 
-El Microservicio Dominio Parentesco es el componente de lógica de negocio de la plataforma SIIRC especializado en el análisis, validación y certificación de vínculos familiares entre ciudadanos. Su propósito principal es gestionar y centralizar toda la inteligencia de negocio relacionada con el análisis de parentesco, actuando como el motor que verifica la coherencia de las relaciones familiares contra las reglas del registro civil peruano.
+El Microservicio Dominio Parentesco es el motor de inteligencia de negocio que orquesta el proceso completo de análisis de vínculos familiares. Su propósito principal es:
 
-Este microservicio orquesta el proceso completo de análisis de vínculos, desde la recepción de una solicitud hasta la generación automática de la población de posibles vínculos, coordinando la consulta de datos del APD y actas registrales para establecer cadenas de parentesco hasta el cuarto grado de consanguinidad y segundo de afinidad.
+- Gestionar y centralizar la lógica de análisis de parentesco
+- Verificar la coherencia de las relaciones familiares contra las reglas del registro civil peruano
+- Generar automáticamente la población de posibles vínculos
+- Coordinar la consulta de datos del APD para establecer cadenas de parentesco hasta el cuarto grado de consanguinidad y segundo de afinidad
 
 ## Arquitectura
 
-Este microservicio sigue una **Arquitectura Hexagonal** estricta con las siguientes características:
+Este microservicio implementa **Arquitectura Hexagonal** estricta con las siguientes características:
 
-- **Sin dependencias de frameworks:** Código Java puro sin anotaciones de Spring, JPA, JAX-RS, etc.
-- **Sin tecnología concreta:** No se define el protocolo de comunicación con servicios externos (HTTP, SOAP, colas, etc.)
-- **Tipo MsDominio:** NO define `RepositoryPort`. Se integra con componentes externos (MsDataParentesco, MsSagaAPD, MsDatosActas) a través de puertos de salida y adaptadores.
+### Características Arquitectónicas
 
-### Estructura del Proyecto
+- ✅ **Sin frameworks**: Código Java puro sin dependencias de Spring, JAX-RS, JPA, etc.
+- ✅ **Sin anotaciones**: POJOs e interfaces limpias
+- ✅ **Puertos y Adaptadores**: Separación clara entre lógica de negocio e infraestructura
+- ✅ **Independencia tecnológica**: El dominio no conoce detalles de implementación
+- ✅ **Testeable**: Lógica de negocio aislada y fácilmente testeable
+
+### Tipo: Microservicio de Dominio
+
+Como **MsDominioParentesco**:
+- ❌ NO define `RepositoryPort` (no gestiona persistencia)
+- ✅ Define puertos de salida (`DataPort`) hacia otros microservicios:
+  - `MsDatosParentesco`: Para guardar/consultar análisis
+  - `MsSagaAPD`: Para validar datos del APD
+  - `MsDatosActas`: Para consultar actas de registro civil
+- ✅ Los adaptadores implementan estos puertos SIN definir el protocolo de conexión
+- ✅ Orquesta la lógica de negocio y coordina con servicios externos
+
+## Estructura del Proyecto
 
 ```
-src/main/java/pe/gob/reniec/dominio/parentesco/
+src/main/java/pe/gob/reniec/dominioparentesco/
 ├── domain/
-│   ├── model/                          # Entidades del dominio (POJOs)
-│   │   ├── ActaPendienteDigitalizacion.java
-│   │   ├── ActaSustento.java
-│   │   ├── AnalisisParentesco.java     # Aggregate Root
+│   ├── model/
+│   │   ├── ResultadoAnalisisParentesco.java (Aggregate Root)
+│   │   ├── SolicitudAnalisisParentesco.java (Value Object de entrada)
 │   │   ├── CiudadanoAnalizado.java
+│   │   ├── PoblacionVinculosPosibles.java
+│   │   ├── VinculoConsanguineo.java
+│   │   ├── VinculoAfinidad.java
+│   │   ├── ResumenAnalisis.java
+│   │   ├── Inconsistencia.java
+│   │   ├── ActaPendienteDigitalizacion.java
+│   │   ├── DatosCiudadano.java
+│   │   ├── DatosAPD.java
+│   │   ├── ActaSustento.java
 │   │   ├── ConyugeIntermedio.java
 │   │   ├── CriteriosBusqueda.java
-│   │   ├── DatosAPD.java
-│   │   ├── DatosCiudadano.java
-│   │   ├── Inconsistencia.java
-│   │   ├── Metadata.java
 │   │   ├── OpcionesAnalisis.java
-│   │   ├── PoblacionVinculosPosibles.java
-│   │   ├── RangoAnios.java
-│   │   ├── ResumenAnalisis.java
-│   │   ├── ServiciosConsultados.java
-│   │   ├── SolicitudAnalisisParentesco.java
-│   │   ├── VinculoAfinidad.java
-│   │   └── VinculoConsanguineo.java
+│   │   └── RangoAnios.java
 │   └── ports/
-│       ├── in/                         # Puertos de entrada (use cases)
+│       ├── in/
 │       │   └── EjecutarAnalisisParentescoUseCase.java
-│       └── out/                        # Puertos de salida (hacia servicios externos)
-│           ├── APDDataPort.java
-│           ├── ActasDataPort.java
-│           └── ParentescoDataPort.java
+│       └── out/
+│           ├── AnalisisParentescoDataPort.java (hacia MsDatosParentesco)
+│           ├── APDDataPort.java (hacia MsSagaAPD)
+│           └── ActasDataPort.java (hacia MsDatosActas)
 ├── application/
-│   └── service/                        # Servicios de aplicación
+│   └── service/
 │       └── EjecutarAnalisisParentescoService.java
 └── infrastructure/
     └── adapters/
         ├── in/
         │   └── rest/
         │       ├── controller/
-        │       │   └── ParentescoController.java
-        │       ├── dto/                # DTOs (records)
-        │       │   ├── AnalisisParentescoDataResponseDto.java
-        │       │   ├── AnalisisParentescoResponseDto.java
-        │       │   ├── ActaPendienteDigitalizacionResponseDto.java
-        │       │   ├── ActaSustentoResponseDto.java
-        │       │   ├── CiudadanoAnalizadoResponseDto.java
-        │       │   ├── ConyugeIntermedioResponseDto.java
-        │       │   ├── CriteriosBusquedaRequestDto.java
-        │       │   ├── DatosAPDResponseDto.java
-        │       │   ├── DatosCiudadanoRequestDto.java
-        │       │   ├── DetalleErrorDto.java
-        │       │   ├── ErrorDto.java
-        │       │   ├── ErrorResponseDto.java
-        │       │   ├── InconsistenciaResponseDto.java
-        │       │   ├── MetadataResponseDto.java
-        │       │   ├── OpcionesAnalisisRequestDto.java
-        │       │   ├── PoblacionVinculosPosiblesResponseDto.java
-        │       │   ├── RangoAniosRequestDto.java
-        │       │   ├── ResumenAnalisisResponseDto.java
-        │       │   ├── ServiciosConsultadosResponseDto.java
-        │       │   ├── SolicitudAnalisisParentescoRequestDto.java
-        │       │   ├── VinculoAfinidadResponseDto.java
-        │       │   └── VinculoConsanguineoResponseDto.java
+        │       │   └── AnalisisParentescoController.java
+        │       ├── dto/
+        │       │   ├── EjecutarAnalisisRequestDto.java (record)
+        │       │   ├── EjecutarAnalisisResponseDto.java (record)
+        │       │   └── ErrorResponseDto.java (record)
         │       └── mapper/
-        │           └── ParentescoDtoMapper.java
+        │           └── AnalisisParentescoDtoMapper.java
         └── out/
             └── msdata/
-                └── client/             # Adaptadores hacia servicios externos
+                └── client/
+                    ├── AnalisisParentescoDataAdapter.java
                     ├── APDDataAdapter.java
-                    ├── ActasDataAdapter.java
-                    └── ParentescoDataAdapter.java
+                    └── ActasDataAdapter.java
 ```
 
 ## Endpoints
 
 ### POST /api/v1/parentesco/MsDominioParentesco/analisis/ejecutar
 
-Inicia y ejecuta el proceso de análisis de vínculos de parentesco para una persona natural.
+Ejecuta el proceso completo de análisis de vínculos de parentesco para un ciudadano.
 
 #### Headers
 
-| Header | Tipo | Obligatorio | Descripción |
-|--------|------|-------------|-------------|
-| Authorization | String | Sí | Bearer token JWT para autenticación |
-| Content-Type | String | Sí | application/json |
-| X-Correlation-ID | UUID | Sí | Identificador único de correlación para trazabilidad end-to-end |
-| X-Office-Code | String | Sí | Código de oficina RENIEC (formato: ORG-LIMA-CENTRO) |
-| X-User-Role | String | Sí | Rol del usuario (TECNICO_VINCULO, COORDINADOR_VINCULO) |
-| X-Idempotency-Key | UUID | Sí | Clave de idempotencia para evitar duplicados |
+| Header | Tipo | Requerido | Descripción |
+|--------|------|-----------|-------------|
+| `Authorization` | String | Sí | Bearer token JWT para autenticación |
+| `Content-Type` | String | Sí | application/json |
+| `X-Correlation-ID` | UUID | Sí | Identificador único de correlación para trazabilidad |
+| `X-Office-Code` | String | Sí | Código de oficina RENIEC (ej: ORG-LIMA-CENTRO) |
+| `X-User-Role` | String | Sí | Rol: TECNICO_VINCULO, COORDINADOR_VINCULO |
+| `X-Idempotency-Key` | UUID | Sí | Clave de idempotencia para evitar duplicados |
 
 #### Request Body
 
@@ -119,242 +116,296 @@ Inicia y ejecuta el proceso de análisis de vínculos de parentesco para una per
   "idSolicitud": "string",
   "idCiudadanoConsultado": "string",
   "datosCiudadano": {
-    "nombres": "string",
-    "apellidoPaterno": "string",
-    "apellidoMaterno": "string",
-    "fechaNacimiento": "YYYY-MM-DD",
-    "sexo": "string",
-    "estadoCivil": "string"
+    "nombre": "string",
+    "fechaNacimiento": "YYYY-MM-DDTHH:MM:SSZ"
   },
-  "tipoVinculo": "string",
-  "nivelComplejidad": 1,
+  "codTipoVinculo": "string",
+  "nivelComplejidad": "integer",
   "criteriosBusqueda": {
     "rangoAniosPadres": {
-      "anioInicio": 1950,
-      "anioFin": 1980
+      "anioInicio": "integer",
+      "anioFin": "integer"
     },
     "rangoAniosHijos": {
-      "anioInicio": 2000,
-      "anioFin": 2024
+      "anioInicio": "integer",
+      "anioFin": "integer"
     },
     "variacionesNombre": ["string"],
-    "incluirFallecidos": true,
-    "incluirActasAnuladas": false
+    "incluirFallecidos": "boolean",
+    "incluirActasAnuladas": "boolean"
   },
   "opcionesAnalisis": {
-    "generarArbolGenealogico": true,
-    "validarContraAPD": true,
-    "incluirActasSustento": true,
-    "detectarInconsistencias": true
+    "generarArbolGenealogico": "boolean",
+    "validarContraAPD": "boolean",
+    "incluirActasSustento": "boolean",
+    "detectarInconsistencias": "boolean"
   },
   "usuarioTecnico": "string",
   "observaciones": "string"
 }
 ```
 
-#### Response Body (Éxito)
+#### Response Body (200 OK)
 
 ```json
 {
-  "success": true,
+  "success": "boolean",
   "data": {
-    "idAnalisis": "string",
     "idSolicitud": "string",
     "idCiudadanoConsultado": "string",
-    "tipoVinculo": "string",
-    "nivelComplejidad": 1,
-    "estado": "string",
+    "codTipoVinculo": "string",
+    "nivelComplejidad": "integer",
+    "estadoSolicitud": "string",
     "ciudadanoAnalizado": {
       "idCiudadano": "string",
-      "nombreCompleto": "string",
-      "fechaNacimiento": "YYYY-MM-DD",
-      "estadoCivil": "string",
+      "nombre": "string",
+      "fechaNacimiento": "YYYY-MM-DDTHH:MM:SSZ",
       "datosAPD": {
         "version": "string",
-        "ultimaActualizacion": "YYYY-MM-DDThh:mm:ss±hh:mm",
+        "ultimaActualizacion": "YYYY-MM-DDTHH:MM:SSZ",
         "estadoAPD": "string"
       }
     },
     "poblacionVinculosPosibles": {
-      "totalEncontrados": 0,
-      "vinculosConsanguineos": [],
-      "vinculosAfinidad": []
+      "totalEncontrados": "integer",
+      "vinculosConsanguineos": [
+        {
+          "idRelacion": "integer",
+          "idCiudadanoOrigen": "string",
+          "idCiudadanoDestino": "string",
+          "nombreCiudadanoDestino": "string",
+          "codTipo": "string",
+          "descripcionTipo": "string",
+          "categoria": "string",
+          "gradoMinimo": "integer",
+          "esSimetrico": "string",
+          "codInverso": "string",
+          "fechaInicio": "YYYY-MM-DDTHH:MM:SSZ",
+          "fechaFin": "YYYY-MM-DDTHH:MM:SSZ",
+          "idActaSustento": "string",
+          "actaSustento": {
+            "idActa": "string",
+            "tipoActa": "string",
+            "fechaActa": "YYYY-MM-DDTHH:MM:SSZ",
+            "lugarActa": "string"
+          },
+          "idDocumentoSustento": "string",
+          "nivelConfianza": "number",
+          "estadoConfirmacion": "string",
+          "requiereValidacionManual": "boolean",
+          "observacion": "string"
+        }
+      ],
+      "vinculosAfinidad": [
+        {
+          "idRelacion": "integer",
+          "conyugeIntermedio": {
+            "idCiudadano": "string",
+            "nombre": "string"
+          }
+        }
+      ]
     },
     "resumenAnalisis": {
-      "vinculosGrado1": 0,
-      "vinculosGrado2": 0,
-      "vinculosGrado3": 0,
-      "vinculosGrado4": 0,
-      "vinculosAfinidad": 0,
-      "actasConsultadas": 0,
-      "actasNoDigitalizadas": 0,
-      "inconsistenciasDetectadas": 0
+      "vinculosGrado1": "integer",
+      "vinculosGrado2": "integer",
+      "vinculosGrado3": "integer",
+      "vinculosGrado4": "integer",
+      "vinculosAfinidad": "integer",
+      "actasConsultadas": "integer",
+      "actasNoDigitalizadas": "integer",
+      "inconsistenciasDetectadas": "integer"
     },
-    "inconsistencias": [],
-    "actasPendientesDigitalizacion": [],
-    "fechaAnalisis": "YYYY-MM-DDThh:mm:ss±hh:mm",
-    "tiempoProcesamientoMs": 0,
+    "inconsistencias": [
+      {
+        "tipo": "string",
+        "descripcion": "string",
+        "ciudadanosInvolucrados": ["string"],
+        "severidad": "string",
+        "accionRecomendada": "string"
+      }
+    ],
+    "actasPendientesDigitalizacion": [
+      {
+        "tipoActa": "string",
+        "referenciaActa": "string",
+        "lugarActa": "string",
+        "observacion": "string"
+      }
+    ],
+    "fechaSolicitud": "YYYY-MM-DDTHH:MM:SSZ",
+    "tiempoProcesamientoMs": "integer",
     "usuarioTecnico": "string"
   },
   "metadata": {
-    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm",
+    "timestamp": "YYYY-MM-DDTHH:MM:SSZ",
     "correlationId": "string",
     "version": "string",
     "serviciosConsultados": {
-      "msSagaAPD": true,
-      "msDatosActas": true,
-      "msDatosParentesco": true
+      "msSagaAPD": "boolean",
+      "msDatosActas": "boolean",
+      "msDatosParentesco": "boolean"
     }
   }
 }
 ```
 
-#### Response Body (Error)
-
-```json
-{
-  "error": {
-    "tipo": "string",
-    "titulo": "string",
-    "estado": 400,
-    "errores": [
-      {
-        "detalleError": "string"
-      }
-    ]
-  }
-}
-```
-
-#### Status Codes
+#### Códigos de Respuesta HTTP
 
 | Código | Descripción |
 |--------|-------------|
-| 200 | OK - Ejecución realizada exitosamente |
-| 202 | Accepted - Procesamiento asíncrono en curso |
-| 400 | Bad Request - Parámetros inválidos o incompletos |
-| 401 | Unauthorized - Token inválido o ausente |
-| 403 | Forbidden - Sin permisos para análisis |
-| 404 | Not Found - Ciudadano no encontrado |
-| 408 | Request Timeout - Timeout en servicios externos |
-| 409 | Conflict - Análisis activo existente |
-| 422 | Unprocessable Entity - Complejidad incompatible |
-| 429 | Too Many Requests - Rate limit excedido |
-| 500 | Internal Server Error - Error interno |
-| 502 | Bad Gateway - MsSagaAPD o MsDatosActas caído |
-| 503 | Service Unavailable - Servicio no disponible |
-| 504 | Gateway Timeout - Timeout en consulta externa |
+| 200 | OK - Análisis ejecutado exitosamente |
+| 202 | Accepted - Análisis iniciado, procesamiento asíncrono en curso |
+| 400 | Bad Request - Parámetros inválidos o datos incompletos |
+| 401 | Unauthorized - Token JWT inválido, expirado o ausente |
+| 403 | Forbidden - Sin permisos para ejecutar análisis de parentesco |
+| 404 | Not Found - Ciudadano no encontrado en el sistema APD |
+| 408 | Request Timeout - Tiempo de espera agotado al consultar servicios externos |
+| 409 | Conflict - Ya existe un análisis activo para esta solicitud y ciudadano |
+| 422 | Unprocessable Entity - Nivel de complejidad no válido para el tipo de vínculo |
+| 429 | Too Many Requests - Límite de rate limit excedido |
+| 500 | Internal Server Error - Error interno del servicio |
+| 502 | Bad Gateway - MsSagaAPD o MsDatosActas no disponible |
+| 503 | Service Unavailable - Servicio temporalmente no disponible |
+| 504 | Gateway Timeout - Timeout en consulta a servicios externos |
 
 ## Entidades del Dominio
 
-### Mapeo de Tipos de Datos
+### Aggregate Root
 
-| Tipo JSON | Tipo Java |
-|-----------|-----------|
+- **ResultadoAnalisisParentesco**: Resultado completo del análisis con vínculos encontrados, resumen e inconsistencias
+
+### Value Objects
+
+- **SolicitudAnalisisParentesco**: Entrada del caso de uso principal
+- **CiudadanoAnalizado**: Datos del ciudadano analizado con información del APD
+- **PoblacionVinculosPosibles**: Contenedor de vínculos encontrados
+- **VinculoConsanguineo**: Vínculo por consanguinidad
+- **VinculoAfinidad**: Vínculo por afinidad con cónyuge intermedio
+- **ResumenAnalisis**: Estadísticas del análisis
+- **Inconsistencia**: Inconsistencia detectada
+- **ActaPendienteDigitalizacion**: Acta que requiere digitalización
+- **DatosCiudadano**: Información básica del ciudadano
+- **DatosAPD**: Datos del Archivo Personal Digitalizado
+- **ActaSustento**: Acta de registro civil que sustenta un vínculo
+- **ConyugeIntermedio**: Cónyuge que establece vínculo de afinidad
+- **CriteriosBusqueda**: Parámetros de búsqueda
+- **OpcionesAnalisis**: Opciones de configuración del análisis
+- **RangoAnios**: Rango de años para criterios
+
+### Mapeo de Tipos
+
+| Tipo Especificación | Tipo Java |
+|---------------------|-----------|
 | string | String |
 | integer | Integer |
-| long | Long |
-| number | Double |
+| number/double | Double |
 | boolean | Boolean |
-| date (YYYY-MM-DD) | LocalDate |
-| datetime (ISO 8601) | LocalDateTime |
-| array | List\<T\> |
+| date | LocalDate |
+| datetime/timestamp (YYYY-MM-DDTHH:MM:SSZ) | LocalDateTime |
+| array | List<T> |
 
-### Entidades Principales
+## Puertos de Salida (Integración con Otros Microservicios)
 
-1. **SolicitudAnalisisParentesco** - Solicitud de análisis de parentesco
-2. **AnalisisParentesco** - Resultado del análisis (Aggregate Root)
-3. **CiudadanoAnalizado** - Datos del ciudadano analizado
-4. **PoblacionVinculosPosibles** - Contenedor de vínculos encontrados
-5. **VinculoConsanguineo** - Vínculo por consanguinidad
-6. **VinculoAfinidad** - Vínculo por afinidad
-7. **ResumenAnalisis** - Resumen estadístico del análisis
-8. **Inconsistencia** - Inconsistencias detectadas
-9. **ActaPendienteDigitalizacion** - Actas no digitalizadas
-10. **Metadata** - Metadatos de la respuesta
+### AnalisisParentescoDataPort
 
-## Puertos y Adaptadores
+Comunica con **MsDatosParentesco** para:
+- `guardarAnalisis()`: Persiste el resultado del análisis
+- `consultarAnalisis()`: Consulta un análisis específico
+- `actualizarEstadoAnalisis()`: Actualiza el estado de un análisis
 
-### Puertos de Entrada (In)
+### APDDataPort
 
-- **EjecutarAnalisisParentescoUseCase** - Ejecutar análisis de parentesco
+Comunica con **MsSagaAPD** para:
+- `consultarAPD()`: Obtiene datos del Archivo Personal Digitalizado
+- `validarVigenciaAPD()`: Valida que el APD esté vigente
 
-### Puertos de Salida (Out)
+### ActasDataPort
 
-- **APDDataPort** - Consultar datos del APD desde MsSagaAPD
-- **ActasDataPort** - Consultar actas registrales desde MsDatosActas
-- **ParentescoDataPort** - Gestionar análisis en MsDatosParentesco
+Comunica con **MsDatosActas** para:
+- `consultarActasCiudadano()`: Obtiene actas de registro civil
+- `consultarActaPorId()`: Consulta un acta específica
+- `verificarActaDigitalizada()`: Verifica disponibilidad de acta
 
-### Adaptadores de Salida
+## Lógica de Negocio
 
-- **APDDataAdapter** - Implementa APDDataPort (sin protocolo definido)
-- **ActasDataAdapter** - Implementa ActasDataPort (sin protocolo definido)
-- **ParentescoDataAdapter** - Implementa ParentescoDataPort (sin protocolo definido)
+El servicio `EjecutarAnalisisParentescoService` orquesta:
 
-## Servicios Externos Consultados
+1. **Validación de APD**: Verifica vigencia del APD del ciudadano
+2. **Construcción del ciudadano analizado**: Enriquece con datos del APD
+3. **Consulta de actas**: Obtiene actas de nacimiento y matrimonio
+4. **Análisis de vínculos**: Aplica algoritmos de detección de parentesco
+   - Análisis de cadenas de parentesco
+   - Generación de población de vínculos posibles
+   - Validación contra criterios de búsqueda
+5. **Generación de resumen**: Calcula estadísticas por grado
+6. **Detección de inconsistencias**: Identifica conflictos y datos faltantes
+7. **Identificación de actas pendientes**: Lista actas no digitalizadas
+8. **Persistencia**: Guarda resultado en MsDatosParentesco
 
-1. **MsSagaAPD** - Consulta del Archivo Personal de Datos
-2. **MsDatosActas** - Consulta de actas registrales (nacimiento, matrimonio, defunción)
-3. **MsDatosParentesco** - Persistencia de análisis de parentesco
+## Limitaciones y Consideraciones
 
-## Reglas de Negocio
+### Neutralidad Tecnológica
 
-1. **Análisis de Parentesco:**
-   - Basado en consulta del APD del ciudadano
-   - Correlación con actas registrales
-   - Cadenas de parentesco hasta 4° grado de consanguinidad
-   - Cadenas de parentesco hasta 2° grado de afinidad
+- ✅ **Sin frameworks**: El código no depende de Spring, Quarkus, Micronaut, etc.
+- ✅ **Sin anotaciones**: No hay @Entity, @Service, @RestController, etc.
+- ✅ **Sin JPA/Hibernate**: No hay dependencias de persistencia
+- ✅ **Sin librerías de mapeo**: No hay MapStruct, ModelMapper, etc.
+- ✅ **Java puro**: Solo clases, interfaces, enums y tipos estándar de Java
 
-2. **Nivel de Complejidad:** Valor entre 1 y 4 que determina la profundidad del análisis
+### Protocolo de Conexión NO Definido
 
-3. **Grados de Parentesco:**
-   - Grado 1: Padres, hijos
-   - Grado 2: Abuelos, nietos, hermanos
-   - Grado 3: Bisabuelos, bisnietos, tíos, sobrinos
-   - Grado 4: Tatarabuelos, tataranietos, primos hermanos, tíos abuelos, sobrinos nietos
+Los adaptadores de salida (`*DataAdapter`) NO especifican:
+- ❌ HTTP (RestTemplate, WebClient, HttpClient)
+- ❌ SOAP (JAX-WS, CXF)
+- ❌ Mensajería (Kafka, RabbitMQ)
+- ❌ gRPC
+- ❌ GraphQL
 
-4. **Validaciones:**
-   - Coherencia de relaciones familiares
-   - Detección de inconsistencias
-   - Validación contra APD (opcional)
+**Decisión de implementación**: El protocolo se definirá al momento de integrar con la arquitectura real.
 
-5. **Seguridad y Trazabilidad:**
-   - Autenticación mediante JWT
-   - Roles: TECNICO_VINCULO, COORDINADOR_VINCULO
-   - Correlación end-to-end
-   - Idempotencia
+### Implementaciones Stub
 
-## Limitaciones
+Los siguientes componentes tienen implementaciones básicas que lanzan `UnsupportedOperationException`:
+- Algoritmo de análisis de vínculos
+- Adaptadores de datos (AnalisisParentescoDataAdapter, APDDataAdapter, ActasDataAdapter)
+- Lógica de detección de inconsistencias
 
-1. **Sin frameworks:** El código es Java puro sin dependencias de frameworks específicos
-2. **Sin protocolo de comunicación:** Los adaptadores no definen cómo conectarse a servicios externos (HTTP, SOAP, colas, etc.)
-3. **Sin implementación de lógica:** Los servicios y adaptadores lanzan `UnsupportedOperationException` como placeholders
-4. **Sin anotaciones:** No se usan anotaciones de Spring, JPA, JAX-RS, etc.
-5. **Sin build configuration:** No se proporciona pom.xml ni configuraciones de construcción
-6. **Solo estructura:** Este proyecto define únicamente la estructura y contratos (interfaces), no la implementación completa
+**Razón**: Se mantiene la estructura arquitectónica sin comprometerse con tecnologías específicas.
 
-## Tipo de Microservicio
+### Compilación
 
-**MsDominio** - Este es un microservicio de dominio que:
-- NO define `RepositoryPort` ni `RepositoryAdapter`
-- Se integra con MsDataParentesco a través de puertos de salida (`ParentescoDataPort`)
-- Orquesta la lógica de negocio del análisis de parentesco
-- Consulta datos de servicios externos (APD, Actas) sin asumir el protocolo
+El código es **compilable como Java puro** (sin dependencias externas) usando:
+```bash
+javac -d target/classes src/main/java/pe/gob/reniec/dominioparentesco/**/*.java
+```
 
-## Próximos Pasos
+## Integración con MsDatosParentesco
 
-Para completar la implementación:
+Este microservicio de dominio orquesta y coordina con MsDatosParentesco, que es responsable de:
+- Persistencia de análisis
+- Gestión de relaciones de parentesco
+- Consultas y listados de análisis históricos
 
-1. Implementar la lógica de negocio en `EjecutarAnalisisParentescoService`
-2. Implementar los adaptadores con tecnología específica (RestTemplate, WebClient, etc.)
-3. Agregar validaciones y manejo de errores
-4. Configurar dependencias en pom.xml o build.gradle
-5. Agregar anotaciones de framework si se decide usar Spring, Quarkus, etc.
-6. Implementar seguridad, logging y observabilidad
-7. Crear tests unitarios e integración
+### Operaciones utilizadas de MsDatosParentesco
 
-## Contacto
+- `POST /api/v1/parentesco/MsDatosParentesco/analisis`: Guardar análisis
+- `GET /api/v1/parentesco/MsDatosParentesco/analisis/{id}`: Consultar análisis
+- `PUT /api/v1/parentesco/MsDatosParentesco/analisis/{id}`: Actualizar análisis
 
-**Responsable:** Arquitecto de Software  
-**Organización:** RENIEC  
-**Fecha:** 01/12/2025
+## Próximos Pasos para Implementación Real
+
+1. **Seleccionar stack tecnológico**: Spring Boot, Quarkus, Micronaut, etc.
+2. **Definir protocolo de comunicación**: REST (HTTP), SOAP, Mensajería, gRPC
+3. **Implementar clientes de integración**: En los adaptadores de salida
+4. **Completar algoritmo de análisis**: Lógica real de detección de vínculos
+5. **Agregar validaciones**: Validación de entrada con Bean Validation o similar
+6. **Implementar manejo de errores**: Try-catch, circuit breaker, retry, etc.
+7. **Configurar observabilidad**: Logging, métricas, tracing distribuido
+8. **Agregar tests**: Unitarios y de integración
+
+## Contacto y Documentación
+
+- **Especificación**: `Microservicio MsDominioParentesco V1.0.pdf`
+- **Versión del documento**: 1.0
+- **Fecha de generación**: 01/12/2025

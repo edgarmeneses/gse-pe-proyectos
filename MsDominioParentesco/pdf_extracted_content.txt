@@ -1,0 +1,613 @@
+
+--- Page 1 ---
+   
+ 
+  
+ 
+Microservicio 
+MsDominioParentesco  
+Documento Versión: 1.0  
+Gestión de Seguridad Electrónica  
+  Fecha generación:  01/12/2025 
+    
+ 
+  
+
+--- Page 2 ---
+ 
+ 
+Microservicio MsDominioParentesco  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 24/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+    
+    
+    
+    
+--- Page 3 ---
+ 
+ 
+Microservicio MsDominioParentesco  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ...............  4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ....... 4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ .............  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ .............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ........  5 
+3.1 Microservicio MsDominioParentesco  ................................ ................................ ................................ . 5 
+3.1.1 Endpoint: Ejecutar Análisis de Parentesco  ................................ ................................ ................  5 
+ 
+ 
+ 
+ 
+  
+--- Page 4 ---
+ 
+ 
+Microservicio MsDominioParentesco  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+--- Page 5 ---
+ 
+ 
+Microservicio MsDominioParentesco  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio MsDominioParentesco  
+El Microservicio Dominio Parentesco  es el componente de lógica de negocio de la plataforma SIIRC 
+especializado en el análisis, validación y certificación de vínculos familiares entre ciudadanos. Su 
+propósito principal es gestionar y centralizar toda la inteligencia de negocio relacionada co n el análisis 
+de parentesco, actuando como el motor que verifica la coherencia de las relaciones familiares contra 
+las reglas del registro civil peruano.  
+Este microservicio orquesta el proceso completo de análisis de vínculos, desde la recepción de una 
+solicitud hasta la generación automática de la población de posibles vínculos, coordinando la consulta 
+de datos del APD para establecer cadenas de parentesco  hasta el cuarto grado de consanguinidad y 
+segundo de afinidad.  
+3.1.1  Endpoint: Ejecutar Análisis de Parentesco  
+Endpoint que inicia y ejecuta el proceso de análisis de vínculos de parentesco para una persona 
+natural, generando automáticamente la población de posibles vínculos según el tipo de parentesco y 
+nivel de complejidad solicitado. El análisis se basa en la co nsulta del APD del ciudadano para 
+establecer la cadena de parentesco completa.  
+ 
+Atributo  Valor  
+Path  /api/v1/parentesco/MsDominioParentesco/analisis/ejecutar  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Authorization String (Bearer token JWT para autenticación del usuario)  
+Content -Type String ("application/json")  
+X-Correlation -ID UUID (Identificador único de correlación para trazabilidad end -
+to-end) 
+X-Office -Code String (Código de oficina RENIEC formato: ORG -LIMA -CENTRO)  
+X-User -Role String (Rol del usuario: TECNICO_VINCULO, 
+COORDINADOR_VINCULO)  
+X-Idempotency -Key UUID (Clave de idempotencia para evitar duplicados)  
+Entrada  { 
+  "idSolicitud": "string",  
+--- Page 6 ---
+ 
+ 
+Microservicio MsDominioParentesco  6 
+  "idCiudadanoConsultado": "string",  
+  "datosCiudadano": {  
+    "nombre": "string",  
+    "fechaNacimiento": " YYYY -MM-DDTHH:MM:SSZ " 
+  }, 
+  "codTipoVinculo ": "string",  
+  "nivelComplejidad": "integer",  
+  "criteriosBusqueda": {  
+    "rangoAniosPadres": {  
+      "anioInicio": "integer",  
+      "anioFin ": "integer"  
+    }, 
+    "rangoAniosHijos": {  
+      "anioInicio": "integer",  
+      "anioFin": "integer"  
+    }, 
+    "variacionesNombre": ["string"],  
+    "incluirFallecidos": "boolean",  
+    "incluirActasAnuladas": "boolean"  
+  }, 
+  "opcionesAnalisis": {  
+    "generarArbolGenealogico": "boolean",  
+    "validarContraAPD": "boolean",  
+    "incluirActasSustento": "boolean",  
+    "detectarInconsistencias": "boolean"  
+  }, 
+  "usuarioTecnico": "string",  
+  "observaciones": "string"  
+} 
+Respuesta  { 
+  "success": "boolean",  
+  "data": {  
+    "idSolicitud": "string",  
+    "idCiudadanoConsultado": "string",  
+    "codTipoVinculo ": "string",  
+    "nivelComplejidad": "integer",  
+    "estadoSolicitud": "string",  
+    "ciudadanoAnalizado": {  
+      "idCiudadano": "string",  
+      "nombre": "string",  
+      "fechaNacimiento": " YYYY -MM-DDTHH:MM:SSZ ", 
+      "datosAPD": {  
+        "version": "string",  
+        "ultimaActualizacion": "YYYY -MM-DDTHH:MM:SSZ ", 
+        "estadoAPD": "string"  
+      } 
+    }, 
+    "poblacionVinculosPosibles": {  
+      "totalEncontrados": "integer",  
+      "vinculosConsanguineos": [  
+        { 
+          "idRelacion": "integer",  
+          "idCiudadanoOrigen": "string",  
+          "idCiudadanoDestino": "string",  
+          "nombreCiudadanoDestino": "string",  
+--- Page 7 ---
+ 
+ 
+Microservicio MsDominioParentesco  7 
+          "codTipo": "string",  
+          "descripcionTipo": "string",  
+          "categoria": "string",  
+          "gradoMinimo": "integer",  
+          "esSimetrico": "string",  
+          "codInverso": "string",  
+          "fechaInicio": " YYYY -MM-DDTHH:MM:SSZ ", 
+          "fechaFin": " YYYY -MM-DDTHH:MM:SSZ ", 
+          "idActaSustento": "string",  
+          "actaSustento": {  
+            "idActa": "string",  
+            "tipoActa": "string",  
+            "fechaActa": " YYYY -MM-DDTHH:MM:SSZ ", 
+            "lugarActa": "string"  
+          }, 
+          "idDocumentoSustento": "string",  
+          "nivelConfianza": "number",  
+          "estadoConfirmacion": "string",  
+          "requiereValidacionManual": "boolean",  
+          "observacion ": "string"  
+        } 
+      ], 
+      "vinculosAfinidad": [  
+        { 
+          "idRelacion": "integer",  
+          "idCiudadanoOrigen": "string",  
+          "idCiudadanoDestino": "string",  
+          "nombreCiudadanoDestino": "string",  
+          "codTipo": "string",  
+          "descripcionTipo": "string",  
+          "categoria": "string",  
+          "gradoMinimo": "integer",  
+          "esSimetrico": "string",  
+          "codInverso": "string",  
+          "conyugeIntermedio": {  
+            "idCiudadano": "string",  
+            "nombre ": "string"  
+          }, 
+          "fechaInicio": " YYYY -MM-DDTHH:MM:SSZ ", 
+          "fechaFin": " YYYY -MM-DDTHH:MM:SSZ ", 
+          "idActaSustento": "string",  
+          "actaSustento": {  
+            "idActa": "string",  
+            "tipoActa": "string",  
+            "fechaActa": " YYYY -MM-DDTHH:MM:SSZ ", 
+            "lugarActa": "string"  
+          }, 
+          "idDocumentoSustento": "string",  
+          "nivelConfianza ": "number",  
+          "estadoConfirmacion": "string",  
+          "requiereValidacionManual": "boolean",  
+          "observacion ": "string"  
+        } 
+      ] 
+    }, 
+--- Page 8 ---
+ 
+ 
+Microservicio MsDominioParentesco  8 
+    "resumenAnalisis": {  
+      "vinculosGrado1": "integer",  
+      "vinculosGrado2": "integer",  
+      "vinculosGrado3": "integer",  
+      "vinculosGrado4": "integer",  
+      "vinculosAfinidad": "integer",  
+      "actasConsultadas": "integer",  
+      "actasNoDigitalizadas": "integer",  
+      "inconsistenciasDetectadas": "integer"  
+    }, 
+    "inconsistencias": [  
+      { 
+        "tipo": "string",  
+        "descripcion": "string",  
+        "ciudadanosInvolucrados": ["string"],  
+        "severidad": "string",  
+        "accionRecomendada": "string"  
+      } 
+    ], 
+    "actasPendientesDigitalizacion": [  
+      { 
+        "tipoActa": "string",  
+        "referenciaActa": "string",  
+        "lugarActa": "string",  
+        "observacion": "string"  
+      } 
+    ], 
+    "fechaSolicitud": "YYYY -MM-DDTHH:MM:SSZ ", 
+    "tiempoProcesamientoMs": "integer",  
+    "usuarioTecnico": "string"  
+  }, 
+  "metadata": {  
+    "timestamp": "YYYY -MM-DDTHH:MM:SSZ ", 
+    "correlationId": "string",  
+    "version": "string",  
+    "serviciosConsultados": {  
+      "msSagaAPD": "boolean",  
+      "msDatosActas": "boolean",  
+      "msDatosParentesco": "boolean"  
+    } 
+  } 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+  
+--- Page 9 ---
+ 
+ 
+Microservicio MsDominioParentesco  9 
+3.1.1.1  Parámetros de Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+ID Solicitud  idSolicitud  String  Sí 1 20 
+ID Ciudadano 
+Consultado  idCiudadanoConsultado  String  Sí 1 20 
+Datos del 
+Ciudadano  datosCiudadano  Object  Sí - - 
+Nombre 
+Completo  datosCiudadano.nombre  String  Sí 1 100 
+Fecha 
+Nacimiento  datosCiudadano.fechaNaci
+miento  String ( Date  ISO 
+8601 ) Sí 10 10 
+Código Tipo 
+Vínculo  codTipoVinculo  String  Sí 1 30 
+Nivel de 
+Complejidad  nivelComplejidad  Integer  Sí 1 1 
+Criterios de 
+Búsqueda  criteriosBusqueda  Object  No - - 
+Rango Años 
+Padres  criteriosBusqueda.rangoAni
+osPadres  Object  No - - 
+Año Inicio 
+Padres  criteriosBusqueda.rangoAni
+osPadres.anioInicio  Integer  No 4 4 
+Año Fin 
+Padres  criteriosBusqueda.rangoAni
+osPadres.anioFin  Integer  No 4 4 
+Rango Años 
+Hijos  criteriosBusqueda.rangoAni
+osHijos  Object  No - - 
+Año Inicio 
+Hijos  criteriosBusqueda.rangoAni
+osHijos.anioInicio  Integer  No 4 4 
+Año Fin Hijos  criteriosBusqueda.rangoAni
+osHijos.anioFin  Integer  No 4 4 
+Variaciones 
+de Nombre  criteriosBusqueda.variacion
+esNombre  Array[String]  No 0 10 
+Incluir 
+Fallecidos  criteriosBusqueda.incluirFal
+lecidos  Boolean  No - - 
+Incluir Actas 
+Anuladas  criteriosBusqueda.incluirAct
+asAnuladas  Boolean  No - - 
+Opciones de 
+Análisis  opcionesAnalisis  Object  No - - 
+Generar 
+Árbol 
+Genealógico  opcionesAnalisis.generarAr
+bolGenealogico  Boolean  No - - 
+Validar 
+Contra APD  opcionesAnalisis.validarCo
+ntraAPD  Boolean  No - - 
+--- Page 10 ---
+ 
+ 
+Microservicio MsDominioParentesco  10 
+Incluir Actas 
+Sustento  opcionesAnalisis.incluirActa
+sSustento  Boolean  No - - 
+Detectar 
+Inconsistenci
+as opcionesAnalisis.detectarIn
+consistencias  Boolean  No - - 
+Usuario 
+Técnico  usuarioTecnico  String  Sí 1 30 
+Observacione
+s observaciones  String  No 0  
+ 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+success  Boolean  Sí Indica si la operación fue 
+exitosa  
+data Object  Sí Cuerpo principal con los 
+resultados del análisis  
+data.idSolicitud  String  Sí ID de la solicitud asociada  
+data.idCiudadanoConsultado  String  Sí ID del ciudadano 
+analizado  
+data.codTipoVinculo  String  Sí Código del tipo de vínculo 
+solicitado  
+data.nivelComplejidad  Integer  Sí Nivel de complejidad 
+aplicado (1 -4) 
+data.estadoSolicitud  String  Sí Estado  
+data.ciudadanoAnalizado  Object  Sí Datos del ciudadano 
+objeto del análisis  
+data.ciudadanoAnalizado.idCiudadano  String  Sí ID del ciudadano  
+data.ciudadanoAnalizado.nombre  String  Sí Nombre completo del 
+ciudadano  
+data.ciudadanoAnalizado.fechaNacimi
+ento  Date  Sí Fecha de nacimiento  
+data.ciudadanoAnalizado.datosAPD  Object  No Información del APD del 
+ciudadano  
+data.poblacionVinculosPosibles  Object  Sí Contenedor de vínculos 
+encontrados  
+data.poblacionVinculosPosibles.totalE
+ncontrados  Integer  Sí Total de vínculos posibles 
+encontrados  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos  Array[object]  Sí Lista de vínculos por 
+consanguinidad  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].idRelacion  Integer  Sí ID único de la relación  
+--- Page 11 ---
+ 
+ 
+Microservicio MsDominioParentesco  11 
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].idCiudadanoOrige
+n String  Sí ID del ciudadano origen  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].idCiudadanoDestin
+o String  Sí ID del ciudadano destino  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].nombreCiudadano
+Destino  String  Sí Nombre del ciudadano 
+relacionado  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].codTipo  String  Sí Código del tipo de 
+parentesco  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].descripcionTipo  String  Sí Descripción del 
+parentesco  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].categoria  String  Sí Categoría: 
+CONSANGUINEO, 
+AFINIDAD  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].gradoMinimo  Integer  Sí Grado de parentesco (1 -
+4) 
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].esSimetrico  String  Sí Indica si es simétrico 
+(S/N)  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].codInverso  String  No Código del tipo inverso  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].fechaInicio  Date  Sí Fecha inicio de vigencia  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].fechaFin  Date  Sí Fecha fin de vigencia  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].idActaSustento  String  No ID del acta de sustento  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].actaSustento  Object  No Datos del acta de 
+sustento  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].actaSustento.idAct
+a String  No ID del acta  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].actaSustento.tipoA
+cta String  No Tipo de acta  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].actaSustento.fech
+aActa  Date  No Fecha del acta  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].actaSustento.lugar
+Acta  String  No Lugar del acta  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].idDocumentoSuste
+nto String  No ID del documento 
+sustento  
+--- Page 12 ---
+ 
+ 
+Microservicio MsDominioParentesco  12 
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].nivelConfianza  Number  Sí Nivel de confianza (0 -100) 
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].estadoConfirmacio
+n String  Sí Estado  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].requiereValidacion
+Manual  Boolean  Sí Indica si requiere 
+validación manual  
+data.poblacionVinculosPosibles.vincul
+osConsanguineos[].observacion  String  No Observaciones del 
+vínculo  
+data.poblacionVinculosPosibles.vincul
+osAfinidad  Array[object]  Sí Lista de vínculos por 
+afinidad  
+data.poblacionVinculosPosibles.vincul
+osAfinidad[].conyugeIntermedio  Object  No Cónyuge que establece el 
+vínculo  
+data.resumenAnalisis  Object  Sí Resumen estadístico del 
+análisis  
+data.resumenAnalisis.vinculosGrado1  Integer  Sí Cantidad de vínculos de 
+primer grado  
+data.resumenAnalisis.vinculosGrado2  Integer  Sí Cantidad de vínculos de 
+segundo grado  
+data.resumenAnalisis.vinculosGrado3  Integer  Sí Cantidad de vínculos de 
+tercer grado  
+data.resumenAnalisis.vinculosGrado4  Integer  Sí Cantidad de vínculos de 
+cuarto grado  
+data.resumenAnalisis.vinculosAfinidad  Integer  Sí Cantidad de vínculos por 
+afinidad  
+data.resumenAnalisis.actasConsultada
+s Integer  Sí Total de actas 
+consultadas  
+data.resumenAnalisis.actasNoDigitaliz
+adas  Integer  Sí Actas no digitalizadas  
+data.resumenAnalisis.inconsistencias
+Detectadas  Integer  Sí Cantidad de 
+inconsistencias  
+data.inconsistencias  Array  Sí Lista de inconsistencias 
+encontradas.  
+data.inconsistencias[].tipo  String  Sí Tipo de inconsistencia.  
+data.inconsistencias[].descripcion  String  Sí Detalle de la 
+inconsistencia.  
+data.inconsistencias[].ciudadanosInvol
+ucrados  Array  Sí IDs de ciudadanos 
+afectados.  
+data.inconsistencias[].severidad  String  Sí Nivel de severidad.  
+data.inconsistencias[].accionRecomen
+dada  String  Sí Acción sugerida para 
+resolverla.  
+data.actasPendientesDigitalizacion  Array[object]  No Actas que requieren 
+digitalización  
+--- Page 13 ---
+ 
+ 
+Microservicio MsDominioParentesco  13 
+data.actasPendientesDigitalizacion[].ti
+poActa  String  Sí Tipo de acta.  
+data.actasPendientesDigitalizacion[].re
+ferenciaActa  String  Sí Referencia del acta.  
+data.actasPendientesDigitalizacion[].lu
+garActa  String  Sí Lugar donde se registró el 
+acta.  
+data.actasPendientesDigitalizacion[].o
+bservacion  String  No Observación adicional.  
+data.fechaSolicitud  Datetime  Sí Fecha y hora de la 
+solicitud  
+data.tiempoProcesamientoMs  Integer  Sí Tiempo de procesamiento 
+en ms  
+data.usuarioTecnico  String  Sí Usuario que ejecutó el 
+análisis  
+metadata  Object  Sí Metadatos de la 
+operación  
+error  Object  No Objeto de error si la 
+operación falla  
+metadata.correlationId  String  Sí ID de correlación  
+metadata.version  String  Sí Versión del servicio  
+metadata.serviciosConsultados  Object  Sí Servicios utilizados en el 
+análisis  
+metadata.serviciosConsultados.msSag
+aAPD  Boolean  Sí Estado de consulta al 
+servicio  
+metadata.serviciosConsultados.msDat
+osActas  Boolean  Sí Estado de consulta al 
+servicio  
+metadata.serviciosConsultados.msDat
+osParentesco  Boolean  Sí Estado de consulta al 
+servicio  
+error  Object  No Objeto que especifica 
+algún error existente  
+error.tipo  String  No Tipo de error  
+error.titulo  String  No Título del error  
+error.estado  Integer  No Código del estado de 
+error  
+error.errores  Array  No Listado de errores  
+error.errores[].detalleError  String  No Detalle del error generado  
+ 
+3.1.1.3  Valores para el atributo statusCode  
+Código  Respuesta  Descripción  
+200 OK Análisis ejecutado exitosamente  
+202 Accepted  Análisis iniciado, procesamiento asíncrono en curso  
+400 Bad Request  Parámetros inválidos o datos incompletos  
+--- Page 14 ---
+ 
+ 
+Microservicio MsDominioParentesco  14 
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para ejecutar análisis de parentesco  
+404 Not Found  Ciudadano no encontrado en el sistema APD  
+408 Request Timeout  Tiempo de espera agotado al consultar servicios externos  
+409 Conflict  Ya existe un análisis activo para esta solicitud y ciudadano  
+422 Unprocessable Entity  Nivel de complejidad no válido para el tipo de vínculo solicitado  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servicio  
+502 Bad Gateway  MsSagaAPD o MsDatosActas no disponible  
+503 Service Unavailable  Servicio temporalmente no disponible  
+504 Gateway Timeout  Timeout en consulta a servicios externos  
+ 
