@@ -1,0 +1,1030 @@
+ 
+ 
+ 
+Microservicio 
+MsAdaptadorNotificaciones 
+Documento Versión: 1.0 
+Gestión de Seguridad Electrónica 
+  Fecha generación: 30/11/2025 
+    
+ 
+  
+
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+CONTROL DE VERSIÓN 
+    
+VERSIÓN FECHA DE 
+ACTUALIZACIÓN CARGO DESCRIPCIÓN 
+1.0 03/11/2025 Arquitecto de Software Versión inicial del 
+documento 
+1.1 29/11/2025 Control de Arquitectura Corrección del documento 
+basado en observaciones 
+1.2 30/11/2025 Control de Arquitectura Revisión estructura de 
+objetos JSON 
+    
+    
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+3 
+ 
+Tabla de contenido 
+1 CONTEXTO ............................................................................................................................................... 4 
+2 INTRODUCCIÓN ....................................................................................................................................... 4 
+2.1 Justificación de la Arquitectura de Microservicios ............................................................................. 4 
+2.2 Arquitectura de Referencia ................................................................................................................ 4 
+2.3 Códigos de Respuesta HTTP Estándar ............................................................................................. 4 
+3 CATÁLOGO DE MICROSERVICIOS ........................................................................................................ 5 
+3.1 Microservicio MsAdaptadorNotificaciones ......................................................................................... 5 
+3.1.1 Endpoint: Enviar Notificación ..................................................................................................... 5 
+3.1.2 Endpoint: Consultar Estado de Notificación............................................................................. 10 
+3.1.3 Endpoint: Consultar Historial de Notificaciones ....................................................................... 15 
+ 
+ 
+ 
+  
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+4 
+1 CONTEXTO 
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales seguros. 
+2 INTRODUCCIÓN 
+Este documento describe el catálogo de microservicios identificados para la solución de Personalización del 
+DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios. 
+2.1 Justificación de la Arquitectura de 
+Microservicios 
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas: 
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura. 
+Resiliencia y Tolerancia a Fallos: El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa. 
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega. 
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo. 
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares. 
+ 
+2.2 Arquitectura de Referencia 
+La solución se estructura en tres capas principales: 
+Capa de Exposición (API Management Layer): API Manager como punto único de entrada con ges-
+tión centralizada de seguridad, throttling y versionado. 
+Capa de Representación (Microservices Layer): Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única. 
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conec -
+tores a sistemas legados. 
+ 
+2.3 Códigos de Respuesta HTTP Estándar 
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia: 
+Código Descripción 
+200 OK - Operación completada exitosamente 
+201 Created - Recurso creado exitosamente 
+400 Bad Request - Parámetros inválidos o datos incompletos 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+5 
+401 Unauthorized - Token JWT inválido, expirado o ausente 
+403 Forbidden - Sin permisos suficientes para ejecutar la operación 
+404 Not Found - Recurso no encontrado en el sistema 
+408 Request Timeout - Tiempo de espera agotado al conectar 
+409 Conflict - Conflicto con el estado actual del recurso 
+422 Unprocessable Entity - Datos válidos, pero no procesables por reglas de negocio 
+429 Too Many Requests - Límite de rate limit excedido 
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, detalle 
+en logs) 
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida 
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto 
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado 
+ 
+3 CATÁLOGO DE MICROSERVICIOS 
+3.1 Microservicio MsAdaptadorNotificaciones 
+Microservicio de integración especializado que actúa como orquestador de notificaciones multicanal 
+hacia ciudadanos. Gestiona el envío de notificaciones a través de proveedores externos (correo 
+electrónico, SMS, WhatsApp, casilla electrónica) con soporte p ara plantillas parametrizables, 
+priorización de canales, reintentos automáticos y trazabilidad completa. Abstrae la complejidad de 
+integración con múltiples proveedores y garantiza la entrega confiable de notificaciones críticas del 
+sistema SIIRC sin exponer la lógica interna de envío a los microservicios consumidores. Implementa 
+validación de consentimiento según Ley 29733 (LPDP) y gestiona opt-outs. 
+3.1.1 Endpoint: Enviar Notificación 
+Envía una notificación a uno o múltiples destinatarios a través de los canales configurados (email, SMS, 
+WhatsApp, casilla electrónica) con priorización automática según disponibilidad de datos de contacto 
+y preferencias del ciudadano. Soporta envío inmediato o programado. Permite adjuntar archivos (máx 
+5 archivos, 10MB total). Implementa idempotencia mediante X-Idempotency-Key. 
+Atributo Valor 
+Path /api/v1/notificaciones/MsAdaptadorNotificaciones/enviar 
+API Gateway Interno 
+Método HTTP POST 
+Protocolo REST/HTTP 
+Header 
+Authorization String(Bearer token JWT para autenticación.). 
+X-Correlation-ID UUID(ID de correlación para trazabilidad distribuida end -to-
+end.) 
+X-Source-System String(Sistema origen de la solicitud) 
+X-Notification-Priority String(Enum) Prioridad de la notificación: LOW, NORMAL, 
+HIGH, CRITICAL 
+X-Idempotency-Key UUID Clave de idempotencia para evitar envíos duplicados.  
+Content-Type String application/json 
+X-User-ID String(Opcional) Identificador del usuario que solicita la notificación. 
+X-Office-CodeString(Opcional) Código de oficina RENIEC formato: ORG -LIMA-
+CENTRO 
+Entrada 
+{ 
+  "plantillaId": "string", 
+  "destinatarios": [ 
+    { 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+6 
+      "dni": "string", 
+      "nombres": "string", 
+      "email": "string", 
+      "telefono": "string", 
+      "whatsapp": "string" 
+    } 
+  ], 
+  "canalesPrioritarios": ["string"], 
+  "parametros": { 
+    "nombreCiudadano": "string", 
+    "numeroTramite": "string", 
+    "tipoTramite": "string", 
+    "fechaAprobacion": "string", 
+    "oficinaProceso": "string", 
+    "diasPlazoRecojo": "string", 
+    "urlSeguimiento": "string" 
+  }, 
+  "asunto": "string", 
+  "adjuntos": [ 
+    { 
+      "nombre": "string", 
+      "contenidoBase64": "string", 
+      "mimeType": "string" 
+    } 
+  ], 
+  "webhookUrl": "string", 
+  "webhookHeaders": { 
+    "X-Webhook-Secret": "string" 
+  }, 
+  "metadata": { 
+    "tramiteId": "string", 
+    "oficinaOrigen": "string", 
+    "tipoTramiteId": "string" 
+  } 
+} 
+Respuesta 
+{ 
+  "success": "boolean", 
+  "data": { 
+    "notificacionId": "string", 
+    "estado": "string", 
+    "destinatariosExitosos": "integer", 
+    "destinatariosFallidos": "integer", 
+    "canalesUtilizados": [ 
+      { 
+        "dni": "string", 
+        "canal": "string", 
+        "estado": "string", 
+        "proveedorAsignado": "string" 
+      } 
+    ], 
+    "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+    "fechaEnvioEstimada": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+    "tiempoEstimadoEntrega": "string", 
+    "urlConsulta": "string (URI)", 
+    "_links": { 
+      "self": "string (URI)", 
+      "estado": "string (URI)", 
+      "cancelar": "string (URI)" 
+    } 
+  }, 
+  "metadata": { 
+    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+    "correlationId": "string (UUID)", 
+    "version": "string", 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+7 
+    "processingTime": "string" 
+  } 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+3.1.1.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+Identificador de 
+Plantilla 
+plantillaId String Sí 3 50 
+Destinatarios destinatarios Array(Object) Sí 1 100 
+DNI destinatarios[].dni String Sí 8 8 
+Nombres destinatarios[].nombres String No 1 150 
+Email destinatarios[].email String No 5 254 
+Teléfono destinatarios[].telefono String No 9 15 
+WhatsApp destinatarios[].whatsapp String No 9 15 
+Canales 
+Prioritarios 
+canalesPrioritarios Array(String) No 1 4 
+Parámetros parametros Object No NA NA 
+Nombre del 
+Ciudadano 
+parametros.nombreCiudadano String No 1 150 
+Número de 
+Trámite 
+parametros.numeroTramite String No 5 50 
+Tipo de Trámite parametros.tipoTramite String No 3 50 
+Fecha de 
+Aprobación 
+parametros.fechaAprobacion String No 5 30 
+Oficina de 
+Proceso 
+parametros.oficinaProceso String No 3 100 
+Días de Plazo de 
+Recojo 
+parametros.diasPlazoRecojo String No 1 5 
+URL de 
+Seguimiento 
+parametros.urlSeguimiento String (URI) No 5 500 
+Asunto asunto String No 3 200 
+Adjuntos adjuntos Array(Object) No 0 5 
+Nombre del 
+Archivo 
+adjuntos[].nombre String Sí 3 255 
+Contenido Base64 adjuntos[].contenidoBase64 String Sí 1 10000000 
+Tipo MIME adjuntos[].mimeType String Sí 3 100 
+URL del Webhook webhookUrl String (URI) No 10 500 
+Encabezados del 
+Webhook 
+webhookHeaders Object No NA NA 
+Secreto Webhook webhookHeaders.X-
+Webhook-Secret String No 5 200 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+8 
+Metadata metadata Object No NA NA 
+ID del Trámite metadata.tramiteId String No 5 50 
+Oficina de Origen metadata.oficinaOrigen String No 3 50 
+ID Tipo de Trámite metadata.tipoTramiteId String No 3 50 
+ 
+3.1.1.2 Parámetros de Resultado 
+Nombre Tipo Obligatorio Descripción 
+success Boolean Sí Indica si la operación fue 
+exitosa. 
+data Object Sí 
+Cuerpo principal de la 
+respuesta con la 
+información de la 
+notificación. 
+data.notificacionId String 
+(UUID) Sí Identificador único de la 
+notificación creada. 
+data.estado String Sí Estado actual de la 
+notificación  
+data.destinatariosExitosos Integer Sí 
+Número de destinatarios 
+a los que se logró 
+encolar la notificación. 
+data.destinatariosFallidos Integer Sí 
+Número de destinatarios 
+que fallaron en el 
+proceso de envío. 
+data.canalesUtilizados Array(Object) Sí 
+Listado de canales 
+empleados para enviar la 
+notificación. 
+data.canalesUtilizados[].dni String Sí DNI del destinatario 
+asociado al canal. 
+data.canalesUtilizados[].canal String Sí Canal utilizado 
+data.canalesUtilizados[].estado String Sí Estado del envío por 
+canal  
+data.canalesUtilizados[].proveedorAsignado String No Nombre del proveedor 
+de envío utilizado 
+data.fechaCreacion String (Date 
+ISO 8601) Sí Fecha y hora en que se 
+generó la notificación. 
+data.fechaEnvioEstimada String (Date 
+ISO 8601) No 
+Fecha y hora estimada 
+del envío de la 
+notificación. 
+data.tiempoEstimadoEntrega String No 
+Tiempo estimado en el 
+cual la notificación será 
+entregada. 
+data.urlConsulta String (URI) Sí 
+URL para consultar el 
+estado detallado de la 
+notificación. 
+data._links Object Sí 
+Hipervínculos 
+relacionados con la 
+notificación. 
+data._links.self String (URI) Sí Enlace al recurso actual 
+de la notificación. 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+9 
+data._links.estado String (URI) Sí Enlace para consultar el 
+estado de la notificación. 
+data._links.cancelar String (URI) Sí 
+Enlace para cancelar la 
+notificación antes del 
+envío. 
+metadata Object Sí 
+Metadatos técnicos del 
+procesamiento de la 
+operación. 
+metadata.timestamp String (Date 
+ISO 8601) Sí 
+Marca de tiempo de 
+generación de la 
+respuesta. 
+metadata.correlationId String 
+(UUID) Sí 
+Identificador único de 
+correlación para 
+trazabilidad. 
+metadata.version String Sí Versión del servicio o 
+contrato de API. 
+metadata.processingTime String No 
+Tiempo total de 
+procesamiento de la 
+operación  
+error Object No Objeto que detalla el 
+error ocurrido  
+error.tipo String No Ruta o tipo de error 
+identificado. 
+error.titulo String No Título descriptivo del 
+error. 
+error.status Integer No Código HTTP del error. 
+error.errores Array(Object) No Listado de errores 
+específicos. 
+error.errores[].detalleError String No Descripción detallada del 
+error ocurrido. 
+ 
+3.1.1.3 Valores para el Atributo de statusCode 
+Código Respuesta Descripción 
+202 Accepted Notificación aceptada y encolada para procesamiento asíncrono 
+400 Bad Request Parámetros inválidos 
+401 Unauthorized Token JWT inválido, expirado o ausente 
+403 Forbidden Sin permisos para enviar notificaciones masivas o usar canal 
+específico 
+404 Not Found Plantilla de notificación no encontrada 
+409 Conflict Notificación duplicada 
+422 Unprocessable Entity Destinatario en lista negra, sin consentimiento, o datos 
+bloqueados por el ciudadano 
+429 Too Many Requests Límite de rate limit excedido 
+500 Internal Server Error Error interno del servidor 
+502 Bad Gateway Todos los proveedores externos no disponibles 
+503 Service Unavailable Servicio temporalmente no disponible 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+10 
+3.1.2 Endpoint: Consultar Estado de Notificación 
+Consulta el estado actual de una notificación específica, incluyendo información de entrega por canal, 
+intentos de reenvío, trazabilidad completa del ciclo de vida, y estadísticas de interacción (apertura, 
+clics). Proporciona información detallada sobre cada intento de envío y los proveedores utilizados. 
+Atributo Valor 
+Path /api/v1/notificaciones/MsAdaptadorNotificaciones/{notificacionId}/estado 
+API Gateway Interno 
+Método HTTP GET 
+Protocolo REST/HTTP 
+Header 
+Authorization String(Bearer token JWT para autenticación.). 
+X-Correlation-ID UUID(ID de correlación para trazabilidad distribuida end-to-end.) 
+X-Source-System String(Sistema origen de la solicitud) 
+X-Notification-Priority String(Enum) Prioridad de la notificación: LOW, NORMAL, 
+HIGH, CRITICAL 
+X-Idempotency-Key UUID Clave de idempotencia para evitar envíos duplicados.  
+Content-Type String application/json 
+X-User-ID String(Opcional) Identificador del usuario que solicita la notificación. 
+X-Office-CodeString(Opcional) Código de oficina RENIEC formato: ORG -LIMA-
+CENTRO 
+Parámetros 
+Path parameters: 
+• notificacionId (string – uuid): Identificador único de la notificación que se 
+desea consultar. 
+Query parameters: 
+• incluirDetalles (boolean): Indica si se deben incluir los detalles adicionales 
+de la notificación. 
+• incluirContenido (boolean): Indica si se debe incluir el contenido completo 
+de la notificación. 
+Resultado 
+{ 
+  "success": "boolean", 
+  "data": { 
+    "notificacionId": "string", 
+    "plantillaId": "string", 
+    "estado": "string", 
+    "estadoDetallado": { 
+      "descripcion": "string", 
+      "porcentajeExito": "number", 
+      "canalesExitosos": "integer", 
+      "canalesFallidos": "integer" 
+    }, 
+    "destinatarios": [ 
+      { 
+        "dni": "string", 
+        "nombres": "string", 
+        "canales": [ 
+          { 
+            "tipo": "string", 
+            "estado": "string", 
+            "estadoDetallado": "string", 
+            "proveedor": "string", 
+            "proveedorMensajeId": "string", 
+            "destinatario": "string", 
+            "fechaEnvio": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+            "fechaEntrega": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+            "fechaApertura": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+            "intentosRealizados": "integer", 
+            "tiempoEntrega": "string", 
+            "estadisticas": { 
+              "abierto": "boolean", 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+11 
+              "numeroAperturas": "integer", 
+              "clics": "integer", 
+              "urlsClicadas": ["string"], 
+              "dispositivoApertura": "string", 
+              "clienteCorreo": "string", 
+              "segmentos": "integer", 
+              "costoUSD": "number", 
+              "operadora": "string" 
+            } 
+          } 
+        ] 
+      } 
+    ], 
+    "cronologia": [ 
+      { 
+        "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+        "estado": "string", 
+        "descripcion": "string", 
+        "usuario": "string", 
+        "cola": "string" 
+      } 
+    ], 
+    "resumen": { 
+      "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+      "fechaPrimeraEntrega": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+      "tiempoTotalEntrega": "string", 
+      "intentosTotales": "integer", 
+      "intentosExitosos": "integer", 
+      "intentosFallidos": "integer", 
+      "costoTotalUSD": "number" 
+    }, 
+    "metadata": { 
+      "sistemaOrigen": "string", 
+      "correlationId": "string", 
+      "datosAdicionales": { 
+        "tramiteId": "string", 
+        "oficinaOrigen": "string" 
+      } 
+    }, 
+    "_links": { 
+      "self": "string", 
+      "cancelar": "string|null", 
+      "reenviar": "string" 
+    } 
+  } 
+} 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+ 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+12 
+3.1.2.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+Identificador de 
+Notificación path.notificacionId String 
+(UUID) Sí 36 36 
+Incluir Detalles query.incluirDetalles Boolean No NA NA 
+Incluir 
+Contenido query.incluirContenido Boolean No NA NA 
+ 
+3.1.2.2 Parámetros de Resultado  
+Nombre Tipo Obligatorio Descripción 
+success Boolean Sí Indica si la operación fue 
+exitosa. 
+data Object Sí 
+Contiene la información 
+detallada de la notificación 
+entregada. 
+data.notificacionId String 
+(UUID) Sí Identificador único de la 
+notificación. 
+data.plantillaId String Sí 
+Identificador de la plantilla 
+utilizada para la 
+notificación. 
+data.estado String Sí Estado general de la 
+notificación 
+data.estadoDetallado Object No Contiene detalles del 
+resultado general del envío. 
+data.estadoDetallado.descripcion String No Descripción textual del 
+estado general. 
+data.estadoDetallado.porcentajeExito Number No Porcentaje de éxito en la 
+entrega. 
+data.estadoDetallado.canalesExitosos Integer No Número de canales que 
+entregaron exitosamente. 
+data.estadoDetallado.canalesFallidos Integer No Número de canales que 
+fallaron en la entrega. 
+data.destinatarios Array(Obje
+ct) Sí Lista de destinatarios 
+incluidos en la notificación. 
+data.destinatarios[].dni String Sí Documento de identidad del 
+destinatario. 
+data.destinatarios[].nombres String Sí Nombre completo del 
+destinatario. 
+data.destinatarios[].canales Array(Obje
+ct) Sí 
+Canales utilizados para la 
+entrega (EMAIL, SMS, 
+etc.). 
+data.destinatarios[].canales[].tipo String Sí Tipo de canal de 
+notificación. 
+data.destinatarios[].canales[].estado String Sí Estado del envío por canal. 
+data.destinatarios[].canales[].estadoDet
+allado String No Estado más preciso del 
+intento de envío 
+data.destinatarios[].canales[].proveedor String Sí Nombre del proveedor del 
+servicio 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+13 
+data.destinatarios[].canales[].proveedor
+MensajeId String Sí Identificador del mensaje 
+asignado por el proveedor. 
+data.destinatarios[].canales[].destinatari
+o String Sí Dirección o número de 
+destino. 
+data.destinatarios[].canales[].fechaEnvi
+o 
+String 
+(Date ISO 
+8601) 
+Sí Fecha y hora de envío. 
+data.destinatarios[].canales[].fechaEntre
+ga 
+String 
+(Date ISO 
+8601) 
+No Fecha y hora en que se 
+entregó la notificación. 
+data.destinatarios[].canales[].fechaApert
+ura 
+String 
+(Date ISO 
+8601) 
+No Fecha y hora de apertura 
+(si aplica). 
+data.destinatarios[].canales[].intentosRe
+alizados Integer Sí Número de intentos de 
+envío realizados. 
+data.destinatarios[].canales[].tiempoEnt
+rega String No Duración total del envío por 
+canal 
+data.destinatarios[].canales[].estadistica
+s Object No Métricas y estadísticas 
+asociadas al canal. 
+data.destinatarios[].canales[].estadistica
+s.abierto Boolean No Indica si el mensaje fue 
+abierto. 
+data.destinatarios[].canales[].estadistica
+s.numeroAperturas Integer No Número de veces que el 
+mensaje fue abierto. 
+data.destinatarios[].canales[].estadistica
+s.clics Integer No Número de clics en 
+enlaces. 
+data.destinatarios[].canales[].estadistica
+s.urlsClicadas 
+Array(Strin
+g) No URLs clicadas por el 
+destinatario. 
+data.destinatarios[].canales[].estadistica
+s.dispositivoApertura String No Dispositivo usado para abrir 
+el mensaje. 
+data.destinatarios[].canales[].estadistica
+s.clienteCorreo String No Cliente o aplicación de 
+correo usada. 
+data.destinatarios[].canales[].estadistica
+s.segmentos Integer No Número de segmentos del 
+SMS enviado. 
+data.destinatarios[].canales[].estadistica
+s.costoUSD Number No Costo del envío del canal 
+en dólares. 
+data.destinatarios[].canales[].estadistica
+s.operadora String No Operadora telefónica (si 
+aplica). 
+data.cronologia Array(Obje
+ct) Sí Registro cronológico de los 
+estados de la notificación. 
+data.cronologia[].timestamp 
+String 
+(Date ISO 
+8601) 
+Sí Fecha y hora del evento. 
+data.cronologia[].estado String Sí Estado en el flujo de la 
+notificación. 
+data.cronologia[].descripcion String Sí Descripción del evento. 
+data.cronologia[].usuario String No Usuario o sistema que 
+generó el evento. 
+data.cronologia[].cola String No Nombre de la cola de 
+procesamiento  
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+14 
+data.resumen Object Sí Resumen de los resultados 
+generales de la notificación. 
+data.resumen.fechaCreacion 
+String 
+(Date ISO 
+8601) 
+Sí Fecha y hora de creación 
+de la notificación. 
+data.resumen.fechaPrimeraEntrega 
+String 
+(Date ISO 
+8601) 
+No Fecha y hora de la primera 
+entrega exitosa. 
+data.resumen.tiempoTotalEntrega String No Duración total hasta la 
+entrega completa. 
+data.resumen.intentosTotales Integer Sí Total de intentos 
+realizados. 
+data.resumen.intentosExitosos Integer Sí Total de intentos exitosos. 
+data.resumen.intentosFallidos Integer Sí Total de intentos fallidos. 
+data.resumen.costoTotalUSD Number No Costo total en dólares de 
+los envíos. 
+data.metadata Object Sí Metadatos del sistema y 
+correlación. 
+data.metadata.sistemaOrigen String Sí Sistema de origen que 
+generó la notificación. 
+data.metadata.correlationId String 
+(UUID) Sí Identificador de correlación 
+de la operación. 
+data.metadata.datosAdicionales Object No Información adicional 
+contextual. 
+data.metadata.datosAdicionales.tramiteI
+d String No Identificador del trámite 
+asociado. 
+data.metadata.datosAdicionales.oficina
+Origen String No Código de oficina origen del 
+trámite. 
+data._links Object No Enlaces de acciones 
+asociadas a la notificación. 
+data._links.self String Sí Enlace al recurso actual. 
+data._links.cancelar String / Null No Enlace para cancelar la 
+notificación  
+data._links.reenviar String No Enlace para reenviar la 
+notificación. 
+metadata Object Sí Información general de la 
+respuesta. 
+metadata.timestamp 
+String 
+(Date ISO 
+8601) 
+Sí Fecha y hora de la 
+respuesta. 
+metadata.correlationId String 
+(UUID) Sí Identificador de correlación 
+del proceso de respuesta. 
+metadata.version String Sí Versión del esquema de 
+respuesta. 
+error Object No Objeto que detalla el error 
+ocurrido  
+error.tipo String No Ruta o tipo de error 
+identificado. 
+error.titulo String No Título descriptivo del error. 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+15 
+error.status Integer No Código HTTP del error. 
+error.errores Array(Obje
+ct) No Listado de errores 
+específicos. 
+error.errores[].detalleError String No Descripción detallada del 
+error ocurrido. 
+ 
+3.1.2.3 Valores para el Atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Consulta realizada exitosamente 
+400 Bad Request La solicitud es inválida 
+401 Unauthorized El token JWT no fue proporcionado, es inválido o ha expirado 
+403 Forbidden El usuario autenticado no tiene permisos para consultar el estado de 
+esta notificación 
+404 Not Found No existe una notificación con el identificador especificado 
+409 Conflict Se detectó una colisión por clave en una operación concurrente 
+429 Too Many 
+Requests Se superó el límite de consultas permitido en un período determinado 
+500 Internal Server 
+Error Error interno del servidor al procesar la solicitud 
+503 Service 
+Unavailable 
+El servicio de notificaciones no está disponible temporalmente (por 
+mantenimiento o sobrecarga) 
+ 
+3.1.3 Endpoint: Consultar Historial de Notificaciones 
+Consulta el historial de notificaciones enviadas con filtros avanzados por DNI, rango de fechas, canal, 
+estado, plantilla, etc. Soporta paginación y ordenamiento. Útil para auditoría, análisis de efectividad de 
+comunicaciones, y generación de reportes. 
+Atributo Valor 
+Path /api/v1/notificaciones/MsAdaptadorNotificaciones/historial 
+API Gateway Interno 
+Método GET 
+Protocolo REST/HTTP 
+Headers 
+Authorization String (Bearer token JWT para autenticación del usuario)  
+X-Correlation-ID UUID (Identificador único de correlación para trazabilidad end-to-end) 
+X-Office-Code String (Código de oficina o sede desde donde se realiza la operación)  
+X-User-Role String (Rol del usuario que realiza la operación, por ejemplo: 
+REGISTRADOR) 
+Parámetros 
+• dni (string): Documento de identificación utilizado como filtro de consulta. 
+• fechaInicio (string):  Fecha inicial del rango, en formato YYYY-MM-
+DDThh:mm:ss±hh:mm. 
+• fechaFin (string):  Fecha final del rango, en formato YYYY-MM-
+DDThh:mm:ss±hh:mm. 
+• canal (string): Canal por el cual se originó la solicitud o registro. 
+• estado (string): Estado del registro que se desea consultar. 
+• plantillaId (string): Identificador de la plantilla asociada al registro. 
+• sistemaOrigen (string):  Sistema desde el cual proviene la transacción o 
+solicitud. 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+16 
+• oficinaOrigen (string): Oficina o punto físico de origen. 
+• page (integer): Número de página para la paginación. 
+• pageSize (integer): Cantidad de registros por página. 
+• orderBy (string): Campo por el cual se ordenarán los resultados. 
+• orderDir (string): Dirección de ordenamiento 
+Resultado 
+{ 
+  "success": "boolean", 
+  "data": { 
+    "resultados": [ 
+      { 
+        "notificacionId": "string", 
+        "plantillaId": "string", 
+        "dni": "string", 
+        "nombres": "string", 
+        "canal": "string", 
+        "estado": "string", 
+        "proveedor": "string", 
+        "asunto": "string", 
+        "fechaCreacion": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+        "fechaEnvio": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+        "fechaEntrega": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+        "intentos": "integer", 
+        "costoUSD": "number", 
+        "sistemaOrigen": "string", 
+        "oficinaOrigen": "string", 
+        "urlConsulta": "string (URI)", 
+        "_links": { 
+          "self": "string (URI)", 
+          "estado": "string (URI)" 
+        } 
+      } 
+    ], 
+    "paginacion": { 
+      "page": "integer", 
+      "pageSize": "integer", 
+      "totalElements": "integer", 
+      "totalPages": "integer", 
+      "hasNext": "boolean", 
+      "hasPrevious": "boolean", 
+      "orderBy": "string", 
+      "orderDir": "string" 
+    } 
+  }, 
+  "metadata": { 
+    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+    "correlationId": "string (UUID)", 
+    "version": "string", 
+    "processingTime": "string" 
+  } 
+} 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+17 
+3.1.3.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+DNI del Ciudadano query.dni String No 8 8 
+Fecha de Inicio query.fechaInicio 
+String 
+(Date ISO 
+8601) 
+No NA NA 
+Fecha de Fin query.fechaFin 
+String 
+(Date ISO 
+8601) 
+No NA NA 
+Canal query.canal String  No 3 30 
+Estado query.estado String No 3 30 
+Identificador de 
+Plantilla query.plantillaId String No 3 50 
+Sistema de Origen query.sistemaOrigen String No 3 50 
+Oficina de Origen query.oficinaOrigen String No 3 50 
+Página query.page Integer No 1 NA 
+Tamaño de Página query.pageSize Integer No 1 100 
+Campo de 
+Ordenamiento query.orderBy String  No 3 30 
+Dirección de 
+Ordenamiento query.orderDir String  No 3 10 
+3.1.3.2 Parámetros de Resultado  
+Nombre Tipo Obligatorio Descripción 
+success Boolean Sí Indica si la operación fue exitosa. 
+data Object Sí Contiene el listado de notificaciones 
+y la información de paginación. 
+data.resultados Array(Object) Sí Listado de notificaciones devueltas 
+por la consulta. 
+data.resultados[].notificacionId String 
+(UUID) Sí Identificador único de la notificación. 
+data.resultados[].plantillaId String Sí Identificador de la plantilla usada en 
+la notificación. 
+data.resultados[].dni String Sí Documento Nacional de Identidad 
+del destinatario. 
+data.resultados[].nombres String No Nombres y apellidos del ciudadano 
+destinatario. 
+data.resultados[].canal String  Sí Canal utilizado para el envío de la 
+notificación. 
+data.resultados[].estado String  Sí Estado actual del proceso de 
+notificación. 
+data.resultados[].proveedor String No 
+Nombre del proveedor de 
+mensajería o servicio externo 
+utilizado. 
+data.resultados[].asunto String No Asunto o título de la notificación. 
+data.resultados[].fechaCreacion String (Date 
+ISO 8601) Sí Fecha y hora de creación de la 
+notificación. 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+18 
+data.resultados[].fechaEnvio String (Date 
+ISO 8601) No Fecha y hora de envío al proveedor 
+o canal. 
+data.resultados[].fechaEntrega String (Date 
+ISO 8601) No Fecha y hora en que se entregó la 
+notificación al destinatario. 
+data.resultados[].intentos Integer No Número total de intentos realizados 
+para el envío. 
+data.resultados[].costoUSD Number No Costo total del envío expresado en 
+dólares estadounidenses. 
+data.resultados[].sistemaOrigen String No Sistema que originó la solicitud de 
+notificación. 
+data.resultados[].oficinaOrigen String No Código o nombre de la oficina que 
+generó la notificación. 
+data.resultados[].urlConsulta String (URI) Sí URL para consultar el detalle o 
+estado de la notificación. 
+data.resultados[]._links Object No Enlaces relacionados con la 
+notificación. 
+data.resultados[]._links.self String (URI) Sí Enlace al recurso actual de la 
+notificación. 
+data.resultados[]._links.estado String (URI) No Enlace para consultar el estado de 
+la notificación. 
+data.paginacion Object Sí Información de paginación de los 
+resultados. 
+data.paginacion.page Integer Sí Número de página actual. 
+data.paginacion.pageSize Integer Sí Tamaño máximo de elementos por 
+página. 
+data.paginacion.totalElements Integer Sí Total de elementos disponibles. 
+data.paginacion.totalPages Integer Sí Total de páginas disponibles. 
+data.paginacion.hasNext Boolean Sí Indica si existe una siguiente 
+página. 
+data.paginacion.hasPrevious Boolean Sí Indica si existe una página anterior. 
+data.paginacion.orderBy String  No Campo de ordenamiento aplicado a 
+los resultados. 
+data.paginacion.orderDir String No Dirección de ordenamiento 
+aplicada. 
+metadata Object Sí Metadatos técnicos de la respuesta. 
+metadata.timestamp String (Date 
+ISO 8601) Sí Fecha y hora de generación de la 
+respuesta. 
+metadata.correlationId String 
+(UUID) Sí Identificador único de correlación 
+para trazabilidad. 
+metadata.version String Sí Versión del contrato de servicio o 
+API. 
+metadata.processingTime String No Tiempo total de procesamiento de 
+la operación. 
+error Object No Objeto que describe un error si 
+ocurrió. 
+error.tipo String No Tipo o ruta del error identificado. 
+error.titulo String No Título o descripción general del 
+error. 
+ 
+ 
+Microservicio MsAdaptadorNotificaciones 
+19 
+error.status Integer No Código HTTP asociado al error. 
+error.errores Array(Object) No Listado detallado de errores 
+específicos. 
+error.errores[].detalleError String No Descripción detallada del error. 
+ 
+3.1.3.3 Valores para el Atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Consulta realizada exitosamente 
+204 No Content La consulta fue exitosa, pero no existen registros que coincidan con 
+los filtros especificados 
+400 Bad Request Los parámetros de entrada son inválidos (por ejemplo, formato de 
+fecha incorrecto, número de página o tamaño fuera de rango) 
+401 Unauthorized El token JWT no fue proporcionado, es inválido o ha expirado 
+403 Forbidden El usuario autenticado no tiene permisos para consultar el historial de 
+notificaciones 
+404 Not Found No se encontró información asociada al criterio solicitado (por 
+ejemplo, plantillaId inexistente o sistemaOrigen no registrado) 
+409 Conflict Se produjo un conflicto en el procesamiento de la solicitud (por 
+ejemplo, error de concurrencia o inconsistencia temporal) 
+422 Unprocessable 
+Entity 
+Algún parámetro de búsqueda no cumple con las validaciones del 
+servicio (por ejemplo, rango de fechas mal definido) 
+429 Too Many 
+Requests 
+Se superó el límite de peticiones permitidas por unidad de tiempo 
+(rate limiting) 
+500 Internal Server 
+Error Error interno en el servidor al procesar la solicitud 
+503 Service 
+Unavailable 
+El servicio no está disponible temporalmente por mantenimiento o 
+sobrecarga 
+ 

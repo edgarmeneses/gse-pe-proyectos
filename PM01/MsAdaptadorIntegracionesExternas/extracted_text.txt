@@ -1,0 +1,968 @@
+ 
+ 
+ 
+Microservicio 
+MsAdaptadorIntegracionesExternas 
+Documento Versión: 1.0 
+Gestión de Seguridad Electrónica 
+  Fecha generación: 30/11/2025 
+    
+ 
+  
+
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+CONTROL DE VERSIÓN 
+    
+VERSIÓN FECHA DE 
+ACTUALIZACIÓN CARGO DESCRIPCIÓN 
+1.0 03/11/2025 Arquitecto de Software Versión inicial del 
+documento 
+1.1 29/11/2025 Control de Arquitectura Corrección del documento 
+basado en observaciones 
+1.2 30/11/2025 Control de Arquitectura Revisión estructura de 
+objetos JSON 
+    
+    
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+3 
+ 
+Tabla de contenido 
+1 CONTEXTO.............................................................................................................................................................. 4 
+2 INTRODUCCIÓN ..................................................................................................................................................... 4 
+2.1 Justificación de la Arquitectura de Microservicios ..................................................................................... 4 
+2.2 Arquitectura de Referencia ........................................................................................................................... 4 
+2.3 Códigos de Respuesta HTTP Estándar ...................................................................................................... 4 
+3 CATÁLOGO DE MICROSERVICIOS ................................................................................................................... 5 
+3.1 Microservicio MsAdaptadorIntegracionesExternas ................................................................................... 5 
+3.1.1 Endpoint. Validar Datos en MIGRACIONES ..................................................................................... 5 
+3.1.2 Endpoint. Consultar Padrón Electoral ONPE .................................................................................... 8 
+3.1.3 Endpoint. Validar DNI en JNE ........................................................................................................... 11 
+3.1.4 Endpoint. Consultar RUC en SUNAT ............................................................................................... 13 
+3.1.5 Endpoint. Consultar Pasaporte en RREE ........................................................................................ 17 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+4 
+1 CONTEXTO 
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales seguros. 
+2 INTRODUCCIÓN 
+Este documento describe el catálogo de microservicios identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios. 
+ 
+2.1 Justificación de la Arquitectura de 
+Microservicios 
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas: 
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura. 
+Resiliencia y Tolerancia a Fallos: El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa. 
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega. 
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo. 
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares. 
+ 
+2.2 Arquitectura de Referencia 
+La solución se estructura en tres capas principales: 
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado. 
+Capa de Representación (Microservices Layer): Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única. 
+Capa de Integración (Integration Layer): Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados. 
+ 
+2.3 Códigos de Respuesta HTTP Estándar 
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia: 
+Código Descripción 
+200 OK - Operación completada exitosamente 
+201 Created - Recurso creado exitosamente 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+5 
+400 Bad Request - Parámetros inválidos o datos incompletos 
+401 Unauthorized - Token JWT inválido, expirado o ausente 
+403 Forbidden - Sin permisos suficientes para ejecutar la operación 
+404 Not Found - Recurso no encontrado en el sistema 
+408 Request Timeout - Tiempo de espera agotado al conectar 
+409 Conflict - Conflicto con el estado actual del recurso 
+422 Unprocessable Entity - Datos válidos, pero no procesables por reglas de negocio 
+429 Too Many Requests - Límite de rate limit excedido 
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs) 
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida 
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto 
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado 
+ 
+3 CATÁLOGO DE MICROSERVICIOS 
+3.1 Microservicio 
+MsAdaptadorIntegracionesExternas 
+Punto central de conectividad con todos los sistemas externos (gubernamentales, financieros, 
+biométricos, infraestructura distribuida). Implementa patrones de resiliencia como Circuit Breakers, rate 
+limiting, y manejo de timeouts. Garantiza la trazabilidad y seguridad en todas las comunicaciones con 
+entidades externas. 
+3.1.1 Endpoint. Validar Datos en MIGRACIONES 
+Valida la situación migratoria de un ciudadano extranjero o nacional consultando el sistema de 
+Superintendencia Nacional de Migraciones 
+Atributo Valor 
+Path /api/v1/externo/MsAdaptadorIntegracionesExternas/migraciones/validar 
+API Gateway Interno 
+Método HTTP POST 
+Protocolo REST/HTTP 
+Headers 
+Authorization: String(Bearer token JWT para autenticación) 
+X-Correlation-ID: UUID ID de correlación para trazabilidad distribuida end -to-
+end 
+X-Request-Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService) 
+Content-Type: String (application/json 7) 
+X-Retry-Attempt: Integer (Número de intento de retry 0 para primera llamada, 
+máx 3) 
+X-Office-Code: String (Código de oficina RENIEC formato: ORG -LIMA-
+CENTRO, obligatorio para operaciones presenciales) 
+X-User-Role: String (Rol del usuario autenticado ADMIN, OFICINA, SISTEMA, 
+CONSULTA) 
+Entrada 
+{ 
+  "solicitud": { 
+    "ciudadano": { 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+6 
+      "tipoDocumento": "string", 
+      "numeroDocumento": "string", 
+      "nombres": "string", 
+      "apellidoPaterno": "string", 
+      "apellidoMaterno": "string", 
+      "fechaNacimiento": "YYYY-MM-DDThh:mm:ss±hh:mm" 
+      "nacionalidad": "string" 
+    }, 
+    "opciones": { 
+      "timeout": "integer" 
+    } 
+  } 
+} 
+Respuesta 
+{ 
+  "respuestaMigratoria": { 
+    "esValido": "boolean", 
+    "estadoMigratorio": "string", 
+    "tipoCalidad": "string", 
+    "fechaIngreso": "YYYY-MM-DD", 
+    "fechaVencimiento": "YYYY-MM-DD", 
+    "alertas": [ 
+      { 
+        "codigo": "string", 
+        "descripcion": "string", 
+        "severidad": "string" 
+      } 
+    ], 
+    "dataCompleta": { 
+      "numeroDocumento": "string", 
+      "tipoDocumento": "string", 
+      "nombreCompleto": "string", 
+      "nacionalidad": "string", 
+      "tipoCalidad": "string", 
+      "estadoMigratorio": "string", 
+      "fechaIngreso": "YYYY-MM-DD", 
+      "fechaVencimiento": "YYYY-MM-DD", 
+      "puestoControl": "string", 
+      "numeroCarnet": "string" 
+    }, 
+    "metadata": { 
+      "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+      "correlationId": "string", 
+      "tiempoRespuesta": "string", 
+      "proveedor": "string" 
+    } 
+  } 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+ 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+7 
+3.1.1.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+Tipo de Documento tipoDocumento String 
+(Enum) Sí 2 3 
+Número de 
+Documento numeroDocumento String Sí 8 12 
+Nombres nombres String No 2 100 
+Apellido Paterno apellidoPaterno String No 2 100 
+Apellido Materno apellidoMaterno String No 2 100 
+Fecha de 
+Nacimiento fechaNacimiento String 
+(Date) No 10 10 
+Nacionalidad nacionalidad String No 3 3 
+Timeout timeout Integer No 1000 30000 
+3.1.1.2 Parámetros de Respuesta 
+Nombre Tipo Obligatorio Descripción 
+esValido Boolean Sí Indica si el documento consultado es 
+válido 
+estadoMigratorio String Sí Estado migratorio del extranjero.  
+tipoCalidad String Sí Tipo de calidad migratoria.  
+fechaIngreso String (Date) Sí Fecha de ingreso al país en formato 
+ISO 8601 (YYYY-MM-DD) 
+fechaVencimiento String (Date) Sí Fecha de vencimiento de la calidad 
+migratoria en formato ISO 8601  
+alertas[] Array[Object] No Lista de alertas asociadas al estado 
+migratorio 
+alertas[].codigo String Sí Código identificador de la alerta 
+alertas[].descripcion String Sí Descripción detallada de la alerta 
+alertas[].severidad String Sí Nivel de severidad de la alerta. 
+dataCompleta Object Sí Objeto con información completa del 
+extranjero 
+dataCompleta.numeroDocumento String Sí Número de documento de identidad 
+dataCompleta.tipoDocumento String Sí Tipo de documento.  
+dataCompleta.nombreCompleto String Sí Nombre completo del titular 
+dataCompleta.nacionalidad String Sí Código de país ISO 3166-1 alpha-3 
+dataCompleta.tipoCalidad String Sí Tipo de calidad migratoria 
+dataCompleta.estadoMigratorio String Sí Estado migratorio actual 
+dataCompleta.fechaIngreso String (Date) Sí Fecha de ingreso al país 
+dataCompleta.fechaVencimiento String (Date) Sí Fecha de vencimiento de la calidad 
+migratoria 
+dataCompleta.puestoControl String Sí Puesto de control fronterizo de 
+ingreso 
+dataCompleta.numeroCarnet String Sí Número de carnet de extranjería 
+metadata Object Sí Metadatos de la operación 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+8 
+metadata.timestamp String 
+(DateTime) Sí Marca de tiempo de la respuesta en 
+formato ISO 8601 (UTC) 
+metadata.correlationId String 
+(UUID) Sí Identificador único de correlación de 
+la petición 
+metadata.tiempoRespuesta String Sí Tiempo de respuesta de la 
+operación  
+metadata.proveedor String Sí Proveedor del servicio 
+error Object No Objeto qué especifica algún error 
+existente en la operación. 
+error.tipo String No Tipo de error 
+error.titulo String No Título del error 
+error.status integer No Número del estado de error 
+error.errores Array No Listado de errores 
+error.errores[].detalleError String No Detalle del error generado 
+3.1.1.3 Valores para el atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Validación realizada exitosamente 
+400 Bad Request Parámetros inválidos o datos incompletos 
+401 Unauthorized Token JWT inválido o expirado 
+403 Forbidden Sin permisos para consultar el sistema MIGRACIONES 
+404 Not Found Documento no encontrado en el sistema MIGRACIONES 
+ 
+3.1.2 Endpoint. Consultar Padrón Electoral ONPE 
+Consulta el padrón electoral de la ONPE para verificar si un ciudadano está habilitado para votar 
+Atributo Descripción 
+Path /api/v1/externo/MsAdaptadorIntegracionesExternas/onpe/padron-electoral 
+API Gateway Interno 
+Método HTTP POST 
+Protocolo REST/HTTP 
+Headers 
+Authorization: String(Bearer token JWT para autenticación) 
+X-Correlation-ID: UUID ID de correlación para trazabilidad distribuida end-to-end 
+X-Request-Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService) 
+Content-Type: String (application/json 7) 
+X-Retry-Attempt: Integer (Número de intento de retry 0 para primera llamada, 
+máx 3) 
+X-Office-Code: String (Código de oficina RENIEC formato: ORG-LIMA-CENTRO, 
+obligatorio para operaciones presenciales) 
+X-User-Role: String (Rol del usuario autenticado ADMIN, OFICINA, SISTEMA, 
+CONSULTA) 
+Entrada 
+{ 
+  "solicitud": { 
+    "ciudadano": { 
+      "dni": "string", 
+      "nombres": "string", 
+      "apellidoPaterno": "string", 
+      "apellidoMaterno": "string" 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+9 
+    }, 
+    "opciones": { 
+      "verificarEstado": "boolean", 
+      "incluirHistorial": "boolean", 
+      "timeout": "integer" 
+    } 
+  } 
+} 
+Respuesta 
+{ 
+  "esElector": "Boolean", 
+  "estadoElectoral": "String", 
+  "ubigeoElectoral": "String", 
+  "lugarVotacion": "String", 
+  "mesaVotacion": "String", 
+  "grupoVotacion": "String", 
+  "ultimaParticipacion": { 
+    "proceso": "String", 
+    "fecha": "String", 
+    "participo": "Boolean" 
+  }, 
+  "multasPendientes": "Array", 
+  "restricciones": "Array", 
+  "metadata": { 
+    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+    "correlationId": "String", 
+    "tiempoRespuesta": "String", 
+    "proveedor": "String" 
+  } 
+} 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+3.1.2.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+DNI dni String Sí 8 8 
+Nombres nombres String No 2 100 
+Apellido Paterno apellidoPaterno String No 2 100 
+Apellido Materno apellidoMaterno String No 2 100 
+Verificar Estado verificarEstado Boolean No NA NA 
+Incluir Historial incluirHistorial Boolean No NA NA 
+Timeout timeout Integer No 1000 30000 
+ 
+ 
+ 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+10 
+3.1.2.2 Parámetros de Respuesta 
+Nombre Tipo Obligatorio Descripción 
+esElector Boolean Sí Indica si la persona consultada está 
+registrada como elector 
+estadoElectoral String Sí Estado actual del elector.  
+ubigeoElectoral String Sí Código de ubigeo electoral donde está 
+registrado el elector  
+lugarVotacion String Sí Nombre del local de votación asignado 
+mesaVotacion String Sí Número de mesa de votación asignada 
+grupoVotacion String Sí Grupo de votación asignado 
+ultimaParticipacion Object No Información de la última participación 
+electoral 
+ultimaParticipacion.proceso String Sí Nombre del proceso electoral 
+ultimaParticipacion.fecha String (Date) Sí Fecha del proceso electoral en formato 
+ISO 8601 (YYYY-MM-DD) 
+ultimaParticipacion.participo Boolean Sí Indica si el elector participó en el proceso 
+multasPendientes Array[Object] Sí Lista de multas electorales pendientes  
+Restricciones Array[Object] Sí Lista de restricciones o impedimentos 
+electorales 
+Metadata Object Sí Metadatos de la operación 
+metadata.timestamp String 
+(DateTime) Sí Marca de tiempo de la respuesta en 
+formato ISO 8601 (UTC) 
+metadata.correlationId String 
+(UUID) Sí Identificador único de correlación de la 
+petición 
+metadata.tiempoRespuesta String Sí Tiempo de respuesta de la operación 
+metadata.proveedor String Sí Proveedor del servicio 
+error Object No Objeto qué especifica algún error 
+existente en la operación. 
+error.tipo String No Tipo de error 
+error.titulo String No Título del error 
+error.status integer No Número del estado de error 
+error.errores Array No Listado de errores 
+error.errores[].detalleError String No Detalle del error generado 
+3.1.2.3 Valores para el atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Consulta realizada exitosamente 
+400 Bad Request DNI inválido o parámetros incorrectos 
+401 Unauthorized Token JWT inválido o expirado 
+403 Forbidden Sin permisos para consultar padrón electoral 
+404 Not Found DNI no encontrado en padrón electoral 
+408 Request Timeout Timeout al conectar con ONPE 
+429 Too Many Requests Rate limit excedido 
+500 Internal Server Error Error interno del servicio 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+11 
+502 Bad Gateway ONPE no disponible o respuesta inválida 
+503 Service Unavailable Circuit breaker abierto para ONPE 
+504 Gateway Timeout ONPE no respondió en tiempo esperado 
+ 
+3.1.3 Endpoint. Validar DNI en JNE 
+Valida la autenticidad de un DNI consultando el Jurado Nacional de Elecciones 
+Atributo Valor 
+Path /api/v1/externo/MsAdaptadorIntegracionesExternas/jne/validar-dni 
+API Gateway Interno 
+Método HTTP POST 
+Protocolo REST/HTTP 
+Header 
+Authorization: String(Bearer token JWT para autenticación) 
+X-Correlation-ID: UUID ID de correlación para trazabilidad distribuida end-to-
+end 
+X-Request-Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService) 
+Content-Type: String (application/json 7) 
+X-Retry-Attempt: Integer (Número de intento de retry 0 para primera 
+llamada, máx 3) 
+X-Office-Code: String (Código de oficina RENIEC formato: ORG-LIMA-
+CENTRO, obligatorio para operaciones presenciales) 
+X-User-Role: String (Rol del usuario autenticado ADMIN, OFICINA, 
+SISTEMA, CONSULTA) 
+Entrada 
+{ 
+  "solicitud": { 
+    "ciudadano": { 
+      "dni": "string", 
+      "nombres": "string", 
+      "apellidoPaterno": "string", 
+      "apellidoMaterno": "string" 
+    }, 
+    "opciones": { 
+      "validarFirma": "boolean", 
+      "validarFotografia": "boolean", 
+      "timeout": "integer" 
+    } 
+  } 
+} 
+Respuesta 
+{ 
+  "esValido": "Boolean", 
+  "estadoDNI": "String", 
+  "datosIdentidad": { 
+    "dni": "String", 
+    "nombresCompletos": "String", 
+    "fechaNacimiento": "String", 
+    "sexo": "String", 
+    "estadoCivil": "String" 
+  }, 
+  "fechaEmision": "String", 
+  "fechaCaducidad": "String", 
+  "tieneFirma": "Boolean", 
+  "tieneFotografia": "Boolean", 
+  "restricciones": "Array", 
+  "observaciones": "String", 
+  "metadata": { 
+    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+12 
+    "correlationId": "String", 
+    "tiempoRespuesta": "String", 
+    "proveedor": "String" 
+  } 
+} 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+3.1.3.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+DNI dni String Sí 8 8 
+Nombres nombres String No 2 100 
+Apellido Paterno apellidoPaterno String No 2 100 
+Apellido Materno apellidoMaterno String No 2 100 
+Validar Firma validarFirma Boolean No NA NA 
+Validar Fotografía validarFotografia Boolean No NA NA 
+Timeout timeout Integer No 1000 30000 
+ 
+3.1.3.2 Parámetros de Respuesta 
+Nombre Tipo Obligatorio Descripción 
+esValido Boolean Sí Indica si el DNI consultado es válido 
+y está registrado en el sistema 
+estadoDNI String Sí Estado actual del DNI.  
+datosIdentidad Object Sí Datos de identidad completos del 
+ciudadano 
+datosIdentidad.dni String Sí Número de DNI del ciudadano 
+datosIdentidad.nombresCompletos String Sí Nombres y apellidos completos del 
+ciudadano 
+datosIdentidad.fechaNacimiento String (Date) Sí Fecha de nacimiento en formato 
+ISO 8601 (YYYY-MM-DD) 
+datosIdentidad.sexo String Sí Sexo del ciudadano.  
+datosIdentidad.estadoCivil String Sí Estado civil del ciudadano.  
+fechaEmision String (Date) Sí Fecha de emisión del DNI en 
+formato ISO 8601 (YYYY-MM-DD) 
+fechaCaducidad String (Date) Sí Fecha de caducidad del DNI en 
+formato ISO 8601 (YYYY-MM-DD) 
+tieneFirma Boolean Sí Indica si el ciudadano tiene firma 
+registrada en el sistema 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+13 
+tieneFotografia Boolean Sí Indica si el ciudadano tiene 
+fotografía registrada en el sistema 
+restricciones Array[Object] Sí Lista de restricciones o 
+impedimentos legales  
+observaciones String No Observaciones adicionales sobre el 
+documento  
+metadata Object Sí Metadatos de la operación 
+metadata.timestamp String 
+(DateTime) Sí Marca de tiempo de la respuesta en 
+formato ISO 8601 (UTC) 
+metadata.correlationId String 
+(UUID) Sí Identificador único de correlación 
+de la petición 
+metadata.tiempoRespuesta String Sí Tiempo de respuesta de la 
+operación  
+metadata.proveedor String Sí Proveedor del servicio  
+error Object No Objeto qué especifica algún error 
+existente en la operación. 
+error.tipo String No Tipo de error 
+error.titulo String No Título del error 
+error.status integer No Número del estado de error 
+error.errores Array No Listado de errores 
+error.errores[].detalleError String No Detalle del error generado 
+ 
+3.1.3.3 Valores para el atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Validación realizada exitosamente 
+400 Bad Request DNI inválido o parámetros incorrectos 
+401 Unauthorized Token JWT inválido o expirado 
+403 Forbidden Sin permisos para consultar padrón electoral 
+404 Not Found DNI no encontrado en padrón electoral 
+408 Request Timeout Timeout al conectar con ONPE 
+429 Too Many Requests Rate limit excedido 
+500 Internal Server Error Error interno del servicio 
+502 Bad Gateway ONPE no disponible o respuesta inválida 
+503 Service Unavailable Circuit breaker abierto para ONPE 
+504 Gateway Timeout ONPE no respondió en tiempo esperado 
+ 
+3.1.4 Endpoint. Consultar RUC en SUNAT 
+Consulta información tributaria de un contribuyente en SUNAT 
+Atributo Valor 
+Path /api/v1/externo/MsAdaptadorIntegracionesExternas/sunat/ruc 
+API Gateway Interno 
+Método HTTP POST 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+14 
+Protocolo REST/HTTP 
+Headers 
+Authorization: String(Bearer token JWT para autenticación) 
+X-Correlation-ID: UUID ID de correlación para trazabilidad distribuida end-to-end 
+X-Request-Source: String (origen de la solicitud ejm: CoreService, IdentityValidation, 
+SolicitudesService) 
+Content-Type: String (application/json 7) 
+X-Retry-Attempt: Integer (Número de intento de retry 0 para primera llamada, máx 3) 
+X-Office-Code: String (Código de oficina RENIEC formato: ORG -LIMA-CENTRO, 
+obligatorio para operaciones presenciales) 
+X-User-Role: String (Rol del usuario autenticado ADMIN, OFICINA, SISTEMA, 
+CONSULTA) 
+Entrada 
+{ 
+  "ruc": "string", 
+  "razonSocial": "string", 
+  "incluirRepresentantes": "boolean (default: false)", 
+  "incluirDomicilios": "boolean (default: false)", 
+  "incluirActividadEconomica": "boolean (default: true)", 
+  "verificarEstado": "boolean (default: true)", 
+  "timeout": "integer (default: 7000)" 
+} 
+Respuesta 
+{ 
+  "ruc": "String", 
+  "razonSocial": "String", 
+  "tipoContribuyente": "String", 
+  "estadoContribuyente": "String", 
+  "condicionContribuyente": "String", 
+  "fechaInscripcion": "String", 
+  "fechaInicioActividades": "String", 
+  "actividadEconomica": { 
+    "codigo": "String", 
+    "descripcion": "String" 
+  }, 
+  "domicilioFiscal": { 
+    "direccion": "String", 
+    "distrito": "String", 
+    "provincia": "String", 
+    "departamento": "String", 
+    "ubigeo": "String" 
+  }, 
+  "representantesLegales": "Array", 
+  "sistemaEmision": "String", 
+  "sistemaContabilidad": "String", 
+  "comercioExterior": "Boolean", 
+  "emisionElectronica": "Boolean", 
+  "metadata": { 
+    "timestamp": "YYYY-MM-DDThh:mm:ss±hh:mm", 
+    "correlationId": "String", 
+    "tiempoRespuesta": "String", 
+    "proveedor": "String" 
+  } 
+} 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+15 
+3.1.4.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+RUC ruc String Sí 11 11 
+Razón Social razonSocial String No 2 200 
+Incluir Representantes incluirRepresentantes Boolean No NA NA 
+Incluir Domicilios incluirDomicilios Boolean No NA NA 
+Incluir Actividad 
+Económica 
+incluirActividadEconomica Boolean No NA NA 
+Verificar Estado verificarEstado Boolean No NA NA 
+Timeout timeout Integer No 1000 30000 
+ 
+3.1.4.2 Parámetros de Respuesta 
+Nombre Tipo Obligatorio Descripción 
+ruc String Sí Número de RUC del 
+contribuyente  
+razonSocial String Sí Razón social o nombre 
+comercial del contribuyente 
+tipoContribuyente String Sí Tipo de contribuyente.  
+estadoContribuyente String Sí Estado del contribuyente.  
+condicionContribuyente String Sí Condición del 
+contribuyente.  
+fechaInscripcion String (Date) Sí 
+Fecha de inscripción en el 
+RUC en formato ISO 8601 
+(YYYY-MM-DD) 
+fechaInicioActividades String (Date) Sí 
+Fecha de inicio de 
+actividades en formato ISO 
+8601 (YYYY-MM-DD) 
+actividadEconomica Object Sí Actividad económica 
+principal del contribuyente 
+actividadEconomica String Sí Código CIIU de la actividad 
+económica 
+actividadEconomica String Sí Descripción de la actividad 
+económica 
+domicilioFiscal Object Sí Domicilio fiscal del 
+contribuyente 
+domicilioFiscal.direccion String Sí Dirección completa del 
+domicilio fiscal 
+domicilioFiscal.distrito String Sí Distrito del domicilio fiscal 
+domicilioFiscal.provincia String Sí Provincia del domicilio 
+fiscal 
+domicilioFiscal.departamento String Sí Departamento del domicilio 
+fiscal 
+domicilioFiscal.ubigeo String Sí Código de ubigeo del 
+domicilio fiscal 
+representantesLegales[] Array[Object] No Lista de representantes 
+legales del contribuyente 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+16 
+representantesLegales[].dni String Sí DNI del representante legal  
+representantesLegales[].nombreCompleto String Sí Nombre completo del 
+representante legal 
+representantesLegales[].cargo String Sí Cargo del representante 
+legal.  
+representantesLegales[].fechaDesde String (Date) Sí 
+Fecha de inicio del cargo 
+en formato ISO 8601 
+(YYYY-MM-DD) 
+sistemaEmision String Sí Sistema de emisión de 
+comprobantes.  
+sistemaContabilidad String Sí Sistema de contabilidad.  
+comercioExterior Boolean Sí 
+Indica si el contribuyente 
+realiza operaciones de 
+comercio exterior 
+emisionElectronica Boolean Sí 
+Indica si el contribuyente 
+está afecto a emisión 
+electrónica 
+metadata Object Sí Metadatos de la operación 
+metadata.timestamp String 
+(DateTime) Sí 
+Marca de tiempo de la 
+respuesta en formato ISO 
+8601 (UTC) 
+metadata.correlationId String 
+(UUID) Sí Identificador único de 
+correlación de la petición 
+metadata.tiempoRespuesta String Sí Tiempo de respuesta de la 
+operación  
+metadata.proveedor String Sí Proveedor del servicio 
+error Object No 
+Objeto qué especifica algún 
+error existente en la 
+operación. 
+error.tipo String No Tipo de error 
+error.titulo String No Título del error 
+error.status integer No Número del estado de error 
+error.errores Array No Listado de errores 
+error.errores[].detalleError String No Detalle del error generado 
+ 
+3.1.4.3 Valores para el atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Consulta realizada exitosamente 
+400 Bad Request RUC inválido o formato incorrecto 
+401 Unauthorized Token JWT inválido o expirado 
+403 Forbidden Sin permisos para consultar datos de SUNAT 
+404 Not Found RUC no encontrado en sistema SUNAT 
+408 Request Timeout Timeout al conectar con SUNAT 
+429 Too Many Requests Rate limit excedido 
+500 Internal Server Error Error interno del servicio 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+17 
+502 Bad Gateway SUNAT no disponible o respuesta inválida 
+503 Service Unavailable Circuit breaker abierto para SUNAT 
+504 Gateway Timeout SUNAT no respondió en tiempo esperado 
+  
+3.1.5 Endpoint. Consultar Pasaporte en RREE 
+Consulta información de pasaportes peruanos en el Ministerio de Relaciones Exteriores 
+Atributo Valor 
+Path /api/v1/externo/MsAdaptadorIntegracionesExternas/rree/pasaporte 
+API Gateway Interno 
+Método HTTP POST 
+Protocolo REST/HTTP 
+Headers 
+Authorization: String(Bearer token JWT para autenticación) 
+X-Correlation-ID: UUID ID de correlación para trazabilidad distribuida end-to-end 
+X-Request-Source: String (origen de la solicitud ejm: CoreService, 
+IdentityValidation, SolicitudesService) 
+Content-Type: String (application/json 7) 
+X-Retry-Attempt: Integer (Número de intento de retry 0 para primera llamada, máx 
+3) 
+X-Office-Code: String (Código de oficina RENIEC formato: ORG-LIMA-CENTRO, 
+obligatorio para operaciones presenciales) 
+X-User-Role: String (Rol del usuario autenticado ADMIN, OFICINA, SISTEMA, 
+CONSULTA) 
+Entrada 
+{ 
+  "numeroPasaporte": "string", 
+  "dni": "string", 
+  "nombres": "string", 
+  "apellidoPaterno": "string", 
+  "apellidoMaterno": "string", 
+  "verificarVigencia": "boolean (default: true)", 
+  "incluirHistorial": "boolean (default: false)", 
+  "timeout": "integer (default: 6000)" 
+} 
+Respuesta 
+{ 
+  "numeroPasaporte": "string", 
+  "esVigente": "boolean", 
+  "datosPersonales": { 
+    "dni": "string", 
+    "nombres": "string", 
+    "apellidoPaterno": "string", 
+    "apellidoMaterno": "string", 
+    "fechaNacimiento": "string (ISO 8601 UTC)", 
+    "sexo": "string", 
+    "nacionalidad": "string" 
+  }, 
+  "fechaEmision": "string (ISO 8601 UTC)", 
+  "fechaVencimiento": "string (ISO 8601 UTC)", 
+  "lugarEmision": "string", 
+  "autoridad": "string", 
+  "tipo": "string", 
+  "restriccionesViaje": ["string"], 
+  "anotaciones": "string", 
+  "historialPasaportes": ["string"], 
+  "metadata": { 
+    "timestamp": "string (ISO 8601 UTC)", 
+    "correlationId": "string", 
+    "tiempoRespuesta": "string", 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+18 
+    "proveedor": "string" 
+  } 
+} 
+Error Response 
+     "error": { 
+      "tipo": "string", 
+      "titulo": "string", 
+      "estado": "integer", 
+      "errores": [ 
+        { 
+         "detalleError": "string" 
+      } 
+    ] 
+  } 
+ 
+3.1.5.1 Parámetros de Entrada 
+Dato Atributo Tipo Obligatorio Longitud 
+mínima 
+Longitud 
+máxima 
+Número de Pasaporte numeroPasaporte String Condicional 9 9 
+DNI dni String Condicional 8 8 
+Nombres nombres String No 2 100 
+Apellido Paterno apellidoPaterno String No 2 100 
+Apellido Materno apellidoMaterno String No 2 100 
+Verificar Vigencia verificarVigencia Boolean No NA NA 
+Incluir Historial incluirHistorial Boolean No NA NA 
+Timeout timeout Integer No 1000 30000 
+ 
+3.1.5.2 Parámetros de Respuesta 
+Nombre Tipo Obligatorio Descripción 
+numeroPasaporte String Sí Número de pasaporte peruano 
+esVigente Boolean Sí Indica si el pasaporte está 
+vigente actualmente 
+datosPersonales Object Sí Datos personales del titular del 
+pasaporte 
+datosPersonales.dni String Sí Número de DNI del titular 
+datosPersonales.nombres String Sí Nombres del titular 
+datosPersonales.apellidoPaterno String Sí Apellido paterno del titular 
+datosPersonales.apellidoMaterno String Sí Apellido materno del titular 
+datosPersonales.fechaNacimiento String (Date) Sí 
+Fecha de nacimiento en 
+formato ISO 8601 (YYYY -MM-
+DD) 
+datosPersonales.sexo String Sí Sexo del titular.  
+datosPersonales.nacionalidad String Sí Nacionalidad del titular.  
+fechaEmision String (Date) Sí 
+Fecha de emisión del 
+pasaporte en formato ISO 
+8601 (YYYY-MM-DD) 
+fechaVencimiento String (Date) Sí 
+Fecha de vencimiento del 
+pasaporte en formato ISO 
+8601 (YYYY-MM-DD) 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+19 
+lugarEmision String Sí Lugar donde fue emitido el 
+pasaporte 
+autoridad String Sí Autoridad emisora del 
+pasaporte  
+tipo String Sí Tipo de pasaporte.  
+restriccionesViaje Array[Object] Sí Lista de restricciones de viaje  
+anotaciones String No 
+Anotaciones o comentarios 
+adicionales sobre el pasaporte 
+(puede ser null) 
+historialPasaportes[] Array[Object] No Lista de pasaportes anteriores 
+del titular (puede estar vacío) 
+historialPasaportes[].numeroPasaporte String Sí Número del pasaporte anterior 
+historialPasaportes[].fechaEmision String (Date) Sí Fecha de emisión del 
+pasaporte anterior 
+historialPasaportes[].fechaVencimiento String (Date) Sí Fecha de vencimiento del 
+pasaporte anterior 
+historialPasaportes[].estado String Sí 
+Estado del pasaporte anterior. 
+Valores: VENCIDO, 
+ANULADO, PERDIDO, 
+ROBADO 
+metadata Object Sí Metadatos de la operación 
+metadata.timestamp String 
+(DateTime) Sí 
+Marca de tiempo de la 
+respuesta en formato ISO 8601 
+(UTC) 
+metadata.correlationId String 
+(UUID) Sí Identificador único de 
+correlación de la petición 
+metadata.tiempoRespuesta String Sí Tiempo de respuesta de la 
+operación (ej: 520ms) 
+metadata.proveedor String Sí Proveedor del servicio (valor: 
+RREE) 
+error Object No Objeto qué especifica algún 
+error existente en la operación. 
+error.tipo String No Tipo de error 
+error.titulo String No Título del error 
+error.status integer No Número del estado de error 
+error.errores Array No Listado de errores 
+error.errores[].detalleError String No Detalle del error generado 
+ 
+3.1.5.3 Valores para el atributo de statusCode 
+Código Respuesta Descripción 
+200 OK Consulta realizada exitosamente 
+400 Bad Request Número de pasaporte o DNI inválido 
+401 Unauthorized Token JWT inválido o expirado 
+403 Forbidden Sin permisos para consultar datos consulares 
+404 Not Found Pasaporte no encontrado en sistema RREE 
+408 Request Timeout Timeout al conectar con RREE 
+ 
+ 
+Microservicio MsAdaptadorIntegracionesExternas 
+20 
+429 Too Many Requests Rate limit excedido 
+500 Internal Server Error Error interno del servicio 
+502 Bad Gateway RREE no disponible o respuesta inválida 
+503 Service Unavailable Circuit breaker abierto para RREE 
+504 Gateway Timeout RREE no respondió en tiempo esperado 
+ 

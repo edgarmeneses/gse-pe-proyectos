@@ -1,0 +1,558 @@
+   
+ 
+  
+ 
+Microservicio 
+MsDominio PadronElectoral  
+Documento Versión: 1. 1 
+Gestión de Seguridad Electrónica  
+  Fecha generación:  03/12/2025  
+    
+ 
+  
+
+ 
+ 
+Microservicio MsDominioPadronElectoral  2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  CONTROL DE VERSIÓN  
+    
+VERSIÓN  FECHA DE 
+ACTUALIZACIÓN  CARGO  DESCRIPCIÓN  
+1.0 03/11/2025  Arquitecto de Software  Versión inicial del 
+documento  
+1.1 03/12/2025  Arquitecto de Software  Se modifica la operacion, 
+Generar Padron Electoral  
+    
+    
+    
+ 
+ 
+Microservicio MsDominioPadronElectoral  3 
+ 
+Tabla de contenido  
+1 CONTEXTO  ................................ ................................ ................................ ................................ ...............  4 
+2 INTRODUCCIÓN  ................................ ................................ ................................ ................................ ....... 4 
+2.1 Justificación de la Arquitectura de Microservicios  ................................ ................................ .............  4 
+2.2 Arquitectura de Referencia  ................................ ................................ ................................ ................  4 
+2.3 Códigos de Respuesta HTTP Estándar  ................................ ................................ .............................  4 
+3 CATÁLOGO DE MICROSERVICIOS  ................................ ................................ ................................ ........  5 
+3.1 Microservicio MsDominioPadronElectoral  ................................ ................................ .........................  5 
+3.1.1 Endpoint: GenerarPadronElectoral  ................................ ................................ ............................  5 
+3.1.2 Endpoint: ActualizarPadronElectoral  ................................ ................................ .........................  7 
+3.1.3 Endpoint: ObtenerPadronesElectorales ................................ ................................ .....................  9 
+3.1.4 Endpoint: ObtenerPadronElectoral  ................................ ................................ ..............................  11 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+Microservicio MsDominioPadronElectoral  4 
+1 CONTEXTO  
+El Registro Nacional de Identificación y Estado Civil (RENIEC) es el organismo técnico autónomo encargado 
+de la identificación de los peruanos, otorgar el Documento Nacional de Identidad (DNI) y registrar los hechos 
+vitales. En el marco de la modernización  y transformación digital del Estado peruano, RENIEC ha desarrollado 
+el DNI Electrónico (DNIe), un documento de identidad que incorpora tecnología de chip y biometría, 
+permitiendo la autenticación electrónica de ciudadanos y facilitando servicios digitales  seguros.  
+2 INTRODUCCIÓN  
+Este documento describe el catálogo de microservicios  identificados para la solución de Personalización 
+del DNIe de RENIEC. El objetivo es establecer una arquitectura técnica moderna, escalable y mantenible que 
+reemplace o complemente los sistemas monolíticos actuales mediante una transición ordenada hacia u na 
+arquitectura orientada a microservicios.  
+2.1 Justificación de la Arquitectura de 
+Microservicios  
+La adopción de microservicios para esta solución responde a necesidades técnicas y operativas 
+concretas:  
+Escalabilidad Independiente:  Componentes con cargas diferenciadas pueden escalar de forma 
+independiente según demanda real, optimizando recursos de infraestructura.  
+Resiliencia y Tolerancia a Fallos:  El fallo de un microservicio no compromete servicios críticos. Los 
+patrones Circuit Breaker y Retry garantizan continuidad operativa.  
+Agilidad en el Desarrollo:  Equipos autónomos pueden desarrollar, probar y desplegar servicios de 
+manera independiente, reduciendo tiempos de entrega.  
+Mantenibilidad y Evolución Tecnológica:  Cada servicio puede evolucionar tecnológicamente sin 
+afectar al ecosistema completo.  
+Trazabilidad y Observabilidad:  Arquitectura distribuida permite implementar logging centralizado, 
+distributed tracing y métricas granulares.  
+2.2 Arquitectura de Referencia  
+La solución se estructura en tres capas principales:  
+Capa de Exposición (API Management Layer):  API Manager como punto único de entrada con 
+gestión centralizada de seguridad, throttling y versionado.  
+Capa de Representación (Microservices Layer):  Microservicios de negocio con lógica específica de 
+dominio y responsabilidad única.  
+Capa de Integración (Integration Layer):  Event Streaming para comunicación asíncrona y conectores 
+a sistemas legados.  
+2.3 Códigos de Respuesta HTTP Estándar  
+Todos los microservicios implementan un conjunto estandarizado de códigos de respuesta HTTP para 
+garantizar consistencia:  
+Código  Descripción  
+200 OK - Operación completada exitosamente  
+201 Created - Recurso creado exitosamente  
+400 Bad Request - Parámetros inválidos o datos incompletos  
+401 Unauthorized - Token JWT inválido, expirado o ausente  
+403 Forbidden - Sin permisos suficientes para ejecutar la operación  
+ 
+ 
+Microservicio MsDominioPadronElectoral  5 
+404 Not Found - Recurso no encontrado en el sistema  
+408 Request Timeout - Tiempo de espera agotado al conectar  
+409 Conflict - Conflicto con el estado actual del recurso  
+422 Unprocessable Entity - Datos válidos pero no procesables por reglas de negocio  
+429 Too Many Requests - Límite de rate limit excedido  
+500 Internal Server Error - Error interno del servicio (información generalizada al exterior, 
+detalle en logs)  
+502 Bad Gateway - Servicio externo no disponible o respuesta inválida  
+503 Service Unavailable - Servicio temporalmente no disponible o Circuit Breaker abierto  
+504 Gateway Timeout - Servicio externo no respondió en tiempo esperado  
+ 
+3 CATÁLOGO DE MICROSERVICIOS  
+3.1 Microservicio MsDominioPadronElectoral  
+El Microservicio Padrón Electoral tiene como propósito principal la gestión integral del Padrón 
+Electoral en Perú. Su función es generar, mantener y servir los listados finales y definitivos de 
+personas habilitadas para votar, así como las circunscripciones asociadas, para  ser consumidos 
+por los diferentes servicios electorales del sistema.  
+3.1.1  Endpoint: GenerarPadronElectoral  
+Se crea un padrón inicial, preliminar o final en el sistema.  
+Atributo  Valor  
+Path  /api/v1/electoral/MsDominioPadronElectoral  
+API Gateway  Interno  
+Método HTTP  POST  
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Entrada  { 
+"tipoPadron": "string",  
+"circunscripcion": {  
+    "estructura": {  
+      "departamento": "string",  
+      "provincia": "string",  
+      "distrito": "string"  
+    } 
+  } 
+} 
+Respuesta  { 
+  "idPadron": "string",  
+  "listaCiudadanos": [  
+     { 
+        "nombre": "string",  
+        "documento": "string",  
+        "direccion": "string"  
+      } 
+ 
+ 
+Microservicio MsDominioPadronElectoral  6 
+   ], 
+  "tipoPadron": "string",  
+  "fechaCreacion": "YYYY -MM-DDThh:mm:ssZ"  
+ } 
+ 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.1.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Tipo de padron  tipoProceso  String  Sí 1 20 
+Circunscripcion  circunscripcion  String  Sí - - 
+Departamento  Circunscripcion.departamento  String  Sí 1 20 
+Distrito  Circunscripcion.distrito  String  Sí 1 20 
+Provincia  Circunscripcion.provincia  String  Sí 1 20 
+ 
+3.1.1.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+idPadron  String  Sí Identificador del padrón  
+listaCiudadanos  String  Sí Listado de ciudadanos generados por 
+el padrón según la información de la 
+circunscripción  
+ListaCiudadanos.nombre  String  Sí Nombre del ciudadano identificado  
+ListaCiudadanos.documento  String  Sí Número de documento del ciudadano  
+ListaCiudadanos.direccion  String  Sí Dirección de residencia del ciudadano.  
+tipoPadron  String  Sí Como es creación inicia como padrón 
+inicial  
+fechaCreacion  String 
+(Date ISO 
+8601)  Sí Fecha de registro del padrón en el 
+sistema  
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+ 
+ 
+Microservicio MsDominioPadronElectoral  7 
+3.1.1.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+201 Created  Padrón creado exitosamente  
+400 Bad Request  Parámetros inválidos  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para crear un padrón  
+404 Not Found  Provincias no existentes  
+409 Conflict  Padrón duplicado  
+422 Unprocessable Entity  Destinatario en lista negra, sin consentimiento, o 
+datos bloqueados por el ciudadano  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+502 Bad Gateway  Todos los proveedores externos no disponibles  
+503 Service Unavailable  Servicio temporalmente no disponible  
+ 
+3.1.2  Endpoint: ActualizarPadronElectoral  
+Se actualiza el padrón en el sistema.  
+Atributo  Valor  
+Path  /api/v1/electoral/MsDominioPadronElectoral/{id}  
+API Gateway  Interno  
+Método HTTP  PUT 
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Entrada  { 
+  "usuarioResponsableId": "string",  
+  "tipoPadron": "string",  
+  "informeFinalVerificacionDomicilioId": "string",  
+  "tipoVerificacion": "string"   
+} 
+Respuesta  { 
+  "idPadron": "string",  
+  "listaCiudadanos": [  
+     { 
+        "nombre": "string",  
+        "documento": "string",  
+        "direccion": "string"  
+      } 
+  ], 
+  "fechaCreacion": "YYYY -MM-DDThh:mm:ssZ",  
+  "fechaActualizacion": "YYYY -MM-DDThh:mm:ssZ",  
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+ 
+ 
+Microservicio MsDominioPadronElectoral  8 
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.2.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+Identificador 
+padron  id String  Sí - - 
+Usuario 
+responsable de 
+la actualizacion  usuarioResponsableId  String  Sí 1 20 
+Tipo de padron  tipoPadron  String  Sí 1 20 
+Identificador 
+del informe de 
+verificación de 
+domicilio  informeFinalVerificacionDomicilioId  String  Sí 1 20 
+ 
+3.1.2.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+idPadron  String  Sí Identificador del padrón  
+listaCiudadanos  Arrayobject  Sí Listado de ciudadanos generados por 
+el padrón según la información de la 
+circunscripción  
+ListaCiudadanos[].nombre  String  Sí Nombre del ciudadano identificado  
+ListaCiudadanos[].documento  String  Sí Número de documento del ciudadano  
+ListaCiudadanos[].direccion  String  Sí Dirección de residencia del ciudadano.  
+tipoPadron  String  Sí Como es creación inicia como padrón 
+inicial  
+fechaCreacion  String  Sí Fecha de registro del padrón en el 
+sistema  
+fechaActualizacion  String  Sí Fecha de la última actualización del 
+padrón en el sistema  
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+  
+ 
+ 
+Microservicio MsDominioPadronElectoral  9 
+3.1.2.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 Created  Padrón actualizado exitosamente  
+400 Bad Request  Parámetros inválidos  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para actualizar el padrón  
+404 Not Found  padrón no encontrado  
+422 Unprocessable Entity  Destinatario en lista negra, sin consentimiento, o 
+datos bloqueados por el ciudadano  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+502 Bad Gateway  Todos los proveedores externos no disponibles  
+503 Service Unavailable  Servicio temporalmente no disponible  
+ 
+3.1.3  Endpoint: ObtenerPadronesElectorales  
+Obtener listado de padrones según filtros.  
+Atributo  Valor  
+Path  /api/v1/electoral/MsDominioPadronElectoral  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Parámetros  • texto (string):  Cadena utilizada como criterio de filtrado.  
+• fecha (string):  Fecha empleada como filtro.  
+• queryParam3 (string):  Parámetro adicional para filtrado o 
+búsqueda.  
+• page (integer):  Número de página para la paginación.  
+• size (integer):  Cantidad de registros por página.  
+Respuesta  { 
+  "padron": {  
+    "idPadron": "string",  
+    "listaCiudadanos": [  
+      { 
+         "nombre": "string",  
+          "documento": "string",  
+          "direccion": "string"  
+       } 
+    ], 
+    "fechaCreacion": "YYYY -MM-DDThh:mm:ssZ"  
+    }, 
+    "actualizacionPadron": [  
+      { 
+        "fechaActualizacion": "YYYY -MM-DDThh:mm:ssZ",  
+        "usuarioResponsableId": "string",  
+        "informeFinalVerificacionDomicilioId": "string"  
+ 
+ 
+Microservicio MsDominioPadronElectoral  10 
+      } 
+    ], 
+    "tipoPadron": "string",  
+    "tipoProceso": "string"  
+  }, 
+  "page": "integer",  
+  "number": "integer",  
+  "size": "integer",  
+  "totalElements": "integer",  
+  "totalPages": "integer",  
+  "hasNext": "boolean",  
+  "contenido": [  
+    { 
+        "idPadron": "string",  
+        "tipoPadron": "string",  
+        "circunscripcion": "string",  
+        "tipoProceso": "string",  
+        "fechaCreacion": "YYYY -MM-DDThh:mm:ssZ" , 
+        "cantidadCiudadanos": "integer"  
+    } 
+  ] 
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.3.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+page  page  Integer  Sí 1 - 
+size size Integer  Sí 1  
+Texto busqueda  texto  String  No 1 20 
+Fecha busqueda  fecha  String  No 1 20 
+queryParam3  filterParam3  String  No 1 20 
+ 
+3.1.3.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+number  Integer  Si Número de la Página actual  
+size Integer  Sí Tamaño de página actual  
+totalElements  Long  Sí Cantidad de elementos encontrados  
+totalPages  Integer  Sí Número total de páginas disponibles  
+hasNext  Boolean  Sí Indica si existen más paginas 
+disponibles después de la actual  
+contenido  Arrayobject  Sí Lista de alerta obtenida según el filtro  
+Contenido.idPadron  String  Sí Identificador del padrón  
+ 
+ 
+Microservicio MsDominioPadronElectoral  11 
+Contenido. tipoPadron  String  Sí Tipo de padrón  
+Contenido. tipoProceso  String  Sí Tipo de proceso del padrón  
+Contenido.fechaCreacion  String  Sí Fecha de creación del padrón  
+Contenido. cantidadCiudadanos  Integer  Sí Número de ciudadanos adscritos al 
+padrón  
+Contenido. circunscripcion  String  Sí Información de la circunscripción a la 
+qué pertenece el padrón  
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.3.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 OK Padrones consultados exitosamente  
+400 Bad Request  Parámetros inválidos  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para obtener el padrón  
+404 Not Found  Padron no encontrado  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+502 Bad Gateway  Todos los proveedores externos no disponibles  
+503 Service Unavailable  Servicio temporalmente no disponible  
+ 
+3.1.4  Endpoint: ObtenerPadronElectoral  
+Obtener la información específica de un padrón.  
+Atributo  Valor  
+Path  /api/v1/electoral/MsDominioPadronElectoral  
+API Gateway  Interno  
+Método HTTP  GET 
+Protocolo  REST/HTTP  
+Headers  Content -Type: multipart/form -data 
+Authorization: String (Bearer token JWT para autenticación)  
+X-Correlation -ID: UUID (ID de correlación para trazabilidad)  
+X-Office -Code: String (Código de oficina de origen, formato: ORG -LIMA -
+CENTRO)  
+Parámetros  • id (string):  Identificador utilizado para realizar la consulta.  
+• page (integer):  Número de página para la paginación.  
+• size (integer):  Cantidad de registros por página.  
+Respuesta  { 
+  "padron": {  
+ 
+ 
+Microservicio MsDominioPadronElectoral  12 
+    "fechaCreacion": "YYYY -MM-DDThh:mm:ssZ",  
+    "actualizacionPadron": [  
+      { 
+        "fechaActualizacion": "YYYY -MM-DDThh:mm:ssZ",  
+        "usuarioResponsableId": "string",  
+        "informeFinalVerificacionDomicilioId": "string"  
+      } 
+    ], 
+    "tipoPadron": "string",  
+    "tipoProceso": "string"  
+  }, 
+  "page": "integer",  
+  "number": "integer",  
+  "size": "integer",  
+  "totalElements": "integer",  
+  "totalPages": "integer",  
+  "hasNext": "boolean",  
+  "listaCiudadanos": [  
+    { 
+     "nombre": "string",  
+      "documento": "string",  
+      "direccion": "string"  
+    } 
+ ]   
+} 
+Error Response    "error": {  
+    "tipo": "string",  
+    "titulo": "string",  
+    "estado": "integer",  
+    "errores": [  
+      { 
+        "detalleError": "string"  
+      } 
+    ] 
+  } 
+ 
+3.1.4.1  Parámetros por Entrada  
+Dato  Atributo  Tipo  Obligatorio  Longitud 
+Mínima  Longitud 
+Máxima  
+page  page  Integer  Sí 1 - 
+size size Integer  Sí 1  
+id Padron.id  String  Sí - - 
+3.1.4.2  Parámetros de Respuesta  
+Nombre  Tipo  Obligatorio  Descripción  
+number  Integer  Si Número de la Página actual  
+size Integer  Sí Tamaño de página actual  
+totalElements  Long  Sí Cantidad de elementos 
+encontrados  
+totalPages  Integer  Sí Número total de páginas 
+disponibles  
+hasNext  Boolean  Sí Indica si existen más paginas 
+disponibles despues de la actual  
+ 
+ 
+Microservicio MsDominioPadronElectoral  13 
+Listaciudadano  Arrayobject  Sí Lista de ciudadanos  
+ListaCiudadano.nombre  String  Sí Nombre del ciudadano  
+ListaCiudadano.documento  String  Sí Documento del ciudadano  
+ListaCiudadano.direccion  String  Sí Dirección del ciudadano  
+Contenido.fechaCreacion  String  Sí Fecha de creación del padrón  
+Contenido. circunscripcion  String  Sí Información de la circunscripción a 
+la qué pertenece el padrón  
+padron.fechaCreacion  String  Sí Fecha en que se creó el padrón.  
+padron.actualizacionPadron  Array  Sí Lista de actualizaciones realizadas 
+al padrón  
+Padron.actualizacionPadron. 
+fechaActualizacion  String  Sí Fecha en la que se ejecutó la 
+actualización.  
+Padron.actualizacionPadron. 
+usuarioResponsableId  String  Sí Identificador del usuario que realizó 
+la actualización.  
+Padron.actualizacionPadron. 
+informeFinalVerificacionDomicilioId  String  Sí Identificador del informe del acta 
+soporte  
+error  Object  No Objeto qué especifica algún error 
+existente en la operación.  
+error.tipo  String  No Path de la ruta con error  
+error.titulo  String  No Título del error  
+error.status  Integer  No Número del estado de error  
+error.errores  Arrayobject  No Listado de errores  
+ 
+3.1.4.3  Valores para el Atributo de statusCode  
+Código  Respuesta  Descripción  
+200 Created  Padrón consultado exitosamente  
+400 Bad Request  Parámetros inválidos  
+401 Unauthorized  Token JWT inválido, expirado o ausente  
+403 Forbidden  Sin permisos para obtener el padrón  
+404 Not Found  Padrón no encontrado  
+429 Too Many Requests  Límite de rate limit excedido  
+500 Internal Server Error  Error interno del servidor  
+502 Bad Gateway  Todos los proveedores externos no disponibles  
+503 Service Unavailable  Servicio temporalmente no disponible  
+ 
+ 
+ 
+ 
+ 
